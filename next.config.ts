@@ -5,7 +5,8 @@ import type { NextConfig } from "next";
  * Do NOT delete this folder on every dev start — see scripts/dev.mjs.
  */
 const nextConfig: NextConfig = {
-  distDir: "node_modules/.cache/next",
+  // Vercel expects the default `.next` output; custom distDir is for local OneDrive only.
+  ...(process.env.VERCEL ? {} : { distDir: "node_modules/.cache/next" }),
   images: {
     remotePatterns: [
       {

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { Resend } from "resend";
-import { getResendFromEmail, getResendSandboxInbox, isResendSandboxMode } from "@/lib/contact-server";
+import { getResendFromEmail, getResendSandboxInbox } from "@/lib/contact-server";
 
 export type TransactionalEmail = {
   to: string | string[];
