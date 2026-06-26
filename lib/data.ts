@@ -413,15 +413,15 @@ export const whyChoose = [
 ];
 
 export const heroStats = [
-  { value: "3000+", label: "Placements Completed" },
+  { value: "3,000+", label: "Placements Completed" },
   { value: "40+", label: "Partner Organizations" },
   { value: "24/7", label: "Urgent Response Time" },
   { value: "Nationwide", label: "Service Region" },
 ];
 
 export const platformStats = [
-  { end: 3000, suffix: "+", label: "Placements Completed", description: "Professionals placed across staffing and home care since 2021" },
-  { end: 40, suffix: "+", label: "Partner Organizations", description: "Facilities, agencies, and families we support" },
+  { end: 3000, suffix: "+", label: "Placements Completed", description: "Professionals placed across staffing and home care since 2021", display: "3,000+" },
+  { end: 40, suffix: "+", label: "Partner Organizations", description: "Facilities, agencies, and families we support", display: "40+" },
   { end: 24, suffix: "/7", label: "Urgent Response", description: "Live support for staffing and care requests any time", display: "24/7" },
   { end: 0, suffix: "", label: "Nationwide Coverage", description: "All 50 states and Washington, D.C.", display: "Nationwide" },
   { end: 5, suffix: "", label: "Years of Service", description: "Building trust since our founding in 2021", display: "5" },
