@@ -8,9 +8,9 @@ import { createMetadata } from "@/lib/seo";
 import { staffingPageSchema } from "@/lib/schema";
 
 export const metadata = createMetadata({
-  title: "Nurse Staffing Agency & Healthcare Staffing",
+  title: "Nurse Staffing Agency — RN, LPN, CNA & Travel Nurses",
   description:
-    "Sompacare is a nurse staffing agency providing RN, LPN, CNA, travel nurse, per diem, and permanent healthcare staffing for hospitals and care facilities nationwide.",
+    "Sompacare is a nationwide nurse staffing agency providing RN, LPN, CNA, travel nurse, per diem, and permanent healthcare staffing for hospitals, skilled nursing, and senior living facilities.",
   path: "/staffing",
   keywords: [
     "Nurse Staffing Agency",

@@ -2,19 +2,12 @@ export const siteConfig = {
   name: "Sompacare",
   tagline: "Healthcare Staffing, Home Care & Workforce Solutions",
   description:
-    "Sompacare delivers healthcare staffing, in-home care, and workforce solutions nationwide — serving hospitals, care facilities, and families since 2021.",
+    "Sompacare is a nationwide healthcare staffing agency and nurse staffing agency providing RN, LPN, CNA, and travel nurse placement, in-home care, medical staffing, and healthcare workforce solutions for hospitals, senior living, and families.",
   url: "https://sompacare.com",
   founded: "2021",
   phone: "(240) 676-1208",
   phoneHref: "tel:+12406761208",
   email: "info@sompacare.com",
-  address: {
-    street: "1200 Healthcare Parkway, Suite 400",
-    city: "Atlanta",
-    state: "GA",
-    zip: "30309",
-    full: "1200 Healthcare Parkway, Suite 400, Atlanta, GA 30309",
-  },
 };
 
 export const navLinks = [
@@ -261,24 +254,21 @@ export const aboutStory = {
 
 export const leadership = [
   {
-    name: "Michael Torres",
-    role: "Chief Executive Officer",
-    bio: "12 years in healthcare operations and workforce strategy across hospital and home care settings.",
-    initials: "MT",
+    title: "Executive Leadership",
+    bio: "Guides Sompacare's nationwide strategy across staffing, home care, and workforce solutions for healthcare partners.",
+    icon: "MT",
     color: "#0B5ED7",
   },
   {
-    name: "Dr. Rachel Kim",
-    role: "Chief Clinical Officer",
-    bio: "Former nursing director with expertise in clinical staffing, home care standards, and compliance.",
-    initials: "RK",
+    title: "Clinical Operations",
+    bio: "Oversees clinical standards, credentialing rigor, and quality expectations for every placement and care engagement.",
+    icon: "CO",
     color: "#059669",
   },
   {
-    name: "David Patterson",
-    role: "Chief Operations Officer",
-    bio: "Leads day-to-day operations across staffing, home care coordination, and client onboarding.",
-    initials: "DP",
+    title: "Workforce Operations",
+    bio: "Leads day-to-day staffing coordination, partner onboarding, and responsive coverage for facilities and families.",
+    icon: "WO",
     color: "#1D4ED8",
   },
 ];
@@ -312,55 +302,37 @@ export const testimonials = [
   {
     quote:
       "When our ICU census spiked, Sompacare placed four credentialed RNs within 36 hours. Every clinician arrived with completed credential files, and we maintained safe staffing ratios without pulling from other units or relying on excessive overtime.",
-    name: "Patricia Holloway",
-    role: "Hospital Administrator",
     organization: "Fox Chase Health Care",
-    initials: "PH",
     color: "#0B5ED7",
   },
   {
     quote:
       "Sompacare has become an extension of our nursing leadership team. Their per diem and contract RNs integrate quickly, follow our protocols, and have helped us reduce open shift vacancies by 32% over the past two quarters.",
-    name: "Michelle Okafor",
-    role: "Director of Nursing",
     organization: "Genesis Healthcare",
-    initials: "MO",
     color: "#1D4ED8",
   },
   {
     quote:
       "Staffing consistency was our biggest challenge across our senior living communities. Sompacare filled recurring LPN and CNA gaps, improved our weekend coverage, and gave us predictable labor costs we could actually budget against.",
-    name: "Robert Gaines",
-    role: "Executive Director",
     organization: "Paramount Senior Living",
-    initials: "RG",
     color: "#059669",
   },
   {
     quote:
       "We needed a partner who understood survey readiness and documentation standards. Sompacare's compliance process is thorough — licenses verified, onboarding completed, and staff placed before they ever step on the floor.",
-    name: "Linda Vasquez",
-    role: "Administrator",
     organization: "Genesis Healthcare",
-    initials: "LV",
     color: "#0F766E",
   },
   {
     quote:
       "Clinical surge support from Sompacare helped Fox Chase maintain quality care during our busiest season. Their team understood our protocols and delivered credentialed professionals when we needed them most.",
-    name: "David Okonkwo",
-    role: "Director of Clinical Operations",
     organization: "Fox Chase Health Care",
-    initials: "DO",
     color: "#2563EB",
   },
   {
     quote:
       "Beyond filling shifts, Sompacare helped Paramount rethink workforce planning. Their recruitment support and retention strategies reduced turnover and strengthened the culture across our communities.",
-    name: "Jennifer Walsh",
-    role: "Chief Nursing Officer",
     organization: "Paramount Senior Living",
-    initials: "JW",
     color: "#047857",
   },
 ];
@@ -493,8 +465,6 @@ export const caseStudies = [
       { metric: "100%", label: "Shift coverage maintained" },
     ],
     quote: "Sompacare maintained safe staffing ratios without pulling from other units or relying on excessive overtime.",
-    author: "Patricia Holloway",
-    role: "Hospital Administrator",
     color: "#0B5ED7",
   },
   {
@@ -512,8 +482,6 @@ export const caseStudies = [
       { metric: "18%", label: "Labor cost savings" },
     ],
     quote: "Sompacare filled recurring gaps, improved weekend coverage, and gave us predictable labor costs.",
-    author: "Michelle Okafor",
-    role: "Director of Nursing",
     color: "#059669",
   },
   {
@@ -531,8 +499,6 @@ export const caseStudies = [
       { metric: "4.8/5", label: "Staff satisfaction" },
     ],
     quote: "Sompacare became an extension of our leadership team — integrating quickly and following our care standards.",
-    author: "Robert Gaines",
-    role: "Executive Director",
     color: "#1D4ED8",
   },
 ];
@@ -546,9 +512,6 @@ export const successStories = [
     image: "hospitalWard" as const,
     summary: "When census spiked across critical units, Sompacare delivered credentialed RNs with complete credential files — keeping patient care standards high under pressure.",
     impact: "100% shift coverage maintained during 40% ICU census increase",
-    author: "Patricia Holloway",
-    role: "Hospital Administrator",
-    initials: "PH",
     color: "#0B5ED7",
   },
   {
@@ -559,9 +522,6 @@ export const successStories = [
     image: "nursingCare" as const,
     summary: "A partner who understood survey readiness and documentation standards — licenses verified, onboarding completed, staff placed before they ever touched the floor.",
     impact: "Zero compliance findings related to agency staff in last survey cycle",
-    author: "Linda Vasquez",
-    role: "Administrator",
-    initials: "LV",
     color: "#059669",
   },
   {
@@ -572,9 +532,6 @@ export const successStories = [
     image: "patientConsult" as const,
     summary: "Sompacare helped rethink workforce planning with recruitment support and retention strategies that strengthened culture across every community.",
     impact: "22% reduction in annual caregiver turnover within 12 months",
-    author: "Jennifer Walsh",
-    role: "Chief Nursing Officer",
-    initials: "JW",
     color: "#1D4ED8",
   },
 ];
@@ -585,7 +542,7 @@ export const blogPosts = [
     title: "Navigating the 2026 Healthcare Staffing Shortage",
     excerpt: "How hospitals and health systems are using flexible staffing models, technology, and strategic partnerships to maintain safe patient ratios.",
     category: "Industry Insights",
-    author: "Michael Torres",
+    author: "Sompacare Team",
     date: "2026-03-15",
     readTime: "6 min read",
     image: "staffing-shortage",
@@ -595,7 +552,7 @@ export const blogPosts = [
     title: "7 Proven Nurse Retention Strategies for 2026",
     excerpt: "Data-driven approaches to reducing turnover, improving engagement, and building a sustainable clinical workforce in competitive markets.",
     category: "Workforce Management",
-    author: "Dr. Rachel Kim",
+    author: "Sompacare Team",
     date: "2026-02-28",
     readTime: "8 min read",
     image: "retention",
@@ -605,7 +562,7 @@ export const blogPosts = [
     title: "Travel Nursing Trends: What Healthcare Leaders Need to Know",
     excerpt: "Market shifts, rate normalization, and how facilities are balancing travel, contract, and permanent staffing for long-term stability.",
     category: "Staffing Trends",
-    author: "David Patterson",
+    author: "Sompacare Team",
     date: "2026-02-10",
     readTime: "5 min read",
     image: "travel-nursing",
@@ -615,7 +572,7 @@ export const blogPosts = [
     title: "The Complete Guide to Healthcare Credentialing & Compliance",
     excerpt: "Best practices for license verification, background checks, and audit-ready documentation across multi-site healthcare organizations.",
     category: "Compliance",
-    author: "Dr. Rachel Kim",
+    author: "Sompacare Team",
     date: "2026-01-22",
     readTime: "10 min read",
     image: "compliance",
@@ -625,7 +582,7 @@ export const blogPosts = [
     title: "Per Diem vs. Contract Staffing: Choosing the Right Model",
     excerpt: "A practical framework for evaluating per diem, contract, and permanent placement strategies based on census patterns and budget goals.",
     category: "Staffing Strategy",
-    author: "Michael Torres",
+    author: "Sompacare Team",
     date: "2026-01-08",
     readTime: "7 min read",
     image: "staffing-models",
@@ -635,7 +592,7 @@ export const blogPosts = [
     title: "Long-Term Care Staffing: Best Practices for 2026",
     excerpt: "How skilled nursing and assisted living facilities are building reliable CNA and LPN pipelines for consistent coverage and survey readiness.",
     category: "Long-Term Care",
-    author: "David Patterson",
+    author: "Sompacare Team",
     date: "2025-12-18",
     readTime: "6 min read",
     image: "ltc",

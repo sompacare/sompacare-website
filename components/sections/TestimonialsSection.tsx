@@ -5,17 +5,13 @@ import { StarIcon } from "@/components/icons";
 import { Container, Section, SectionHeading } from "@/components/ui/Primitives";
 import { testimonials } from "@/lib/data";
 
-function Avatar({ initials, color, name }: { initials: string; color: string; name: string }) {
-  return (
-    <div
-      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-lg"
-      style={{ backgroundColor: color }}
-      role="img"
-      aria-label={`Photo of ${name}`}
-    >
-      {initials}
-    </div>
-  );
+function organizationInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 export function TestimonialsSection({ limit }: { limit?: number }) {
@@ -33,7 +29,7 @@ export function TestimonialsSection({ limit }: { limit?: number }) {
         <div className="mt-16 grid gap-8 lg:grid-cols-3">
           {items.map((t, i) => (
             <motion.blockquote
-              key={t.name}
+              key={`${t.organization}-${i}`}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -49,11 +45,16 @@ export function TestimonialsSection({ limit }: { limit?: number }) {
                 &ldquo;{t.quote}&rdquo;
               </p>
               <footer className="mt-8 flex items-center gap-4 border-t border-slate-200 pt-6">
-                <Avatar initials={t.initials} color={t.color} name={t.name} />
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-lg"
+                  style={{ backgroundColor: t.color }}
+                  aria-hidden
+                >
+                  {organizationInitials(t.organization)}
+                </div>
                 <div>
-                  <p className="text-sm font-bold text-brand-navy">{t.name}</p>
-                  <p className="text-xs text-brand-slate">{t.role}</p>
-                  <p className="text-xs font-semibold text-brand-blue">{t.organization}</p>
+                  <p className="text-sm font-bold text-brand-navy">{t.organization}</p>
+                  <p className="text-xs font-semibold text-brand-blue">Partner Organization</p>
                 </div>
               </footer>
             </motion.blockquote>

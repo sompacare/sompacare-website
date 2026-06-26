@@ -3,20 +3,35 @@ import { siteConfig } from "./data";
 
 export const SEO_KEYWORDS = [
   "Healthcare Staffing",
+  "Healthcare Staffing Agency",
   "Medical Staffing Agency",
-  "Healthcare Workforce Solutions",
   "Nurse Staffing Agency",
+  "Healthcare Workforce Solutions",
   "Healthcare Recruitment",
+  "Clinical Staffing",
+  "Hospital Staffing Agency",
   "RN Staffing",
   "LPN Staffing",
   "CNA Staffing",
+  "Travel Nurse Staffing",
   "Travel Nurses",
   "Per Diem Staffing",
-  "Permanent Placement",
-  "Healthcare HR",
-  "Credential Verification",
-  "Healthcare Compliance",
-  "Clinical Staffing",
+  "Per Diem Nursing",
+  "Permanent Healthcare Placement",
+  "Healthcare Staffing Company",
+  "Nationwide Healthcare Staffing",
+  "Senior Living Staffing",
+  "Long-Term Care Staffing",
+  "Skilled Nursing Staffing",
+  "In-Home Care Services",
+  "Home Care Agency",
+  "Healthcare HR Solutions",
+  "Healthcare Credentialing",
+  "Healthcare Compliance Staffing",
+  "Temporary Nursing Staff",
+  "Contract Nursing Staff",
+  "Healthcare Talent Acquisition",
+  "Workforce Planning Healthcare",
 ] as const;
 
 type PageSEO = {
@@ -74,14 +89,24 @@ export function createMetadata({
     },
     robots: noIndex
       ? { index: false, follow: false }
-      : { index: true, follow: true, googleBot: { index: true, follow: true } },
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        },
     category: "Healthcare",
   };
 }
 
 export const defaultSiteMetadata: Metadata = {
   title: {
-    default: `${siteConfig.name} | Healthcare Staffing & Nurse Staffing Agency`,
+    default: `${siteConfig.name} | Healthcare Staffing Agency, Nurse Staffing & Home Care`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -101,7 +126,7 @@ export const defaultSiteMetadata: Metadata = {
     locale: "en_US",
     url: siteConfig.url,
     siteName: siteConfig.name,
-    title: `${siteConfig.name} | Healthcare Staffing & Nurse Staffing Agency`,
+    title: `${siteConfig.name} | Healthcare Staffing Agency, Nurse Staffing & Home Care`,
     description: siteConfig.description,
     images: [
       {
@@ -114,14 +139,20 @@ export const defaultSiteMetadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Healthcare Staffing & Nurse Staffing Agency`,
+    title: `${siteConfig.name} | Healthcare Staffing Agency, Nurse Staffing & Home Care`,
     description: siteConfig.description,
     images: [ogImageUrl()],
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: { index: true, follow: true },
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   category: "Healthcare",
 };

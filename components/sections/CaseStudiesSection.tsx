@@ -65,8 +65,8 @@ export function CaseStudiesSection({ limit }: { limit?: number }) {
 
                 <blockquote className="mt-6 border-l-2 border-brand-green pl-4 text-sm italic text-muted">
                   &ldquo;{study.quote}&rdquo;
-                  <footer className="mt-2 text-xs font-semibold not-italic text-foreground">
-                    — {study.author}, {study.role}
+                  <footer className="mt-2 text-xs font-semibold not-italic text-brand-green">
+                    — {study.client}
                   </footer>
                 </blockquote>
               </div>
@@ -130,8 +130,8 @@ export function CaseStudiesFullSection() {
 
                   <blockquote className="mt-8 rounded-2xl border border-border bg-surface p-6">
                     <p className="text-sm italic text-muted">&ldquo;{study.quote}&rdquo;</p>
-                    <footer className="mt-3 text-sm font-semibold text-foreground">
-                      {study.author}, {study.role}
+                    <footer className="mt-3 text-sm font-semibold text-brand-green">
+                      — {study.client}
                     </footer>
                   </blockquote>
                 </div>

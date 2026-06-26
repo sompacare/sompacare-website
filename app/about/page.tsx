@@ -47,20 +47,19 @@ export default function AboutPage() {
             <SectionHeading
               badge="Leadership"
               title="Experienced Leaders. Healthcare Focused."
-              description="Our executive team brings decades of combined experience in healthcare staffing, clinical operations, and workforce management."
+              description="Sompacare leadership brings deep experience in healthcare staffing, clinical operations, and workforce management."
             />
             <AnimatedStagger className="mt-16 grid gap-8 md:grid-cols-3">
               {leadership.map((leader) => (
-                <AnimatedItem key={leader.name}>
+                <AnimatedItem key={leader.title}>
                   <div className="h-full rounded-3xl border border-slate-200/80 bg-white p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                     <div
                       className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-lg font-bold text-white shadow-lg"
                       style={{ backgroundColor: leader.color }}
                     >
-                      {leader.initials}
+                      {leader.icon}
                     </div>
-                    <h3 className="mt-6 text-lg font-bold text-brand-navy">{leader.name}</h3>
-                    <p className="mt-1 text-sm font-semibold text-brand-blue">{leader.role}</p>
+                    <h3 className="mt-6 text-lg font-bold text-brand-navy">{leader.title}</h3>
                     <p className="mt-3 text-sm leading-relaxed text-brand-slate">{leader.bio}</p>
                   </div>
                 </AnimatedItem>

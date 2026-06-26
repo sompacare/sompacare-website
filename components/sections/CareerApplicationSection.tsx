@@ -277,7 +277,7 @@ export function CareerApplicationSection() {
         </div>
         <div>
           <label htmlFor="applyZip" className={labelClass}>ZIP *</label>
-          <input id="applyZip" name="zip" required className={errors.zip ? inputErrorClass : inputClass} placeholder="30309" />
+          <input id="applyZip" name="zip" required className={errors.zip ? inputErrorClass : inputClass} placeholder="12345" />
           <FieldError message={errors.zip} />
         </div>
       </div>

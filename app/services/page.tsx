@@ -14,9 +14,9 @@ import { createMetadata } from "@/lib/seo";
 import { servicesPageSchema } from "@/lib/schema";
 
 export const metadata = createMetadata({
-  title: "Medical Staffing Agency Services",
+  title: "Medical Staffing Agency Services Nationwide",
   description:
-    "Explore Sompacare's medical staffing agency services — healthcare staffing, healthcare recruitment, nurse staffing, travel nurses, compliance, and healthcare workforce solutions.",
+    "Explore Sompacare medical staffing agency services — healthcare staffing, nurse staffing, travel nurses, per diem nursing, permanent placement, in-home care, and healthcare workforce solutions nationwide.",
   path: "/services",
   keywords: [
     "Medical Staffing Agency",

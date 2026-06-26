@@ -4,6 +4,15 @@ import { motion } from "framer-motion";
 import { Container, Section, SectionHeading } from "@/components/ui/Primitives";
 import { successStories } from "@/lib/data";
 
+function organizationInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export function SuccessStoriesSection() {
   return (
     <Section id="success-stories" className="bg-background">
@@ -31,22 +40,17 @@ export function SuccessStoriesSection() {
                   className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
                   style={{ backgroundColor: story.color }}
                 >
-                  {story.initials}
+                  {organizationInitials(story.organization)}
                 </motion.div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">{story.author}</p>
-                  <p className="text-xs text-muted">{story.role}</p>
+                  <p className="text-sm font-bold text-foreground">{story.organization}</p>
+                  <p className="text-xs text-muted">{story.industry}</p>
                 </div>
               </div>
 
-              <span className="mt-6 inline-flex w-fit rounded-full bg-brand-blue/10 px-3 py-1 text-[10px] font-bold tracking-wide text-brand-blue uppercase">
-                {story.industry}
-              </span>
-
-              <h3 className="mt-4 text-lg font-bold text-foreground transition-colors group-hover:text-brand-blue">
+              <h3 className="mt-6 text-lg font-bold text-foreground transition-colors group-hover:text-brand-blue">
                 {story.title}
               </h3>
-              <p className="mt-1 text-sm font-semibold text-brand-green">{story.organization}</p>
               <p className="mt-4 flex-1 text-sm leading-relaxed text-muted">{story.summary}</p>
 
               <motion.div

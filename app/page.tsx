@@ -18,19 +18,23 @@ import { createMetadata } from "@/lib/seo";
 import { homePageSchema } from "@/lib/schema";
 
 export const metadata = createMetadata({
-  title: "Healthcare Staffing & Nurse Staffing Agency",
+  title: "Healthcare Staffing Agency & Nurse Staffing Nationwide",
   description:
-    "Sompacare is a trusted medical staffing agency providing healthcare staffing, nurse staffing agency services, healthcare recruitment, and healthcare workforce solutions for hospitals and care facilities nationwide.",
+    "Sompacare is a trusted healthcare staffing agency and nurse staffing agency providing RN, LPN, CNA, and travel nurse staffing, medical staffing, in-home care, and healthcare workforce solutions nationwide for hospitals, senior living, and families.",
   path: "/",
   keywords: [
-    "Healthcare Staffing",
+    "Healthcare Staffing Agency",
     "Medical Staffing Agency",
-    "Healthcare Workforce Solutions",
     "Nurse Staffing Agency",
-    "Healthcare Recruitment",
+    "Healthcare Staffing",
+    "Healthcare Workforce Solutions",
     "RN Staffing",
-    "Travel Nurses",
-    "Clinical Staffing",
+    "LPN Staffing",
+    "CNA Staffing",
+    "Travel Nurse Staffing",
+    "Hospital Staffing Agency",
+    "In-Home Care Services",
+    "Nationwide Healthcare Staffing",
   ],
 });
 

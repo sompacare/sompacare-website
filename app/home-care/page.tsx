@@ -10,9 +10,9 @@ import { createMetadata } from "@/lib/seo";
 import { homeCarePageSchema } from "@/lib/schema";
 
 export const metadata = createMetadata({
-  title: "In-Home Care Services",
+  title: "In-Home Care Services & Home Care Agency",
   description:
-    "Sompacare home care nationwide — personal support, memory care, clinical visits, palliative comfort, family respite, and care coordination for loved ones at home.",
+    "Sompacare provides nationwide in-home care services — personal support, memory care, clinical visits, palliative comfort, family respite, and care coordination from a trusted home care agency.",
   path: "/home-care",
   keywords: [
     "Home Care",

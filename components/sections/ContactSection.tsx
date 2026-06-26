@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MailIcon, MapPinIcon, PhoneIcon } from "@/components/icons";
+import { MailIcon, PhoneIcon } from "@/components/icons";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/Primitives";
 import { CONTACT_SERVICES, validateContactForm, type ContactFormErrors } from "@/lib/contact-validation";
 import { siteConfig } from "@/lib/data";
@@ -277,18 +277,10 @@ export function ContactSection({ compact = false }: { compact?: boolean }) {
                 value: siteConfig.email,
                 href: `mailto:${siteConfig.email}`,
               },
-              {
-                icon: MapPinIcon,
-                label: "Office",
-                value: siteConfig.address.full,
-                href: `https://maps.google.com/?q=${encodeURIComponent(siteConfig.address.full)}`,
-              },
             ].map((item) => (
               <motion.a
                 key={item.label}
                 href={item.href}
-                target={item.label === "Office" ? "_blank" : undefined}
-                rel={item.label === "Office" ? "noopener noreferrer" : undefined}
                 whileHover={{ x: 4 }}
                 className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-colors hover:bg-white/10"
               >

@@ -116,7 +116,7 @@ export function buildOnboardingWelcomeEmail(application: ApplicationRecord) {
         <div style="padding:18px 28px;background:#0f172a;text-align:center;">
           <p style="margin:0;font-size:12px;line-height:1.6;color:#94a3b8;">
             ${siteConfig.name} · ${siteConfig.tagline}<br />
-            ${escapeHtml(siteConfig.address.full)}
+            Nationwide · ${siteConfig.phone}
           </p>
         </div>
       </div>
@@ -140,7 +140,7 @@ export function buildOnboardingWelcomeEmail(application: ApplicationRecord) {
     `Begin onboarding: ${portalUrl}`,
     `Questions: ${careersEmail} · ${siteConfig.phone}`,
     "",
-    siteConfig.address.full,
+    `${siteConfig.name} · Nationwide`,
   ].join("\n");
 
   return {
