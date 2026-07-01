@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { Logo } from "@/components/brand/Logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -39,9 +40,11 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
-        <p className="text-xs font-bold tracking-widest text-brand-blue uppercase">Sompacare Admin</p>
-        <h1 className="mt-2 text-2xl font-bold text-brand-navy">Application Dashboard</h1>
-        <p className="mt-2 text-sm text-brand-slate">Sign in to review healthcare professional applications.</p>
+        <div className="flex justify-center">
+          <Logo size="md" />
+        </div>
+        <h1 className="mt-6 text-center text-2xl font-bold text-brand-navy">Application Dashboard</h1>
+        <p className="mt-2 text-center text-sm text-brand-slate">Sign in to review healthcare professional applications.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           {error && (

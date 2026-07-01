@@ -6,6 +6,8 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OGImage() {
+  const logoUrl = `${siteConfig.url}/images/sompacare-logo.png`;
+
   return new ImageResponse(
     (
       <div
@@ -14,44 +16,36 @@ export default function OGImage() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
+          alignItems: "flex-start",
           justifyContent: "center",
           padding: "80px",
           background: "linear-gradient(135deg, #0c1e3d 0%, #084298 50%, #059669 100%)",
         }}
       >
-        <div
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoUrl}
+          alt="Sompacare Solutions"
+          width={320}
+          height={160}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "24px",
-            marginBottom: "40px",
+            objectFit: "contain",
+          }}
+        />
+        <p
+          style={{
+            fontSize: 34,
+            fontWeight: 600,
+            color: "rgba(255,255,255,0.92)",
+            lineHeight: 1.35,
+            maxWidth: 820,
+            marginTop: 40,
           }}
         >
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #0B5ED7, #059669)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 36,
-              color: "white",
-              fontWeight: 700,
-            }}
-          >
-            +
-          </div>
-          <span style={{ fontSize: 48, fontWeight: 700, color: "white" }}>
-            {siteConfig.name}
-          </span>
-        </div>
-        <p style={{ fontSize: 36, fontWeight: 600, color: "rgba(255,255,255,0.9)", lineHeight: 1.3, maxWidth: 800 }}>
-          Healthcare Staffing & Workforce Solutions You Can Trust
+          Healthcare Staffing, Home Care & Workforce Solutions Nationwide
         </p>
-        <p style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", marginTop: 24, maxWidth: 700 }}>
-          {siteConfig.description.slice(0, 120)}...
+        <p style={{ fontSize: 22, color: "rgba(255,255,255,0.65)", marginTop: 20, maxWidth: 760 }}>
+          {siteConfig.description.slice(0, 140)}...
         </p>
       </div>
     ),
