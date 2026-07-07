@@ -83,6 +83,7 @@ export default async function AdminDashboardPage() {
               { label: "Job Orders", href: "/admin/job-orders" },
               { label: "Billing & Invoices", href: "/admin/invoices" },
               { label: "Payments Center", href: "/admin/payments" },
+              { label: "Payroll Center", href: "/admin/payroll" },
               { label: "Talent Applications", href: "/admin/applications" },
               { label: "Documents", href: "/admin/documents" },
               { label: "Reports", href: "/admin/reports" },

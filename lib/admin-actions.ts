@@ -152,3 +152,64 @@ export async function linkStripeCustomerAction(clientId: string) {
   revalidatePath("/admin/payments/ach");
   return customerId;
 }
+
+export async function createPayrollRunAction(formData: FormData) {
+  await requireAdmin();
+  const { createPayrollRun } = await import("@/lib/supabase/payroll");
+  const run = await createPayrollRun({
+    pay_period_start: String(formData.get("pay_period_start")),
+    pay_period_end: String(formData.get("pay_period_end")),
+    pay_date: String(formData.get("pay_date")),
+    notes: String(formData.get("notes") ?? "").trim() || undefined,
+  });
+  revalidatePath("/admin/payroll");
+  revalidatePath("/admin/payroll/runs");
+  redirect(`/admin/payroll/runs/${run.id}`);
+}
+
+export async function createTimesheetAction(formData: FormData) {
+  await requireAdmin();
+  const { createTimesheet } = await import("@/lib/supabase/payroll");
+  await createTimesheet({
+    employee_id: String(formData.get("employee_id")),
+    job_order_id: String(formData.get("job_order_id") ?? "") || undefined,
+    work_date: String(formData.get("work_date")),
+    regular_hours: Number(formData.get("regular_hours")),
+    overtime_hours: Number(formData.get("overtime_hours") ?? 0),
+    notes: String(formData.get("notes") ?? "").trim() || undefined,
+  });
+  revalidatePath("/admin/payroll/timesheets");
+  revalidatePath("/admin/payroll");
+}
+
+export async function approveTimesheetAction(formData: FormData) {
+  await requireAdmin();
+  const { updateTimesheetStatus } = await import("@/lib/supabase/payroll");
+  await updateTimesheetStatus(String(formData.get("timesheet_id")), "approved");
+  revalidatePath("/admin/payroll/timesheets");
+  revalidatePath("/admin/payroll");
+}
+
+export async function savePayProfileAction(formData: FormData) {
+  await requireAdmin();
+  const { upsertPayProfile } = await import("@/lib/supabase/payroll");
+  await upsertPayProfile({
+    employee_id: String(formData.get("employee_id")),
+    pay_type: (formData.get("pay_type") as "hourly" | "salary") || "hourly",
+    pay_frequency: (formData.get("pay_frequency") as "weekly" | "biweekly" | "semimonthly" | "monthly") || "biweekly",
+    base_pay_rate: Number(formData.get("base_pay_rate") ?? 0),
+    overtime_multiplier: Number(formData.get("overtime_multiplier") ?? 1.5),
+    payment_method: (formData.get("payment_method") as "direct_deposit" | "check") || "direct_deposit",
+    bank_name: String(formData.get("bank_name") ?? "").trim() || undefined,
+    bank_account_last4: String(formData.get("bank_account_last4") ?? "").trim() || undefined,
+    bank_routing_last4: String(formData.get("bank_routing_last4") ?? "").trim() || undefined,
+    tax_profile: {
+      federal_filing_status: (formData.get("federal_filing_status") as "single" | "married" | "head_of_household") || "single",
+      federal_allowances: 0,
+      state_code: String(formData.get("state_code") ?? "").trim(),
+      state_allowances: 0,
+    },
+  });
+  revalidatePath("/admin/payroll/employees");
+  revalidatePath("/admin/payroll/deductions");
+}

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { AdminSignOutButton } from "@/components/admin/AdminSignOutButton";
-import { adminNav, isPaymentsSection } from "@/lib/admin-nav";
+import { adminNav, isPaymentsSection, isPayrollSection } from "@/lib/admin-nav";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -60,6 +60,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                             onClick={() => setMobileOpen(false)}
                             className={`block rounded-md px-2 py-1.5 text-xs transition-colors ${
                               pathname === child.href
+                                ? "bg-brand-green/20 text-brand-green-light"
+                                : "text-white/50 hover:text-white"
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                    {item.children && isPayrollSection(pathname) && item.href === "/admin/payroll" && (
+                      <div className="mt-1 ml-3 space-y-0.5 border-l border-white/10 pl-3">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={`block rounded-md px-2 py-1.5 text-xs transition-colors ${
+                              pathname === child.href || pathname.startsWith(`${child.href}/`)
                                 ? "bg-brand-green/20 text-brand-green-light"
                                 : "text-white/50 hover:text-white"
                             }`}

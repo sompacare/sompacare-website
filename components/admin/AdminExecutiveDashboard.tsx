@@ -34,11 +34,12 @@ export function AdminExecutiveDashboard({ data }: { data: ExecutiveDashboardData
             <h2 className="mt-1 text-xl font-bold text-brand-navy">Enterprise Performance Snapshot</h2>
             <p className="mt-1 text-sm text-brand-slate">Reporting period · {reportDate}</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {([
               ["Billing", health.billing],
               ["Staffing", health.staffing],
               ["Talent Pipeline", health.talent],
+              ["Payroll", health.payroll],
             ] as const).map(([label, status]) => (
               <div
                 key={label}
@@ -64,7 +65,8 @@ export function AdminExecutiveDashboard({ data }: { data: ExecutiveDashboardData
             <AdminMiniStat label="Hired This Month" value={String(metrics.hiredThisMonth)} />
             <AdminMiniStat label="Outstanding A/R" value={formatCurrency(metrics.outstandingBalance)} />
             <AdminMiniStat label="Collected MTD" value={formatCurrency(metrics.paidThisMonth)} />
-            <AdminMiniStat label="Orientation Pending" value={String(metrics.orientationPending)} />
+            <AdminMiniStat label="Payroll MTD" value={formatCurrency(metrics.payrollMtd)} />
+            <AdminMiniStat label="Pending Timesheets" value={String(metrics.pendingTimesheets)} />
           </div>
         </section>
 
@@ -89,6 +91,12 @@ export function AdminExecutiveDashboard({ data }: { data: ExecutiveDashboardData
                 label="Fill open assignments"
                 detail={`${metrics.openJobOrders} open orders`}
                 urgent={metrics.openJobOrders > 0}
+              />
+              <ActionItem
+                href="/admin/payroll/timesheets"
+                label="Approve payroll timesheets"
+                detail={`${metrics.pendingTimesheets} pending approval`}
+                urgent={metrics.pendingTimesheets > 0}
               />
               <ActionItem
                 href="/admin/applications"

@@ -9,7 +9,9 @@ import {
   listJobOrders,
   listPayments,
 } from "@/lib/supabase/ops";
+import { getPayrollSummary, isPayrollConfigured } from "@/lib/supabase/payroll";
 import type { DashboardMetrics, InvoiceRecord, JobOrderRecord, PaymentRecord } from "@/lib/supabase/ops-types";
+import type { PayrollSummary } from "@/lib/supabase/payroll-types";
 
 export type ExecutiveDashboardData = {
   metrics: DashboardMetrics & {
@@ -19,7 +21,10 @@ export type ExecutiveDashboardData = {
     overdueInvoices: number;
     fillRate: number;
     orientationPending: number;
+    payrollMtd: number;
+    pendingTimesheets: number;
   };
+  payroll: PayrollSummary | null;
   recentApplications: ApplicationRecord[];
   recentPayments: PaymentRecord[];
   openJobOrders: JobOrderRecord[];
@@ -28,6 +33,7 @@ export type ExecutiveDashboardData = {
     billing: "healthy" | "attention" | "critical";
     staffing: "healthy" | "attention" | "critical";
     talent: "healthy" | "attention" | "critical";
+    payroll: "healthy" | "attention" | "critical";
   };
 };
 
@@ -42,6 +48,7 @@ function computeHealth(input: {
   openJobOrders: number;
   pipelineApplications: number;
   orientationPending: number;
+  pendingTimesheets: number;
 }): ExecutiveDashboardData["health"] {
   const billing =
     input.outstandingBalance > 25000 || input.overdueInvoices >= 5
@@ -64,7 +71,14 @@ function computeHealth(input: {
         ? "attention"
         : "healthy";
 
-  return { billing, staffing, talent };
+  const payroll =
+    input.pendingTimesheets >= 10
+      ? "critical"
+      : input.pendingTimesheets > 0
+        ? "attention"
+        : "healthy";
+
+  return { billing, staffing, talent, payroll };
 }
 
 export async function getExecutiveDashboardData(): Promise<ExecutiveDashboardData | null> {
@@ -72,13 +86,23 @@ export async function getExecutiveDashboardData(): Promise<ExecutiveDashboardDat
 
   try {
     const monthStart = monthStartIso();
-    const [baseMetrics, applications, payments, jobOrders, outstanding] = await Promise.all([
+    const [baseMetrics, applications, payments, jobOrders, outstanding, payrollConfigured] = await Promise.all([
       getDashboardMetrics(),
       listApplications(),
       listPayments(),
       listJobOrders(),
       getOutstandingInvoices(),
+      isPayrollConfigured(),
     ]);
+
+    let payrollSummary: PayrollSummary | null = null;
+    if (payrollConfigured) {
+      try {
+        payrollSummary = await getPayrollSummary();
+      } catch {
+        payrollSummary = null;
+      }
+    }
 
     const pipelineApplications = applications.filter((a) =>
       ["reviewing", "interviewed"].includes(a.status),
@@ -107,10 +131,13 @@ export async function getExecutiveDashboardData(): Promise<ExecutiveDashboardDat
       overdueInvoices,
       fillRate,
       orientationPending,
+      payrollMtd: payrollSummary?.payrollMtd ?? 0,
+      pendingTimesheets: payrollSummary?.pendingTimesheets ?? 0,
     };
 
     return {
       metrics,
+      payroll: payrollSummary,
       recentApplications: applications.slice(0, 6),
       recentPayments: payments.slice(0, 6),
       openJobOrders: jobOrders.filter((order) => order.status === "open").slice(0, 5),
@@ -121,6 +148,7 @@ export async function getExecutiveDashboardData(): Promise<ExecutiveDashboardDat
         openJobOrders: baseMetrics.openJobOrders,
         pipelineApplications,
         orientationPending,
+        pendingTimesheets: payrollSummary?.pendingTimesheets ?? 0,
       }),
     };
   } catch {

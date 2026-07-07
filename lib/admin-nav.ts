@@ -25,6 +25,19 @@ export const adminNav: AdminNavItem[] = [
       { label: "Payment History", href: "/admin/payments/history" },
     ],
   },
+  {
+    label: "Payroll",
+    href: "/admin/payroll",
+    children: [
+      { label: "Overview", href: "/admin/payroll" },
+      { label: "Pay Runs", href: "/admin/payroll/runs" },
+      { label: "Timesheets", href: "/admin/payroll/timesheets" },
+      { label: "Employee Pay", href: "/admin/payroll/employees" },
+      { label: "Deductions & Tax", href: "/admin/payroll/deductions" },
+      { label: "Pay History", href: "/admin/payroll/history" },
+      { label: "Reports", href: "/admin/payroll/reports" },
+    ],
+  },
   { label: "Documents", href: "/admin/documents" },
   { label: "Reports", href: "/admin/reports" },
   { label: "Applications", href: "/admin/applications" },
@@ -34,4 +47,8 @@ export const adminNav: AdminNavItem[] = [
 
 export function isPaymentsSection(pathname: string): boolean {
   return pathname.startsWith("/admin/payments");
+}
+
+export function isPayrollSection(pathname: string): boolean {
+  return pathname.startsWith("/admin/payroll");
 }
