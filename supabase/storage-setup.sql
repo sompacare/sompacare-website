@@ -4,3 +4,7 @@
 insert into storage.buckets (id, name, public, file_size_limit)
 values ('application-files', 'application-files', false, 10485760)
 on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('business-documents', 'business-documents', false, 52428800)
+on conflict (id) do nothing;

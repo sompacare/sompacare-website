@@ -58,8 +58,8 @@ export function ApplicationStatusSelect({
           setSentAt(data.application?.onboarding_sent_at ?? new Date().toISOString());
           setFeedback(
             onboarding.relayed
-              ? "Hired — onboarding email delivered via delivery fallback. Confirm the applicant received it."
-              : "Hired — welcome & onboarding email sent to the applicant.",
+              ? "Hired — welcome email delivered. Complete the Assignment Readiness Center below, then send the full orientation package."
+              : "Hired — welcome email sent. Complete hire details below and send the orientation package.",
             "success",
           );
         } else {

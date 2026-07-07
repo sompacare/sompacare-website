@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AdminSignOutButton } from "@/components/admin/AdminSignOutButton";
 import { ApplicationStatusSelect } from "@/components/admin/ApplicationStatusSelect";
+import { HireOrientationPanel } from "@/components/admin/HireOrientationPanel";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { normalizeHireDetails } from "@/lib/hire-orientation";
 import { createSignedFileUrl, getApplication } from "@/lib/supabase/admin";
 
 export default async function AdminApplicationDetailPage({
@@ -10,14 +11,13 @@ export default async function AdminApplicationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  if (!(await isAdminAuthenticated())) {
-    redirect("/admin/login");
-  }
+  if (!(await isAdminAuthenticated())) redirect("/admin/login");
 
   const { id } = await params;
   const application = await getApplication(id);
   if (!application) notFound();
 
+  const hireDetails = normalizeHireDetails(application.hire_details);
   const resumeUrl = application.resume_url
     ? await createSignedFileUrl(application.resume_url)
     : null;
@@ -30,18 +30,15 @@ export default async function AdminApplicationDetailPage({
   );
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <div className="flex items-center justify-between gap-4">
-        <Link href="/admin/applications" className="text-sm font-semibold text-brand-blue hover:underline">
-          ← Back to applications
-        </Link>
-        <AdminSignOutButton />
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <Link href="/admin/applications" className="text-sm font-semibold text-brand-blue hover:underline">
+        ← Back to applications
+      </Link>
 
       <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-bold tracking-widest text-brand-blue uppercase">Application Review</p>
+            <p className="text-xs font-bold tracking-widest text-brand-blue uppercase">Talent Acquisition Review</p>
             <h1 className="mt-1 text-3xl font-bold text-brand-navy">
               {application.first_name} {application.last_name}
             </h1>
@@ -57,7 +54,7 @@ export default async function AdminApplicationDetailPage({
           />
         </div>
 
-        <dl className="mt-8 grid gap-4 sm:grid-cols-2">
+        <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
             ["Email", application.email],
             ["Phone", application.phone],
@@ -82,7 +79,7 @@ export default async function AdminApplicationDetailPage({
         )}
 
         <div className="mt-8 space-y-3">
-          <p className="text-xs font-semibold uppercase text-brand-slate">Documents</p>
+          <p className="text-xs font-semibold uppercase text-brand-slate">Credential Documents</p>
           {resumeUrl ? (
             <a
               href={resumeUrl}
@@ -112,6 +109,14 @@ export default async function AdminApplicationDetailPage({
           )}
         </div>
       </div>
+
+      <HireOrientationPanel
+        applicationId={application.id}
+        initialDetails={hireDetails}
+        onboardingSentAt={application.onboarding_sent_at}
+        orientationPackageSentAt={application.orientation_package_sent_at}
+        isHired={application.status === "hired"}
+      />
     </div>
   );
 }

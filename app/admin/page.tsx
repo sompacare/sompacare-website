@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
+import { AdminExecutiveDashboard } from "@/components/admin/AdminExecutiveDashboard";
+import { AdminKpiCard } from "@/components/admin/AdminKpiCard";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminSetupNotice } from "@/components/admin/AdminSetupNotice";
+import { getExecutiveDashboardData } from "@/lib/admin-dashboard";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { formatCurrency } from "@/lib/format";
 import { getDashboardMetrics, isOpsConfigured } from "@/lib/supabase/ops";
@@ -10,7 +12,10 @@ import { getDashboardMetrics, isOpsConfigured } from "@/lib/supabase/ops";
 export default async function AdminDashboardPage() {
   if (!(await isAdminAuthenticated())) redirect("/admin/login");
 
-  let metrics = {
+  const configured = isOpsConfigured();
+  const executive = configured ? await getExecutiveDashboardData() : null;
+
+  let fallbackMetrics = {
     clients: 0,
     employees: 0,
     openJobOrders: 0,
@@ -18,57 +23,87 @@ export default async function AdminDashboardPage() {
     paidThisMonth: 0,
     pendingApplications: 0,
   };
-  const configured = isOpsConfigured();
-  let setupError = false;
 
-  if (configured) {
+  if (configured && !executive) {
     try {
-      metrics = await getDashboardMetrics();
+      fallbackMetrics = await getDashboardMetrics();
     } catch {
-      setupError = true;
+      /* setup error handled below */
     }
   }
+
+  const setupError = configured && !executive;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <AdminPageHeader
-        badge="Sompacare Admin"
-        title="Dashboard"
-        description="Operations overview for clients, staffing, billing, and payments."
+        badge="Sompacare Enterprise"
+        title="Operations Command Center"
+        description="Real-time visibility across workforce deployment, client billing, talent acquisition, and compliance readiness."
       />
 
       {!configured || setupError ? (
         <div className="mt-8">
           <AdminSetupNotice />
         </div>
-      ) : (
-        <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <AdminMetricCard label="Clients" value={String(metrics.clients)} />
-            <AdminMetricCard label="Employees" value={String(metrics.employees)} />
-            <AdminMetricCard label="Open Job Orders" value={String(metrics.openJobOrders)} />
-            <AdminMetricCard label="Outstanding Balance" value={formatCurrency(metrics.outstandingBalance)} />
-            <AdminMetricCard label="Collected This Month" value={formatCurrency(metrics.paidThisMonth)} />
-            <AdminMetricCard label="New Applications" value={String(metrics.pendingApplications)} />
+      ) : executive ? (
+        <div className="mt-8 space-y-8">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <AdminKpiCard
+              label="Revenue Collected MTD"
+              value={formatCurrency(executive.metrics.paidThisMonth)}
+              hint="Completed payments posted this month"
+              accent="green"
+            />
+            <AdminKpiCard
+              label="Outstanding A/R"
+              value={formatCurrency(executive.metrics.outstandingBalance)}
+              hint={`${executive.metrics.overdueInvoices} overdue invoices`}
+              accent="amber"
+            />
+            <AdminKpiCard
+              label="Workforce Fill Rate"
+              value={`${executive.metrics.fillRate}%`}
+              hint={`${executive.metrics.openJobOrders} open job orders`}
+              accent="blue"
+            />
+            <AdminKpiCard
+              label="Talent Pipeline"
+              value={String(executive.metrics.pipelineApplications)}
+              hint={`${executive.metrics.hiredThisMonth} hires this month`}
+              accent="navy"
+            />
           </div>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <AdminExecutiveDashboard data={executive} />
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: "Clients", href: "/admin/clients" },
+              { label: "Clients & Contracts", href: "/admin/clients" },
               { label: "Job Orders", href: "/admin/job-orders" },
-              { label: "Invoices", href: "/admin/invoices" },
-              { label: "Payments", href: "/admin/payments" },
+              { label: "Billing & Invoices", href: "/admin/invoices" },
+              { label: "Payments Center", href: "/admin/payments" },
+              { label: "Talent Applications", href: "/admin/applications" },
+              { label: "Documents", href: "/admin/documents" },
+              { label: "Reports", href: "/admin/reports" },
+              { label: "Settings", href: "/admin/settings" },
             ].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-2xl border border-slate-200 bg-white p-5 text-sm font-semibold text-brand-blue shadow-sm hover:border-brand-blue"
+                className="rounded-2xl border border-slate-200 bg-white p-5 text-sm font-semibold text-brand-blue shadow-sm transition-colors hover:border-brand-blue hover:bg-blue-50/40"
               >
-                Manage {item.label} →
+                {item.label} →
               </Link>
             ))}
           </div>
-        </>
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AdminKpiCard label="Clients" value={String(fallbackMetrics.clients)} />
+          <AdminKpiCard label="Employees" value={String(fallbackMetrics.employees)} />
+          <AdminKpiCard label="Open Job Orders" value={String(fallbackMetrics.openJobOrders)} />
+        </div>
       )}
     </div>
   );

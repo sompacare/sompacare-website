@@ -1,4 +1,6 @@
 import { getCareersEmail } from "@/lib/contact-server";
+import { normalizeHireDetails } from "@/lib/hire-orientation";
+import { formatDate } from "@/lib/format";
 import { siteConfig } from "@/lib/data";
 import type { ApplicationRecord } from "@/lib/supabase/types";
 
@@ -44,6 +46,19 @@ export function buildOnboardingWelcomeEmail(application: ApplicationRecord) {
   const reference = formatReference(application.id);
   const portalUrl = getOnboardingPortalUrl();
   const careersEmail = getCareersEmail();
+  const hire = normalizeHireDetails(application.hire_details);
+
+  const assignmentBlock =
+    hire.facility_name || hire.start_date
+      ? `
+          <div style="margin:0 0 24px;padding:18px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;">
+            <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#1d4ed8;">Assignment preview</p>
+            ${hire.facility_name ? `<p style="margin:0 0 6px;font-size:14px;color:#334155;"><strong>Facility:</strong> ${escapeHtml(hire.facility_name)}</p>` : ""}
+            ${hire.start_date ? `<p style="margin:0 0 6px;font-size:14px;color:#334155;"><strong>Start date:</strong> ${formatDate(hire.start_date)}</p>` : ""}
+            ${hire.orientation_date ? `<p style="margin:0;font-size:14px;color:#334155;"><strong>Orientation:</strong> ${formatDate(hire.orientation_date)} ${escapeHtml(hire.orientation_time)}</p>` : ""}
+          </div>
+        `
+      : "";
 
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:0 auto;color:#0f172a;background:#f8fafc;padding:24px 12px;">
@@ -66,6 +81,8 @@ export function buildOnboardingWelcomeEmail(application: ApplicationRecord) {
           <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#334155;">
             Your offer is confirmed. To ensure a smooth start, our Talent Acquisition &amp; Compliance team will guide you through credentialing, orientation scheduling, and assignment readiness.
           </p>
+
+          ${assignmentBlock}
 
           <h2 style="margin:0 0 16px;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#64748b;">Your next steps</h2>
           <table role="presentation" style="width:100%;border-collapse:collapse;">
@@ -153,6 +170,7 @@ export function buildOnboardingWelcomeEmail(application: ApplicationRecord) {
 export function buildOnboardingStaffNotification(application: ApplicationRecord) {
   const fullName = `${application.first_name} ${application.last_name}`;
   const reference = formatReference(application.id);
+  const hire = normalizeHireDetails(application.hire_details);
 
   return {
     subject: `Onboarding sent — ${fullName} (${application.position_label})`,
@@ -166,8 +184,11 @@ export function buildOnboardingStaffNotification(application: ApplicationRecord)
           <p style="margin:0 0 12px;font-size:14px;"><strong>${escapeHtml(fullName)}</strong> · ${escapeHtml(application.position_label)}</p>
           <p style="margin:0 0 8px;font-size:13px;color:#475569;">Email: ${escapeHtml(application.email)}</p>
           <p style="margin:0 0 8px;font-size:13px;color:#475569;">Phone: ${escapeHtml(application.phone)}</p>
+          <p style="margin:0 0 8px;font-size:13px;color:#475569;">License: ${escapeHtml(application.license_number ?? "—")} (${escapeHtml(application.license_state ?? "—")})</p>
+          ${hire.facility_name ? `<p style="margin:0 0 8px;font-size:13px;color:#475569;">Facility: ${escapeHtml(hire.facility_name)}</p>` : ""}
+          ${hire.start_date ? `<p style="margin:0 0 8px;font-size:13px;color:#475569;">Start date: ${formatDate(hire.start_date)}</p>` : ""}
           <p style="margin:0 0 16px;font-size:13px;color:#475569;">Reference: ${reference}</p>
-          <p style="margin:0;font-size:13px;color:#64748b;">Review application: ${siteConfig.url}/admin/applications/${application.id}</p>
+          <p style="margin:0;font-size:13px;color:#64748b;">Complete hire orientation details: ${siteConfig.url}/admin/applications/${application.id}</p>
         </div>
       </div>
     `,

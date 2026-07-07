@@ -2,6 +2,8 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 import { isAllowedCertMime, isAllowedResumeMime, resolveFileMime } from "@/lib/file-mime";
+import type { HireDetails } from "@/lib/hire-orientation";
+import { normalizeHireDetails } from "@/lib/hire-orientation";
 import type { ApplicationRecord } from "./types";
 
 export function getSupabaseAdmin() {
@@ -23,11 +25,13 @@ export function isSupabaseConfigured(): boolean {
 
 export type ApplicationInsert = Omit<
   ApplicationRecord,
-  "created_at" | "updated_at" | "status" | "onboarding_sent_at"
+  "created_at" | "updated_at" | "status" | "onboarding_sent_at" | "hire_details" | "orientation_package_sent_at"
 > & {
   id?: string;
   status?: ApplicationRecord["status"];
   onboarding_sent_at?: string | null;
+  hire_details?: ApplicationRecord["hire_details"];
+  orientation_package_sent_at?: string | null;
 };
 
 export async function insertApplication(data: ApplicationInsert) {
@@ -56,7 +60,10 @@ export async function listApplications() {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as ApplicationRecord[];
+  return (data ?? []).map((row) => ({
+    ...(row as ApplicationRecord),
+    hire_details: normalizeHireDetails((row as ApplicationRecord).hire_details as Partial<HireDetails>),
+  }));
 }
 
 export async function getApplication(id: string) {
@@ -65,7 +72,11 @@ export async function getApplication(id: string) {
 
   const { data, error } = await supabase.from("applications").select("*").eq("id", id).single();
   if (error) return null;
-  return data as ApplicationRecord;
+  const record = data as ApplicationRecord;
+  return {
+    ...record,
+    hire_details: normalizeHireDetails(record.hire_details as Partial<HireDetails>),
+  };
 }
 
 export async function updateApplicationStatus(
@@ -161,6 +172,44 @@ export async function uploadApplicationFile(
   if (error) throw error;
 
   return { path, fileName: file.name };
+}
+
+export async function updateApplicationHireDetails(id: string, hireDetails: HireDetails) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase is not configured.");
+
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ hire_details: hireDetails })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  const record = data as ApplicationRecord;
+  return {
+    ...record,
+    hire_details: normalizeHireDetails(record.hire_details as Partial<HireDetails>),
+  };
+}
+
+export async function markOrientationPackageSent(id: string) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase is not configured.");
+
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ orientation_package_sent_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  const record = data as ApplicationRecord;
+  return {
+    ...record,
+    hire_details: normalizeHireDetails(record.hire_details as Partial<HireDetails>),
+  };
 }
 
 export async function createSignedFileUrl(storagePath: string, expiresIn = 3600) {

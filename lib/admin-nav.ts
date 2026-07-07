@@ -29,6 +29,7 @@ export const adminNav: AdminNavItem[] = [
   { label: "Reports", href: "/admin/reports" },
   { label: "Applications", href: "/admin/applications" },
   { label: "Settings", href: "/admin/settings" },
+  { label: "Setup", href: "/admin/setup" },
 ];
 
 export function isPaymentsSection(pathname: string): boolean {

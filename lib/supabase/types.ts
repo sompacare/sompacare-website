@@ -1,3 +1,5 @@
+import type { HireDetails } from "@/lib/hire-orientation";
+
 export type ApplicationStatus = "new" | "reviewing" | "interviewed" | "hired" | "rejected";
 
 export type CertificationFile = {
@@ -30,4 +32,6 @@ export type ApplicationRecord = {
   certification_urls: CertificationFile[];
   status: ApplicationStatus;
   onboarding_sent_at: string | null;
+  hire_details: HireDetails;
+  orientation_package_sent_at: string | null;
 };

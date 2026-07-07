@@ -178,5 +178,7 @@ insert into public.admin_settings (key, value) values
   ('notifications', '{"payment_receipts":true}'::jsonb)
 on conflict (key) do nothing;
 
--- Storage bucket for business documents (create in dashboard or via API)
--- Bucket name: business-documents (private)
+-- Storage bucket for business documents
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('business-documents', 'business-documents', false, 52428800)
+on conflict (id) do nothing;

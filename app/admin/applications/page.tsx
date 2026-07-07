@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AdminSignOutButton } from "@/components/admin/AdminSignOutButton";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { listApplications } from "@/lib/supabase/admin";
 import type { ApplicationRecord, ApplicationStatus } from "@/lib/supabase/types";
@@ -25,15 +25,31 @@ export default async function AdminApplicationsPage() {
     applications = [];
   }
 
+  const hiredCount = applications.filter((app) => app.status === "hired").length;
+  const pipelineCount = applications.filter((app) => ["reviewing", "interviewed"].includes(app.status)).length;
+  const orientationPending = applications.filter((app) => app.status === "hired" && !app.onboarding_sent_at).length;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-bold tracking-widest text-brand-blue uppercase">Sompacare ATS</p>
-          <h1 className="mt-1 text-3xl font-bold text-brand-navy">Applications</h1>
-          <p className="mt-1 text-sm text-brand-slate">{applications.length} total submissions</p>
+      <AdminPageHeader
+        badge="Talent Acquisition"
+        title="Applications & Hiring Pipeline"
+        description="Review candidates, manage interview stages, and launch orientation packages for new hires."
+      />
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-[10px] font-bold tracking-widest text-brand-slate uppercase">In Pipeline</p>
+          <p className="mt-1 text-2xl font-bold text-brand-navy">{pipelineCount}</p>
         </div>
-        <AdminSignOutButton />
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-[10px] font-bold tracking-widest text-brand-slate uppercase">Hired</p>
+          <p className="mt-1 text-2xl font-bold text-brand-navy">{hiredCount}</p>
+        </div>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+          <p className="text-[10px] font-bold tracking-widest text-amber-800 uppercase">Orientation Pending</p>
+          <p className="mt-1 text-2xl font-bold text-amber-900">{orientationPending}</p>
+        </div>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -44,13 +60,14 @@ export default async function AdminApplicationsPage() {
               <th className="px-4 py-3 text-left font-semibold text-brand-navy">Position</th>
               <th className="px-4 py-3 text-left font-semibold text-brand-navy">Applied</th>
               <th className="px-4 py-3 text-left font-semibold text-brand-navy">Status</th>
+              <th className="px-4 py-3 text-left font-semibold text-brand-navy">Orientation</th>
               <th className="px-4 py-3 text-right font-semibold text-brand-navy">View</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {applications.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-brand-slate">
+                <td colSpan={6} className="px-4 py-10 text-center text-brand-slate">
                   No applications yet. Submissions from the Careers page will appear here.
                 </td>
               </tr>
@@ -73,6 +90,15 @@ export default async function AdminApplicationsPage() {
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_COLORS[app.status]}`}>
                       {app.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {app.status === "hired" ? (
+                      <span className={`text-xs font-semibold ${app.orientation_package_sent_at || app.onboarding_sent_at ? "text-brand-green" : "text-amber-700"}`}>
+                        {app.orientation_package_sent_at ? "Package sent" : app.onboarding_sent_at ? "Welcome sent" : "Pending"}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-brand-slate">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/admin/applications/${app.id}`} className="font-semibold text-brand-blue hover:underline">
