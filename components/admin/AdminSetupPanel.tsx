@@ -116,9 +116,22 @@ export function AdminSetupPanel({ initialStatus }: { initialStatus: AdminSetupSt
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       </div>
 
+      {status.ready && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-sm text-emerald-900">
+          <p className="font-semibold">All systems ready</p>
+          <p className="mt-2">
+            Your admin dashboard, storage, and database tables are configured. Go to{" "}
+            <a href="/admin" className="font-semibold underline">
+              Dashboard
+            </a>{" "}
+            to start managing clients, billing, and hires.
+          </p>
+        </div>
+      )}
+
       {!status.ready && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-          <p className="font-semibold">If auto setup cannot create tables</p>
+          <p className="font-semibold">Manual setup only if tables are still missing</p>
           <ol className="mt-3 list-decimal space-y-2 pl-5">
             <li>Open Supabase → SQL Editor → New query</li>
             <li>Paste the contents of <code className="rounded bg-amber-100 px-1">supabase/admin-dashboard.sql</code></li>
@@ -126,9 +139,13 @@ export function AdminSetupPanel({ initialStatus }: { initialStatus: AdminSetupSt
             <li>Refresh this page</li>
           </ol>
           <p className="mt-4">
-            Optional one-click migration: add your Supabase Postgres connection string as{" "}
-            <code className="rounded bg-amber-100 px-1">DATABASE_URL</code> in Vercel, redeploy, then click{" "}
-            <strong>Run Auto Setup</strong>.
+            <code className="rounded bg-amber-100 px-1">DATABASE_URL</code> is only needed for automatic SQL
+            migrations. If all tables show green above, your dashboard is ready — no further action required.
+          </p>
+          <p className="mt-2">
+            If tables are still missing, run{" "}
+            <code className="rounded bg-amber-100 px-1">supabase/admin-dashboard.sql</code> in Supabase SQL Editor,
+            then click <strong>Run Auto Setup</strong> again.
           </p>
         </div>
       )}

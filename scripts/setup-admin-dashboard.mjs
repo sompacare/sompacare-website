@@ -2,6 +2,39 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
+const ADMIN_TABLES = [
+  "clients",
+  "contracts",
+  "employees",
+  "job_orders",
+  "invoices",
+  "payments",
+  "documents",
+  "admin_settings",
+];
+
+const ADMIN_TABLE_PROBE_COLUMN = {
+  clients: "id",
+  contracts: "id",
+  employees: "id",
+  job_orders: "id",
+  invoices: "id",
+  payments: "id",
+  documents: "id",
+  admin_settings: "key",
+};
+
+function isMissingTableError(message, code) {
+  if (code === "PGRST204" || code === "42703") return false;
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    /relation .* does not exist/i.test(message) ||
+    /could not find the table/i.test(message) ||
+    /schema cache/i.test(message)
+  );
+}
+
 function loadEnv() {
   const raw = readFileSync(resolve(process.cwd(), ".env.local"), "utf8");
   for (const line of raw.split(/\r?\n/)) {
@@ -21,17 +54,6 @@ function loadEnv() {
   }
 }
 
-const ADMIN_TABLES = [
-  "clients",
-  "contracts",
-  "employees",
-  "job_orders",
-  "invoices",
-  "payments",
-  "documents",
-  "admin_settings",
-];
-
 const BUCKET = "business-documents";
 
 loadEnv();
@@ -50,14 +72,10 @@ const supabase = createClient(url, key, {
 });
 
 async function tableExists(table) {
-  const { error } = await supabase.from(table).select("id").limit(1);
+  const column = ADMIN_TABLE_PROBE_COLUMN[table] ?? "id";
+  const { error } = await supabase.from(table).select(column).limit(1);
   if (!error) return true;
-  const missing =
-    error.code === "42P01" ||
-    error.code === "PGRST205" ||
-    /does not exist/i.test(error.message) ||
-    /schema cache/i.test(error.message);
-  if (missing) return false;
+  if (isMissingTableError(error.message, error.code)) return false;
   throw new Error(`${table}: ${error.message}`);
 }
 

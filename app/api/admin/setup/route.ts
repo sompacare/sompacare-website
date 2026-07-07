@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import {
   ensureBusinessDocumentsBucket,
+  ensureDefaultAdminSettings,
   getAdminSetupStatus,
   runAdminDashboardMigration,
 } from "@/lib/admin-setup";
@@ -37,6 +38,7 @@ export async function POST(request: Request) {
     }
 
     const bucket = await ensureBusinessDocumentsBucket();
+    await ensureDefaultAdminSettings();
     let migrated = false;
 
     const before = await getAdminSetupStatus();
@@ -53,7 +55,7 @@ export async function POST(request: Request) {
       bucket,
       migrated,
       status,
-      needsManualSql: !status.ready && !before.databaseUrlConfigured,
+      needsManualSql: !status.ready && Object.values(status.tables).some((ready) => !ready) && !before.databaseUrlConfigured,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Setup failed.";

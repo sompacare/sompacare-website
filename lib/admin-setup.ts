@@ -2,18 +2,12 @@ import "server-only";
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  ADMIN_TABLE_PROBE_COLUMN,
+  ADMIN_TABLES,
+  isMissingTableError,
+} from "@/lib/admin-table-probes";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-
-const ADMIN_TABLES = [
-  "clients",
-  "contracts",
-  "employees",
-  "job_orders",
-  "invoices",
-  "payments",
-  "documents",
-  "admin_settings",
-] as const;
 
 const BUSINESS_BUCKET = "business-documents";
 
@@ -24,15 +18,6 @@ export type AdminSetupStatus = {
   databaseUrlConfigured: boolean;
   ready: boolean;
 };
-
-function isMissingTableError(message: string, code?: string) {
-  return (
-    code === "42P01" ||
-    code === "PGRST205" ||
-    /does not exist/i.test(message) ||
-    /schema cache/i.test(message)
-  );
-}
 
 export async function getAdminSetupStatus(): Promise<AdminSetupStatus> {
   const supabase = getSupabaseAdmin();
@@ -52,7 +37,8 @@ export async function getAdminSetupStatus(): Promise<AdminSetupStatus> {
 
   await Promise.all(
     ADMIN_TABLES.map(async (table) => {
-      const { error } = await supabase.from(table).select("id").limit(1);
+      const column = ADMIN_TABLE_PROBE_COLUMN[table];
+      const { error } = await supabase.from(table).select(column).limit(1);
       tables[table] = !error || !isMissingTableError(error.message, error.code);
     }),
   );
@@ -71,6 +57,29 @@ export async function getAdminSetupStatus(): Promise<AdminSetupStatus> {
     databaseUrlConfigured: Boolean(process.env.DATABASE_URL || process.env.SUPABASE_DB_URL),
     ready: allTablesReady && bucketExists,
   };
+}
+
+export async function ensureDefaultAdminSettings() {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { seeded: false };
+
+  const defaults: Array<{ key: string; value: Record<string, unknown> }> = [
+    { key: "company", value: { invoice_prefix: "INV", payment_terms_days: 30, default_tax_rate: 0 } },
+    { key: "notifications", value: { payment_receipts: true } },
+  ];
+
+  for (const row of defaults) {
+    const { data: existing } = await supabase
+      .from("admin_settings")
+      .select("key")
+      .eq("key", row.key)
+      .maybeSingle();
+    if (!existing) {
+      await supabase.from("admin_settings").insert(row);
+    }
+  }
+
+  return { seeded: true };
 }
 
 export async function ensureBusinessDocumentsBucket() {
@@ -120,4 +129,11 @@ export async function runAdminDashboardMigration() {
   } finally {
     await client.end();
   }
+}
+
+export async function runAdminBootstrap() {
+  const bucket = await ensureBusinessDocumentsBucket();
+  await ensureDefaultAdminSettings();
+  const status = await getAdminSetupStatus();
+  return { bucket, status };
 }
