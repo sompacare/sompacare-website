@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { HealthcareImage } from "@/components/ui/HealthcareImage";
+import { ROI_ROLE_IMAGES } from "@/components/resources/RoiPageVisuals";
 import {
   buildSavingsReportText,
   calculateStaffingRoi,
   DEFAULT_STAFFING_INPUTS,
   formatCurrency,
-  ROLE_COLORS,
   ROLE_LABELS,
   shiftsFromHours,
   type StaffingInputs,
@@ -26,14 +27,23 @@ function RoleCard({
   onChange: (field: keyof StaffingInputs[StaffingRole], value: number) => void;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <h3
-        className="text-lg font-bold"
-        style={{ color: ROLE_COLORS[role] }}
-      >
-        {ROLE_LABELS[role]}
-      </h3>
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <div className="relative h-32 sm:h-36">
+        <HealthcareImage
+          image={ROI_ROLE_IMAGES[role]}
+          className="h-full w-full"
+          animate={false}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-navy/75 via-brand-navy/20 to-transparent"
+          aria-hidden
+        />
+        <h3 className="absolute bottom-4 left-5 text-xl font-bold text-white drop-shadow-md">
+          {ROLE_LABELS[role]}
+        </h3>
+      </div>
+      <div className="p-5 sm:p-6">
+      <div className="grid gap-4 sm:grid-cols-3">
         <label className="block">
           <span className="text-[10px] font-bold tracking-wider text-slate-500 uppercase">
             Bill Rate
@@ -79,6 +89,7 @@ function RoleCard({
           />
         </label>
       </div>
+      </div>
     </div>
   );
 }
@@ -112,16 +123,13 @@ export function StaffingRoiCalculator() {
   return (
     <div id="roi-calculator" className="scroll-mt-28">
       <div className="mx-auto max-w-3xl text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
-          Sompacare ROI Calculator
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-brand-slate">
-          Enter your current staffing metrics below. The calculator will automatically update to
-          show your potential savings.
+        <p className="text-base leading-relaxed text-brand-slate">
+          Enter your current staffing metrics below. The calculator updates in real time to show
+          your potential savings.
         </p>
       </div>
 
-      <div className="mt-12 grid gap-8 lg:grid-cols-5 lg:items-start">
+      <div className="mt-10 grid gap-8 lg:grid-cols-5 lg:items-start">
         {/* Inputs — left column */}
         <div className="space-y-5 lg:col-span-3">
           <h2 className="text-xl font-bold text-brand-navy">Your staffing needs</h2>
