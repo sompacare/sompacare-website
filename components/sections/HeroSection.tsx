@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { BuildingIcon, UsersIcon } from "@/components/icons";
-import { HealthcareImage } from "@/components/ui/HealthcareImage";
+import { MarketingPhoto } from "@/components/ui/MarketingPhoto";
 import { heroStats } from "@/lib/data";
 
 export function HeroSection() {
@@ -71,12 +71,15 @@ export function HeroSection() {
           className="mt-16 grid items-end gap-8 lg:grid-cols-5 lg:gap-10"
         >
           <div className="relative lg:col-span-3">
-            <HealthcareImage
-              image="clinicalTeam"
-              className="aspect-[16/10] w-full rounded-3xl object-cover shadow-2xl"
+            <MarketingPhoto
+              image="homeHeroCnaLaughing"
+              className="aspect-[16/10] w-full rounded-3xl shadow-2xl ring-1 ring-white/10"
               priority
               immediate
             />
+            <div className="absolute bottom-5 left-5 max-w-xs rounded-2xl bg-brand-navy/80 px-4 py-3 text-sm font-semibold leading-snug text-white backdrop-blur-sm">
+              Real moments of care — CNAs and patients, connected
+            </div>
             <div className="absolute -bottom-4 -right-4 hidden rounded-2xl border border-brand-green/30 bg-brand-green px-5 py-3 text-sm font-bold text-white shadow-lg sm:block">
               24/7 Shift Support
             </div>

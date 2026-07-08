@@ -123,13 +123,16 @@ export function StaffingRoiCalculator() {
   return (
     <div id="roi-calculator" className="scroll-mt-28">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="text-base leading-relaxed text-brand-slate">
+        <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
+          Sompacare ROI Calculator
+        </h1>
+        <p className="mt-4 text-base leading-relaxed text-brand-slate">
           Enter your current staffing metrics below. The calculator updates in real time to show
           your potential savings.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-5 lg:items-start">
+      <div className="mt-12 grid gap-8 lg:grid-cols-5 lg:items-start">
         {/* Inputs — left column */}
         <div className="space-y-5 lg:col-span-3">
           <h2 className="text-xl font-bold text-brand-navy">Your staffing needs</h2>

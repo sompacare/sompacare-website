@@ -4,21 +4,6 @@ import { HealthcareImage } from "@/components/ui/HealthcareImage";
 import { AnimatedItem, AnimatedStagger } from "@/components/ui/Animated";
 import { type HealthcareImageKey } from "@/lib/healthcare-images";
 
-const heroStripImages: { image: HealthcareImageKey; caption: string }[] = [
-  {
-    image: "caregiverSupport",
-    caption: "CNAs building trust at home",
-  },
-  {
-    image: "clinicalTeam",
-    caption: "RNs & CNAs working together",
-  },
-  {
-    image: "nursingCare",
-    caption: "Hands-on care where it matters",
-  },
-];
-
 const careGalleryItems: { image: HealthcareImageKey; title: string; description: string }[] = [
   {
     image: "homeCare",
@@ -47,27 +32,6 @@ export const ROI_ROLE_IMAGES: Record<"cna" | "lpn" | "rn", HealthcareImageKey> =
   lpn: "seniorLiving",
   rn: "clinicalTeam",
 };
-
-export function RoiPhotoStrip() {
-  return (
-    <AnimatedStagger className="mb-12 grid gap-4 sm:grid-cols-3">
-      {heroStripImages.map(({ image, caption }) => (
-        <AnimatedItem key={image}>
-          <figure className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-md transition-shadow duration-300 hover:shadow-xl">
-            <HealthcareImage
-              image={image}
-              className="aspect-[4/3] w-full"
-              animate={false}
-            />
-            <figcaption className="border-t border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-brand-navy">
-              {caption}
-            </figcaption>
-          </figure>
-        </AnimatedItem>
-      ))}
-    </AnimatedStagger>
-  );
-}
 
 export function RoiCareGallery() {
   return (
@@ -101,43 +65,6 @@ export function RoiCareGallery() {
           </AnimatedItem>
         ))}
       </AnimatedStagger>
-    </div>
-  );
-}
-
-export function RoiHeroCollage() {
-  return (
-    <div className="relative mb-10 hidden overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg lg:block">
-      <div className="grid grid-cols-5 gap-1 p-1">
-        <div className="relative col-span-3 min-h-[280px]">
-          <HealthcareImage
-            image="homeCare"
-            className="h-full min-h-[280px] rounded-2xl"
-            priority
-            immediate
-          />
-          <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-tr from-brand-navy/50 via-transparent to-transparent" />
-          <p className="absolute bottom-5 left-5 max-w-xs text-lg font-semibold leading-snug text-white">
-            CNAs and caregivers sharing laughter and comfort at home
-          </p>
-        </div>
-        <div className="col-span-2 flex flex-col gap-1">
-          <div className="relative min-h-[138px] flex-1">
-            <HealthcareImage image="clinicalTeam" className="h-full min-h-[138px] rounded-2xl" />
-            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-brand-navy/60 to-transparent" />
-            <p className="absolute bottom-3 left-3 text-xs font-semibold text-white">
-              Clinical teams in sync
-            </p>
-          </div>
-          <div className="relative min-h-[138px] flex-1">
-            <HealthcareImage image="heroTeam" className="h-full min-h-[138px] rounded-2xl" />
-            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-brand-navy/60 to-transparent" />
-            <p className="absolute bottom-3 left-3 text-xs font-semibold text-white">
-              RNs leading on the floor
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
