@@ -1,6 +1,5 @@
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { AnimatedStatsSection } from "@/components/sections/AnimatedStatsSection";
-import { CaseStudiesSection } from "@/components/sections/CaseStudiesSection";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { ConversionCTASection } from "@/components/sections/ConversionCTASection";
 import { FAQSection } from "@/components/sections/FAQSection";
@@ -52,7 +51,6 @@ export default function HomePage() {
         <SolutionsHubSection />
         <AnimatedStatsSection />
         <TestimonialsSection limit={3} />
-        <CaseStudiesSection limit={3} />
         <WhyChooseSection />
         <FAQSection />
         <ConversionCTASection />

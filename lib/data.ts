@@ -16,7 +16,6 @@ export const navLinks = [
   { label: "Home Care", href: "/home-care" },
   { label: "HR Solutions", href: "/hr-solutions" },
   { label: "About", href: "/about" },
-  { label: "Case Studies", href: "/case-studies" },
   { label: "Resources", href: "/resources" },
   { label: "Blog", href: "/blog" },
 ];
@@ -28,12 +27,11 @@ export const footerNav = {
     { label: "Home Care", href: "/home-care" },
     { label: "HR Solutions", href: "/hr-solutions" },
     { label: "All Services", href: "/services" },
-    { label: "Case Studies", href: "/case-studies" },
   ],
   insights: [
     { label: "Blog", href: "/blog" },
     { label: "Resource Center", href: "/resources" },
-    { label: "Success Stories", href: "/case-studies#success-stories" },
+    { label: "ROI Calculator", href: "/resources#roi-calculator" },
     { label: "FAQ", href: "/contact#faq" },
   ],
   company: [
@@ -735,70 +733,3 @@ export const blogPostContent: Record<string, { content: string[] }> = {
     ],
   },
 };
-
-export const resources = [
-  {
-    id: "workforce-planning-guide",
-    title: "Healthcare Workforce Planning Guide",
-    description: "A comprehensive framework for predictive staffing, budget alignment, and census-based workforce modeling.",
-    type: "Guide",
-    format: "PDF",
-    pages: "24 pages",
-    category: "Workforce Management",
-  },
-  {
-    id: "credentialing-checklist",
-    title: "Clinical Credentialing Checklist",
-    description: "Audit-ready checklist covering licenses, certifications, immunizations, and background verification for all clinical roles.",
-    type: "Tool",
-    format: "PDF",
-    pages: "8 pages",
-    category: "Compliance",
-  },
-  {
-    id: "staffing-roi-calculator",
-    title: "Staffing ROI Calculator",
-    description: "Calculate the financial impact of overtime, agency premiums, and turnover versus strategic staffing partnerships.",
-    type: "Tool",
-    format: "Spreadsheet",
-    pages: "Interactive",
-    category: "Finance",
-  },
-  {
-    id: "nurse-retention-whitepaper",
-    title: "Nurse Retention in 2026: Strategies That Work",
-    description: "Research-backed whitepaper on reducing turnover with compensation, culture, and flexible staffing programs.",
-    type: "Whitepaper",
-    format: "PDF",
-    pages: "16 pages",
-    category: "Retention",
-  },
-  {
-    id: "ltc-staffing-playbook",
-    title: "Long-Term Care Staffing Playbook",
-    description: "Best practices for CNA/LPN coverage, weekend scheduling, and survey-ready agency management in skilled nursing.",
-    type: "Guide",
-    format: "PDF",
-    pages: "20 pages",
-    category: "Long-Term Care",
-  },
-  {
-    id: "travel-nursing-brief",
-    title: "Travel Nursing Market Brief Q1 2026",
-    description: "Quarterly analysis of travel nurse rates, demand trends, and strategic alternatives for health systems.",
-    type: "Report",
-    format: "PDF",
-    pages: "12 pages",
-    category: "Market Intelligence",
-  },
-];
-
-export const resourceCategories = [
-  "All",
-  "Workforce Management",
-  "Compliance",
-  "Finance",
-  "Retention",
-  "Long-Term Care",
-  "Market Intelligence",
-];

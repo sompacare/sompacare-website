@@ -24,6 +24,12 @@
 # misc
 .DS_Store
 *.pem
+.turbo
+dist/
+
+# platform
+apps/api/dist
+packages/*/dist
 
 # debug
 npm-debug.log*
