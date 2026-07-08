@@ -7,7 +7,7 @@ import { coverageStates } from "@/lib/data";
 
 export function LocationsSection() {
   return (
-    <Section id="locations" className="bg-slate-50">
+    <Section id="locations" className="light-surface bg-slate-50">
       <Container>
         <SectionHeading
           badge="Our Locations"

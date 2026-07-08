@@ -9,7 +9,7 @@ export function NurseTestimonialsSection() {
   const doubled = [...nurseTestimonials, ...nurseTestimonials];
 
   return (
-    <Section className="overflow-hidden bg-white">
+    <Section className="light-surface overflow-hidden bg-slate-50">
       <Container>
         <SectionHeading
           badge="Clinician Reviews"
@@ -18,8 +18,8 @@ export function NurseTestimonialsSection() {
         />
 
         <div className="relative mt-14">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent sm:w-24" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent sm:w-24" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-slate-50 to-transparent sm:w-24" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-slate-50 to-transparent sm:w-24" />
           <motion.div
             className="flex w-max gap-6"
             animate={{ x: ["0%", "-50%"] }}

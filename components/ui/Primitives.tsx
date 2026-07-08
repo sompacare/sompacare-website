@@ -23,8 +23,8 @@ export function SectionHeading({
   align?: "center" | "left";
 }) {
   const alignClass = align === "center" ? "mx-auto text-center" : "text-left";
-  const titleColor = light ? "text-white" : "text-foreground";
-  const descColor = light ? "text-white/65" : "text-muted";
+  const titleColor = light ? "text-white" : "section-title text-brand-navy";
+  const descColor = light ? "text-white/65" : "section-desc text-brand-slate";
 
   return (
     <div className={`max-w-3xl ${alignClass}`}>

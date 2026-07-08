@@ -14,7 +14,7 @@ const whyIcons = [ClockIcon, CheckCircleIcon, ShieldCheckIcon, UsersIcon, Buildi
 
 export function WhyChooseSection() {
   return (
-    <Section className="bg-surface">
+    <Section className="light-surface bg-slate-50">
       <Container>
         <SectionHeading
           badge="Why Sompacare"
@@ -27,12 +27,12 @@ export function WhyChooseSection() {
             const Icon = whyIcons[i] ?? ShieldCheckIcon;
             return (
               <AnimatedItem key={item.title}>
-                <div className="group h-full rounded-2xl border border-border bg-surface-elevated p-8 transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/25 hover:shadow-lg">
+                <div className="group h-full rounded-2xl border border-slate-200 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:border-brand-blue/25 hover:shadow-lg">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-blue/10 transition-all duration-300 group-hover:bg-brand-blue group-hover:shadow-md group-hover:shadow-brand-blue/20">
                     <Icon className="h-6 w-6 text-brand-blue transition-colors duration-300 group-hover:text-white" />
                   </div>
-                  <h3 className="mt-5 text-lg font-bold text-foreground">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted">{item.description}</p>
+                  <h3 className="mt-5 text-lg font-bold text-brand-navy">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-brand-slate">{item.description}</p>
                 </div>
               </AnimatedItem>
             );

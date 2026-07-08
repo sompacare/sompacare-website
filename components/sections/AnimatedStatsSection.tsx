@@ -24,7 +24,7 @@ export function AnimatedStatsSection() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-6 lg:grid-cols-3 lg:gap-8">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5 lg:gap-6">
           {platformStats.map((stat, i) => (
             <motion.div
               key={stat.label}

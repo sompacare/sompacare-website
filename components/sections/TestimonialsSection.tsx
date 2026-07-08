@@ -18,7 +18,7 @@ export function TestimonialsSection({ limit }: { limit?: number }) {
   const items = limit ? testimonials.slice(0, limit) : testimonials;
 
   return (
-    <Section className="bg-white">
+    <Section className="light-surface bg-slate-50">
       <Container>
         <SectionHeading
           badge="Testimonials"

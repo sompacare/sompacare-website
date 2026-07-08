@@ -29,7 +29,7 @@ const solutions = [
 
 export function SolutionsHubSection() {
   return (
-    <Section id="more-solutions" className="bg-white">
+    <Section id="more-solutions" className="light-surface bg-slate-50">
       <Container>
         <SectionHeading
           badge="More From Sompacare"

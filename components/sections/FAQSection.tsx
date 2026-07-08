@@ -9,7 +9,7 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <Section id="faq" className="bg-slate-50">
+    <Section id="faq" className="light-surface bg-slate-50">
       <Container>
         <div className="mx-auto max-w-3xl">
           <SectionHeading

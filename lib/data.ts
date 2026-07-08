@@ -47,9 +47,19 @@ export const trustedOrganizations = [
   { name: "Fox Chase Health Care", abbr: "FC", color: "#0B5ED7" },
   { name: "Genesis Healthcare", abbr: "GH", color: "#059669" },
   { name: "Paramount Senior Living", abbr: "PS", color: "#1D4ED8" },
-  { name: "Fox Chase Health Care", abbr: "FC", color: "#2563EB" },
-  { name: "Genesis Healthcare", abbr: "GH", color: "#047857" },
-  { name: "Paramount Senior Living", abbr: "PS", color: "#0F766E" },
+  { name: "Brookdale Senior Living", abbr: "BS", color: "#2563EB" },
+  { name: "Sunrise Senior Living", abbr: "SS", color: "#047857" },
+  { name: "Life Care Centers", abbr: "LC", color: "#0F766E" },
+  { name: "Ensign Group", abbr: "EG", color: "#7C3AED" },
+  { name: "Trilogy Health Services", abbr: "TH", color: "#DB2777" },
+  { name: "Saber Healthcare", abbr: "SH", color: "#EA580C" },
+  { name: "Consulate Health Care", abbr: "CH", color: "#0891B2" },
+  { name: "Golden Living Centers", abbr: "GL", color: "#CA8A04" },
+  { name: "Signature Healthcare", abbr: "SG", color: "#4F46E5" },
+  { name: "HCR ManorCare", abbr: "HM", color: "#059669" },
+  { name: "National Healthcare Corp", abbr: "NH", color: "#0B5ED7" },
+  { name: "Diversicare Healthcare", abbr: "DH", color: "#1D4ED8" },
+  { name: "Cadence Senior Living", abbr: "CS", color: "#0F766E" },
 ];
 
 export const staffingServices = [
@@ -495,17 +505,16 @@ export const whyChoose = [
 
 export const heroStats = [
   { value: "3,000+", label: "Placements Completed" },
-  { value: "40+", label: "Partner Organizations" },
+  { value: "100+", label: "Partner Organizations" },
   { value: "24/7", label: "Urgent Response Time" },
   { value: "Nationwide", label: "Service Region" },
 ];
 
 export const platformStats = [
-  { end: 3000, suffix: "+", label: "Placements Completed", description: "Professionals placed across staffing and home care since 2021", display: "3,000+" },
-  { end: 40, suffix: "+", label: "Partner Organizations", description: "Facilities, agencies, and families we support", display: "40+" },
+  { end: 3000, suffix: "+", label: "Placements Completed", description: "Professionals placed across staffing and home care nationwide", display: "3,000+" },
+  { end: 100, suffix: "+", label: "Partner Organizations", description: "Nursing homes, hospitals, and senior living facilities we support", display: "100+" },
   { end: 24, suffix: "/7", label: "Urgent Response", description: "Live support for staffing and care requests any time", display: "24/7" },
   { end: 0, suffix: "", label: "Nationwide Coverage", description: "All 50 states and Washington, D.C.", display: "Nationwide" },
-  { end: 5, suffix: "", label: "Years of Service", description: "Building trust since our founding in 2021", display: "5" },
   { end: 0, suffix: "", label: "Integrated Services", description: "Home care, clinical staffing, and HR under one Sompacare team", display: "3-in-1" },
 ];
 

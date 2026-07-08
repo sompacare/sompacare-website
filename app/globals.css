@@ -77,3 +77,27 @@ h1, h2, h3, h4 {
 .dark .card-hover:hover {
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
 }
+
+/* Light marketing sections stay readable in dark mode (fixed palette) */
+.light-surface {
+  --section-heading: #0c1e3d;
+  --section-body: #475569;
+  --section-muted: #64748b;
+  --section-card-bg: #ffffff;
+  --section-card-border: #e2e8f0;
+  --section-surface: #f1f5f9;
+  color: var(--section-body);
+  background-color: var(--section-surface);
+}
+
+.light-surface .section-title {
+  color: var(--section-heading);
+}
+
+.light-surface .section-desc {
+  color: var(--section-body);
+}
+
+.light-surface .section-muted {
+  color: var(--section-muted);
+}

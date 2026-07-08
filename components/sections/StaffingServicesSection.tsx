@@ -24,7 +24,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export function StaffingServicesSection() {
   return (
-    <Section id="staffing" className="bg-slate-50">
+    <Section id="staffing" className="light-surface bg-slate-50">
       <Container>
         <SectionHeading
           badge="Staffing Services"

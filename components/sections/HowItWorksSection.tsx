@@ -26,7 +26,7 @@ export function HowItWorksSection({ variant = "full" }: HowItWorksSectionProps) 
 
   if (variant === "staffing") {
     return (
-      <Section id="how-it-works" className="bg-white">
+      <Section id="how-it-works" className="light-surface bg-slate-50">
         <Container>
           <SectionHeading badge={badge} title={title} description={description} />
 

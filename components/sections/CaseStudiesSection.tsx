@@ -12,7 +12,7 @@ export function CaseStudiesSection({ limit }: { limit?: number }) {
   const items = limit ? caseStudies.slice(0, limit) : caseStudies;
 
   return (
-    <Section className="bg-surface">
+    <Section className="light-surface bg-slate-50">
       <Container>
         <SectionHeading
           badge="Case Studies"
@@ -29,7 +29,7 @@ export function CaseStudiesSection({ limit }: { limit?: number }) {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               whileHover={{ y: -6 }}
-              className="card-hover group flex flex-col overflow-hidden rounded-3xl border border-border bg-surface-elevated shadow-sm transition-shadow duration-300 hover:shadow-xl"
+              className="card-hover group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-xl"
             >
               <HealthcareImage
                 image={study.image as HealthcareImageKey}
@@ -41,11 +41,11 @@ export function CaseStudiesSection({ limit }: { limit?: number }) {
                 <span className="text-[10px] font-bold tracking-[0.15em] text-brand-blue uppercase">
                   {study.industry}
                 </span>
-                <h3 className="mt-3 text-lg font-bold text-foreground transition-colors group-hover:text-brand-blue">
+                <h3 className="mt-3 text-lg font-bold text-brand-navy transition-colors group-hover:text-brand-blue">
                   {study.title}
                 </h3>
                 <p className="mt-1 text-sm font-semibold text-brand-green">{study.client}</p>
-                <p className="mt-4 flex-1 text-sm leading-relaxed text-muted">{study.challenge}</p>
+                <p className="mt-4 flex-1 text-sm leading-relaxed text-brand-slate">{study.challenge}</p>
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   {study.results.slice(0, 4).map((r, j) => (
@@ -55,15 +55,15 @@ export function CaseStudiesSection({ limit }: { limit?: number }) {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: 0.2 + j * 0.05 }}
-                      className="rounded-xl bg-surface p-3 text-center"
+                      className="rounded-xl bg-slate-50 p-3 text-center"
                     >
                       <p className="text-lg font-bold text-brand-blue">{r.metric}</p>
-                      <p className="mt-0.5 text-[10px] font-medium text-muted">{r.label}</p>
+                      <p className="mt-0.5 text-[10px] font-medium text-brand-slate">{r.label}</p>
                     </motion.div>
                   ))}
                 </div>
 
-                <blockquote className="mt-6 border-l-2 border-brand-green pl-4 text-sm italic text-muted">
+                <blockquote className="mt-6 border-l-2 border-brand-green pl-4 text-sm italic text-brand-slate">
                   &ldquo;{study.quote}&rdquo;
                   <footer className="mt-2 text-xs font-semibold not-italic text-brand-green">
                     — {study.client}
@@ -114,22 +114,22 @@ export function CaseStudiesFullSection() {
                   <span className="text-xs font-bold tracking-[0.15em] text-brand-blue uppercase">
                     {study.industry}
                   </span>
-                  <h2 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">{study.title}</h2>
+                  <h2 className="mt-3 text-2xl font-bold text-brand-navy sm:text-3xl">{study.title}</h2>
                   <p className="mt-2 text-base font-semibold text-brand-green">{study.client}</p>
 
                   <div className="mt-8 space-y-6">
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">Challenge</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted">{study.challenge}</p>
+                      <h3 className="text-sm font-bold text-brand-navy">Challenge</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-brand-slate">{study.challenge}</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">Solution</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted">{study.solution}</p>
+                      <h3 className="text-sm font-bold text-brand-navy">Solution</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-brand-slate">{study.solution}</p>
                     </div>
                   </div>
 
                   <blockquote className="mt-8 rounded-2xl border border-border bg-surface p-6">
-                    <p className="text-sm italic text-muted">&ldquo;{study.quote}&rdquo;</p>
+                    <p className="text-sm italic text-brand-slate">&ldquo;{study.quote}&rdquo;</p>
                     <footer className="mt-3 text-sm font-semibold text-brand-green">
                       — {study.client}
                     </footer>
@@ -141,7 +141,7 @@ export function CaseStudiesFullSection() {
                 className="border-t border-border px-8 py-8 sm:px-10 sm:py-10 lg:px-12"
                 style={{ backgroundColor: `${study.color}08` }}
               >
-                <h3 className="text-sm font-bold tracking-wide text-foreground uppercase">Key Results</h3>
+                <h3 className="text-sm font-bold tracking-wide text-brand-navy uppercase">Key Results</h3>
                 <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
                   {study.results.map((r, j) => (
                     <motion.div
@@ -155,7 +155,7 @@ export function CaseStudiesFullSection() {
                       <p className="text-2xl font-bold sm:text-3xl" style={{ color: study.color }}>
                         {r.metric}
                       </p>
-                      <p className="mt-1 text-xs font-medium text-muted">{r.label}</p>
+                      <p className="mt-1 text-xs font-medium text-brand-slate">{r.label}</p>
                     </motion.div>
                   ))}
                 </div>
