@@ -34,7 +34,7 @@ export default function ServicesPage() {
       <main>
         <PageHero
           badge="Our Services"
-          title="Healthcare Staffing, Home Care & Workforce Solutions"
+          title="Healthcare Staffing, Home Care & HR Solutions"
           description="From compassionate in-home care for families to clinical staffing and enterprise HR consulting — Sompacare delivers the talent and care your organization needs."
         />
         <HomeCareSection variant="full" />

@@ -30,9 +30,9 @@ export default function CareersPage() {
       <JsonLd data={careersPageSchema()} />
       <main>
         <PageHero
-          badge="Careers Portal"
-          title="Build Your Healthcare Career With Sompacare"
-          description="Apply for CNA, GNA, CMA, Med Tech, LPN, and RN roles nationwide. Submit your application, resume, and certifications online."
+          badge="Find Shifts"
+          title="Pick Up Per Diem, Contract & Travel Shifts Nationwide"
+          description="Apply as a CNA, LPN, or RN and get matched to shifts at hospitals, skilled nursing, and senior living facilities — with competitive pay and 24/7 coordinator support."
         />
 
         <Section className="bg-white">

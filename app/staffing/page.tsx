@@ -1,6 +1,8 @@
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ContactSection } from "@/components/sections/ContactSection";
-import { PageHero } from "@/components/ui/PageHero";
+import { HowItWorksSection } from "@/components/sections/HowItWorksSection";
+import { StaffingPageHero } from "@/components/sections/StaffingPageHero";
+import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
 import { Container, OutlineButton, PrimaryButton, Section, SectionHeading } from "@/components/ui/Primitives";
 import { MotionDiv } from "@/components/ui/Animated";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -72,11 +74,8 @@ export default function StaffingPage() {
     <SiteLayout>
       <JsonLd data={staffingPageSchema()} />
       <main>
-        <PageHero
-          badge="Healthcare Staffing"
-          title="Qualified Clinical Professionals, Delivered Fast"
-          description="Sompacare provides RNs, LPNs, CNAs, travel nurses, and allied health professionals through flexible staffing models designed for healthcare urgency."
-        />
+        <StaffingPageHero />
+        <HowItWorksSection variant="staffing" />
         <Section className="bg-white">
           <Container>
             <div className="space-y-20">
@@ -123,6 +122,7 @@ export default function StaffingPage() {
             </div>
           </Container>
         </Section>
+        <TestimonialsSection limit={3} />
         <Section className="bg-slate-50">
           <Container className="text-center">
             <SectionHeading
@@ -131,8 +131,8 @@ export default function StaffingPage() {
               description="Tell us about your clinical staffing needs and we'll deliver qualified, credentialed professionals fast."
             />
             <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <PrimaryButton href="/contact">Request Staff</PrimaryButton>
-              <OutlineButton href="/contact">Schedule Consultation</OutlineButton>
+              <PrimaryButton href="/contact#request-staff">Request Staff</PrimaryButton>
+              <OutlineButton href="/careers">Find Shifts as a Clinician</OutlineButton>
             </div>
           </Container>
         </Section>

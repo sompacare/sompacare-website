@@ -47,6 +47,12 @@ export function Header() {
             <span className="hidden xl:inline">{siteConfig.phone}</span>
           </a>
           <ThemeToggle />
+          <Link
+            href="/careers"
+            className="rounded-full border border-white/25 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            Find Shifts
+          </Link>
           <PrimaryButton href="/contact#request-staff" className="!px-5 !py-2.5 !text-xs">
             Request Staff
           </PrimaryButton>
@@ -101,9 +107,16 @@ export function Header() {
                 {siteConfig.phone}
               </a>
               <Link
+                href="/careers"
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 rounded-xl border border-white/20 px-4 py-3.5 text-center text-sm font-semibold text-white"
+              >
+                Find Shifts
+              </Link>
+              <Link
                 href="/contact#request-staff"
                 onClick={() => setMobileOpen(false)}
-                className="mt-2 rounded-xl bg-brand-blue px-4 py-3.5 text-center text-sm font-semibold text-white"
+                className="rounded-xl bg-brand-blue px-4 py-3.5 text-center text-sm font-semibold text-white"
               >
                 Request Staff
               </Link>

@@ -28,8 +28,8 @@ export function StaffingServicesSection() {
       <Container>
         <SectionHeading
           badge="Staffing Services"
-          title="Dedicated Staffing Solutions for Every Clinical Role"
-          description="From RNs and travel nurses to per diem coverage and permanent placement — Sompacare delivers qualified professionals when and where you need them."
+          title="Per Diem, Contract & Travel Staffing for Every Role"
+          description="From RNs and travel nurses to per diem CNAs and permanent placement — Sompacare delivers credentialed professionals when and where you need them."
         />
 
         <AnimatedStagger className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

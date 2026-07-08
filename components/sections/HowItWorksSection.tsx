@@ -3,24 +3,62 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Container, Section, SectionHeading } from "@/components/ui/Primitives";
-import { howItWorksSteps } from "@/lib/data";
+import { howItWorksSteps, staffingHowItWorksSteps } from "@/lib/data";
 
-export function HowItWorksSection() {
+type HowItWorksSectionProps = {
+  variant?: "staffing" | "full";
+};
+
+export function HowItWorksSection({ variant = "full" }: HowItWorksSectionProps) {
+  const steps = variant === "staffing" ? staffingHowItWorksSteps : howItWorksSteps;
   const [active, setActive] = useState(0);
-  const current = howItWorksSteps[active];
+  const current = steps[active];
+
+  const badge = variant === "staffing" ? "How Sompacare Works" : "How It Works";
+  const title =
+    variant === "staffing"
+      ? "Do the work you love on your schedule"
+      : "A Proven Five-Step Process";
+  const description =
+    variant === "staffing"
+      ? "Browse shifts, get matched fast, and get paid — whether you're picking up per diem work or filling your facility's schedule."
+      : "From talent request to ongoing partnership — we make workforce solutions seamless, compliant, and efficient for your organization.";
+
+  if (variant === "staffing") {
+    return (
+      <Section id="how-it-works" className="bg-white">
+        <Container>
+          <SectionHeading badge={badge} title={title} description={description} />
+
+          <div className="mt-16 grid gap-8 lg:grid-cols-3">
+            {steps.map((step, index) => (
+              <motion.div
+                key={step.step}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="relative rounded-3xl border border-slate-200/80 bg-slate-50 p-8"
+              >
+                <span className="text-4xl font-bold text-brand-blue/20">{step.step}</span>
+                <h3 className="mt-4 text-xl font-bold text-brand-navy">{step.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-brand-slate">{step.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </Container>
+      </Section>
+    );
+  }
 
   return (
     <Section id="how-it-works" className="bg-slate-50">
       <Container>
-        <SectionHeading
-          badge="How It Works"
-          title="A Proven Five-Step Process"
-          description="From talent request to ongoing partnership — we make workforce solutions seamless, compliant, and efficient for your organization."
-        />
+        <SectionHeading badge={badge} title={title} description={description} />
 
         <div className="mt-16 grid gap-10 lg:grid-cols-5">
           <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
-            {howItWorksSteps.map((step, index) => (
+            {steps.map((step, index) => (
               <button
                 key={step.step}
                 type="button"
@@ -67,7 +105,7 @@ export function HowItWorksSection() {
                 </div>
 
                 <div className="mt-8 flex gap-2">
-                  {howItWorksSteps.map((_, index) => (
+                  {steps.map((_, index) => (
                     <div
                       key={index}
                       className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${

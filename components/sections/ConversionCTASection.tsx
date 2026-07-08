@@ -14,18 +14,18 @@ export function ConversionCTASection() {
       <Container className="relative text-center">
         <MotionDiv>
           <p className="text-xs font-bold tracking-[0.2em] text-brand-green-light uppercase">
-            Partner With Sompacare
+            Start Staffing Today
           </p>
           <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-            Ready to Build a Stronger Healthcare Workforce?
+            Need CNAs, LPNs, or RNs on your next shift?
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-white/65">
-            Join 500+ healthcare organizations that trust Sompacare for staffing,
-            recruitment, and enterprise workforce solutions.
+            Whether you&apos;re a clinician looking for flexible work or a facility manager
+            filling open shifts — Sompacare is ready to help 24/7.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <PrimaryButton href="/contact">Request Staffing Support</PrimaryButton>
-            <SecondaryButton href="/contact">Schedule Consultation</SecondaryButton>
+            <PrimaryButton href="/careers">Find Shifts</PrimaryButton>
+            <SecondaryButton href="/contact#request-staff">Request Staff</SecondaryButton>
           </div>
           <p className="mt-6 text-sm text-white/50">
             Or call{" "}

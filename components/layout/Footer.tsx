@@ -11,14 +11,19 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo variant="light" size="md" />
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/50">
-              Enterprise healthcare staffing and workforce solutions for hospitals,
-              nursing homes, assisted living, rehabilitation centers, and healthcare
-              organizations nationwide.
+              Nationwide healthcare staffing for CNAs, LPNs, and RNs — plus home care and
+              HR workforce solutions for hospitals, nursing homes, and senior living facilities.
             </p>
-            <div className="mt-6">
-              <PrimaryButton href="/contact" className="!px-6 !py-3 !text-xs">
-                Request Staffing Support
+            <div className="mt-6 flex flex-wrap gap-3">
+              <PrimaryButton href="/careers" className="!px-6 !py-3 !text-xs">
+                Find Shifts
               </PrimaryButton>
+              <Link
+                href="/contact#request-staff"
+                className="inline-flex items-center justify-center rounded-full border border-white/25 px-6 py-3 text-xs font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                Request Staff
+              </Link>
             </div>
           </div>
 

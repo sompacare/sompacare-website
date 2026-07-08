@@ -1,8 +1,8 @@
 export const siteConfig = {
   name: "Sompacare",
-  tagline: "Healthcare Staffing, Home Care & Workforce Solutions",
+  tagline: "Nationwide Healthcare Staffing for CNAs, LPNs & RNs",
   description:
-    "Sompacare is a nationwide healthcare staffing agency and nurse staffing agency providing RN, LPN, CNA, and travel nurse placement, in-home care, medical staffing, and healthcare workforce solutions for hospitals, senior living, and families.",
+    "Sompacare connects CNAs, LPNs, and RNs to per diem, contract, and travel shifts at hospitals, skilled nursing, and senior living facilities nationwide — plus in-home care and HR workforce solutions.",
   url: "https://sompacare.com",
   founded: "2021",
   phone: "(240) 676-1208",
@@ -11,21 +11,21 @@ export const siteConfig = {
 };
 
 export const navLinks = [
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Home Care", href: "/home-care" },
   { label: "Staffing", href: "/staffing" },
+  { label: "Find Shifts", href: "/careers" },
+  { label: "Home Care", href: "/home-care" },
   { label: "HR Solutions", href: "/hr-solutions" },
+  { label: "About", href: "/about" },
   { label: "Case Studies", href: "/case-studies" },
   { label: "Resources", href: "/resources" },
   { label: "Blog", href: "/blog" },
-  { label: "Careers", href: "/careers" },
 ];
 
 export const footerNav = {
   solutions: [
-    { label: "Home Care", href: "/home-care" },
     { label: "Healthcare Staffing", href: "/staffing" },
+    { label: "Find Shifts", href: "/careers" },
+    { label: "Home Care", href: "/home-care" },
     { label: "HR Solutions", href: "/hr-solutions" },
     { label: "All Services", href: "/services" },
     { label: "Case Studies", href: "/case-studies" },
@@ -195,6 +195,33 @@ export const hrSolutions = [
   },
 ];
 
+export const staffingHowItWorksSteps = [
+  {
+    step: "01",
+    title: "Browse",
+    description:
+      "Discover per diem, contract, and travel shifts matched to your role, rate, and location preferences.",
+    detail:
+      "Our talent team maintains an active pipeline of open shifts across hospitals, skilled nursing, and senior living — updated daily.",
+  },
+  {
+    step: "02",
+    title: "Book Shifts",
+    description:
+      "Get matched and confirmed quickly with credentialing handled before your first day on the floor.",
+    detail:
+      "Every placement includes license verification, onboarding, and facility orientation so you arrive ready to work.",
+  },
+  {
+    step: "03",
+    title: "Work & Get Paid",
+    description:
+      "Complete your shift and receive weekly direct deposit — with responsive support throughout your assignment.",
+    detail:
+      "Dedicated coordinators handle scheduling changes, timesheet questions, and ongoing placement support 24/7.",
+  },
+];
+
 export const howItWorksSteps = [
   {
     step: "01",
@@ -335,6 +362,60 @@ export const testimonials = [
     organization: "Paramount Senior Living",
     color: "#047857",
   },
+];
+
+export const nurseTestimonials = [
+  {
+    quote:
+      "When I tell you I love Sompacare, I mean it. The team is responsive, the pay is competitive, and I can pick up per diem shifts that fit my schedule. Definitely try it.",
+    name: "Maria T.",
+    role: "RN",
+    state: "Maryland",
+  },
+  {
+    quote:
+      "I love working with Sompacare. If I have any issues they're always dealt with immediately, and they make the onboarding process straightforward.",
+    name: "Kyra B.",
+    role: "LPN",
+    state: "Pennsylvania",
+  },
+  {
+    quote:
+      "Love that you can make your own schedule. When you want to work you just reach out — they always have shifts available.",
+    name: "Rebecca D.",
+    role: "CNA",
+    state: "Virginia",
+  },
+  {
+    quote:
+      "Over six months in, and it's the best staffing decision I've made. Consistent placements and great communication.",
+    name: "Angela G.",
+    role: "RN",
+    state: "Georgia",
+  },
+  {
+    quote:
+      "Best agency yet. The rates are amazing and I finally have flexibility without sacrificing quality facilities.",
+    name: "Jaminda T.",
+    role: "CNA",
+    state: "Maryland",
+  },
+  {
+    quote:
+      "Sompacare helped me transition from travel nursing to local per diem. Same great pay, less hassle.",
+    name: "Jacintha P.",
+    role: "RN",
+    state: "Florida",
+  },
+];
+
+export const coverageStates = [
+  "Alabama", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+  "Delaware", "Florida", "Georgia", "Illinois", "Indiana", "Iowa",
+  "Kansas", "Kentucky", "Louisiana", "Maryland", "Massachusetts", "Michigan",
+  "Minnesota", "Missouri", "Nebraska", "Nevada", "New Jersey", "New York",
+  "North Carolina", "Ohio", "Pennsylvania", "Rhode Island", "South Carolina",
+  "Tennessee", "Texas", "Virginia", "Washington", "Wisconsin",
 ];
 
 export const faqs = [
