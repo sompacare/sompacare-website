@@ -62,7 +62,9 @@ export function useNotifications() {
     socket.on("notification:new", () => void refresh());
     socket.on("shift:updated", () => void refresh());
 
-    return () => socket.disconnect();
+    return () => {
+      socket.disconnect();
+    };
   }, [refresh]);
 
   const markRead = useCallback(
