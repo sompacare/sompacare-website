@@ -125,7 +125,8 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "applications:read", "applications:write",
     "assignments:read", "assignments:write",
     "timecards:read", "timecards:approve",
-    "invoices:read",
+    "invoices:read", "payments:write",
+    "payroll:read", "payroll:write", "payroll:approve", "payroll:process",
     "notifications:read", "notifications:write",
     "messages:read", "messages:write",
     "ratings:read", "ratings:write",
@@ -150,7 +151,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "notifications:read",
     "messages:read", "messages:write",
     "ratings:read", "ratings:write",
-    "compliance:read",
+    "compliance:read", "compliance:write",
   ],
 
   [PlatformRole.CNA]: [
@@ -162,7 +163,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "notifications:read",
     "messages:read", "messages:write",
     "ratings:read", "ratings:write",
-    "compliance:read",
+    "compliance:read", "compliance:write",
   ],
 
   [PlatformRole.LPN]: [
@@ -174,7 +175,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "notifications:read",
     "messages:read", "messages:write",
     "ratings:read", "ratings:write",
-    "compliance:read",
+    "compliance:read", "compliance:write",
   ],
 
   [PlatformRole.RN]: [
@@ -186,7 +187,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "notifications:read",
     "messages:read", "messages:write",
     "ratings:read", "ratings:write",
-    "compliance:read",
+    "compliance:read", "compliance:write",
   ],
 
   [PlatformRole.PAYROLL]: [

@@ -1,11 +1,13 @@
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   app.use(helmet());
   app.enableCors({
@@ -14,6 +16,7 @@ async function bootstrap() {
       "http://localhost:3001",
       "http://localhost:3002",
       "http://localhost:3003",
+      "http://localhost:3004",
     ],
     credentials: true,
   });
@@ -45,15 +48,33 @@ async function bootstrap() {
     .addTag("assignments", "Shift assignments")
     .addTag("compliance", "Credential compliance")
     .addTag("workers", "Worker profiles")
+    .addTag("timekeeping", "GPS clock in/out")
+    .addTag("timecards", "Timecard approval")
+    .addTag("notifications", "In-app and email notifications")
+    .addTag("wallet", "Worker wallet and payouts")
+    .addTag("payments", "Stripe Connect and webhooks")
+    .addTag("invoices", "Facility billing")
+    .addTag("payroll", "Pay runs and payouts")
+    .addTag("realtime", "WebSocket live updates")
+    .addTag("admin", "Platform admin dashboard")
+    .addTag("ai", "AI matching, recommendations, and risk detection")
+    .addTag("mobile", "Mobile app config and push tokens")
+    .addTag("observability", "Metrics and monitoring")
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup("api/v1/docs", app, document);
+  const isProduction = process.env.NODE_ENV === "production";
+  if (!isProduction) {
+    SwaggerModule.setup("api/v1/docs", app, document);
+  }
 
   const port = process.env.API_PORT ?? 4000;
   await app.listen(port);
   console.log(`Sompacare API running on http://localhost:${port}/api/v1`);
-  console.log(`Swagger docs: http://localhost:${port}/api/v1/docs`);
+  if (!isProduction) {
+    console.log(`Swagger docs: http://localhost:${port}/api/v1/docs`);
+  }
+  console.log(`WebSocket: ws://localhost:${port}/realtime`);
 }
 
 bootstrap();

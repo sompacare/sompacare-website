@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { join } from "path";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { PrismaModule } from "./common/prisma/prisma.module";
@@ -15,14 +16,42 @@ import { ApplicationsModule } from "./modules/applications/applications.module";
 import { AssignmentsModule } from "./modules/assignments/assignments.module";
 import { ComplianceModule } from "./modules/compliance/compliance.module";
 import { WorkersModule } from "./modules/workers/workers.module";
+import { TimekeepingModule } from "./modules/timekeeping/timekeeping.module";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
+import { WalletModule } from "./modules/wallet/wallet.module";
+import { InvoicesModule } from "./modules/invoices/invoices.module";
+import { PayrollModule } from "./modules/payroll/payroll.module";
+import { RecruitersModule } from "./modules/recruiters/recruiters.module";
+import { AiModule } from "./modules/ai/ai.module";
+import { RealtimeModule } from "./modules/realtime/realtime.module";
+import { JobsModule } from "./modules/jobs/jobs.module";
+import { AdminModule } from "./modules/admin/admin.module";
+import { MobileModule } from "./modules/mobile/mobile.module";
+import { ObservabilityModule } from "./modules/observability/observability.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      { name: "default", ttl: 60000, limit: 100 },
-      { name: "public", ttl: 60000, limit: 20 },
-    ]),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        join(process.cwd(), ".env"),
+        join(process.cwd(), "../../.env"),
+        join(process.cwd(), ".env.platform"),
+        join(process.cwd(), "../../.env.platform"),
+      ],
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const loadTest = config.get("LOAD_TEST_MODE", "false") === "true";
+        return [
+          { name: "default", ttl: 60000, limit: loadTest ? 100_000 : 100 },
+          { name: "public", ttl: 60000, limit: loadTest ? 10_000 : 20 },
+        ];
+      },
+    }),
     PrismaModule,
     AuditModule,
     HealthModule,
@@ -35,6 +64,19 @@ import { WorkersModule } from "./modules/workers/workers.module";
     ApplicationsModule,
     AssignmentsModule,
     WorkersModule,
+    TimekeepingModule,
+    NotificationsModule,
+    PaymentsModule,
+    WalletModule,
+    InvoicesModule,
+    PayrollModule,
+    RecruitersModule,
+    AiModule,
+    RealtimeModule,
+    JobsModule,
+    AdminModule,
+    MobileModule,
+    ObservabilityModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

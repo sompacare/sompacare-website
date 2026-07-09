@@ -9,12 +9,14 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { WORKER_ROLES } from "@sompacare/shared";
 import {
   AuthenticatedUser,
   CurrentUser,
   RequirePermissions,
 } from "../../common/decorators";
 import { ShiftsService } from "./shifts.service";
+import { MatchingService } from "../ai/matching.service";
 import {
   ApplyShiftDto,
   CreateShiftDto,
@@ -26,13 +28,27 @@ import {
 @ApiBearerAuth()
 @Controller({ path: "shifts", version: "1" })
 export class ShiftsController {
-  constructor(private shiftsService: ShiftsService) {}
+  constructor(
+    private shiftsService: ShiftsService,
+    private matchingService: MatchingService
+  ) {}
 
   @Get()
   @RequirePermissions("shifts:read")
   @ApiOperation({ summary: "Search and list shifts" })
-  findAll(@Query() query: ShiftQueryDto) {
-    return this.shiftsService.findPublished(query);
+  findAll(@Query() query: ShiftQueryDto, @CurrentUser() user: AuthenticatedUser) {
+    const isWorker = user.roles.some((r) => WORKER_ROLES.includes(r));
+    if (isWorker && !query.facilityId) {
+      return this.shiftsService.findPublished(query);
+    }
+    return this.shiftsService.findAll(query);
+  }
+
+  @Get(":id/matches")
+  @RequirePermissions("shifts:read")
+  @ApiOperation({ summary: "AI-ranked worker matches for shift" })
+  getMatches(@Param("id") id: string) {
+    return this.matchingService.getShiftMatches(id);
   }
 
   @Get(":id")

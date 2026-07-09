@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Sompacare Facility",
+    "slug": "sompacare-facility",
+    "version": "1.0.0",
+    "scheme": "sompacare-facility",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": { "backgroundColor": "#0c1e3d" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sompacare.facility"
+    },
+    "android": {
+      "adaptiveIcon": { "backgroundColor": "#0c1e3d" },
+      "package": "com.sompacare.facility"
+    },
+    "plugins": ["expo-router", "expo-notifications"],
+    "experiments": { "typedRoutes": true }
+  }
+}

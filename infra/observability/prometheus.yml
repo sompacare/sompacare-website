@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: sompacare-api
+    metrics_path: /api/v1/metrics
+    static_configs:
+      - targets: ["host.docker.internal:4000"]
+        labels:
+          service: sompacare-api
+          environment: local

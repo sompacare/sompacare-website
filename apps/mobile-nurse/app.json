@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Sompacare Nurse",
+    "slug": "sompacare-nurse",
+    "version": "1.0.0",
+    "scheme": "sompacare-nurse",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0b5ed7"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sompacare.nurse"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0b5ed7"
+      },
+      "package": "com.sompacare.nurse"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Sompacare to verify your location when clocking in/out."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Sompacare to upload credential documents."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

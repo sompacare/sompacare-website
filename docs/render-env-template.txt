@@ -1,0 +1,30 @@
+# Paste these into Render → sompacare-api → Environment
+# Replace YOUR_* placeholders before saving
+
+NODE_ENV=production
+API_PORT=4000
+AUTH_ALLOW_DEV_TOKENS=false
+GEOFENCE_DEV_BYPASS=false
+PAYMENTS_DEV_BYPASS=false
+
+# Stripe (LIVE keys — from Stripe Dashboard, Live mode ON)
+STRIPE_SECRET_KEY=sk_live_YOUR_KEY
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_LIVE_WEBHOOK_SECRET
+
+# Clerk (production instance)
+CLERK_SECRET_KEY=sk_live_YOUR_CLERK_SECRET
+CLERK_WEBHOOK_SECRET=whsec_YOUR_CLERK_WEBHOOK
+
+# After Vercel deploys — paste actual portal URLs (comma-separated, no spaces)
+CORS_ORIGINS=https://YOUR-NURSE.vercel.app,https://YOUR-FACILITY.vercel.app,https://YOUR-RECRUITER.vercel.app,https://YOUR-ADMIN.vercel.app
+
+NURSE_PORTAL_URL=https://YOUR-NURSE.vercel.app
+FACILITY_PORTAL_URL=https://YOUR-FACILITY.vercel.app
+RECRUITER_PORTAL_URL=https://YOUR-RECRUITER.vercel.app
+ADMIN_PORTAL_URL=https://YOUR-ADMIN.vercel.app
+
+# Email (optional)
+RESEND_API_KEY=re_YOUR_KEY
+RESEND_FROM_EMAIL=Sompacare <careers@sompacare.com>
+
+# DATABASE_URL is auto-set by Render from sompacare-db

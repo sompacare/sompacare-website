@@ -18,9 +18,10 @@ test("RN can read shifts and confirm assignments", () => {
   assert.equal(hasPermission([PlatformRole.RN], "shifts:write"), false);
 });
 
-test("FACILITY_MANAGER can publish shifts", () => {
+test("FACILITY_MANAGER can publish shifts and run payroll", () => {
   assert.equal(hasPermission([PlatformRole.FACILITY_MANAGER], "shifts:publish"), true);
-  assert.equal(hasPermission([PlatformRole.FACILITY_MANAGER], "payroll:approve"), false);
+  assert.equal(hasPermission([PlatformRole.FACILITY_MANAGER], "payroll:approve"), true);
+  assert.equal(hasPermission([PlatformRole.FACILITY_MANAGER], "payroll:process"), true);
 });
 
 test("getPermissionsForRoles merges multiple roles", () => {

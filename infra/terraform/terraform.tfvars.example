@@ -1,0 +1,7 @@
+aws_region            = "us-east-1"
+environment           = "dev"
+documents_bucket_name = "sompacare-documents-dev-UNIQUE"
+db_password           = "CHANGE_ME_STRONG_PASSWORD"
+api_image             = "YOUR_ECR_REGISTRY/sompacare-api:latest"
+ecs_desired_count     = 2
+sentry_dsn            = ""

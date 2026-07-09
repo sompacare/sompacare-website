@@ -22,8 +22,27 @@ export default function ShiftsPage() {
     try {
       const params: Record<string, string> = { limit: "20" };
       if (roleFilter !== "ALL") params.role = roleFilter;
-      const res = await api.getShifts(params);
-      setShifts(res.data ?? []);
+
+      const [recs, assignmentRes] = await Promise.all([
+        api.getRecommendedShifts(20).catch(() => null),
+        api.getAssignments({ limit: "20" }).catch(() => ({ data: [] })),
+      ]);
+
+      let shiftList: Shift[] = [];
+      if (recs?.recommendations?.length) {
+        shiftList = recs.recommendations
+          .map((r) => ({ ...r.shift, matchScore: r.score }))
+          .filter((s) => roleFilter === "ALL" || s.role === roleFilter);
+      } else {
+        const shiftRes = await api.getShifts(params);
+        shiftList = shiftRes.data ?? [];
+      }
+
+      setShifts(shiftList);
+      const appliedShiftIds = new Set(
+        (assignmentRes.data ?? []).map((a) => a.shift.id)
+      );
+      setClaimedIds(appliedShiftIds);
     } catch {
       setShifts([]);
     } finally {
@@ -50,7 +69,7 @@ export default function ShiftsPage() {
       <div>
         <h1 className="text-2xl font-bold text-navy">Shift marketplace</h1>
         <p className="mt-1 text-sm text-muted">
-          Browse nearby shifts and claim with one tap
+          AI-ranked shifts matched to your profile
         </p>
       </div>
 
@@ -86,8 +105,9 @@ export default function ShiftsPage() {
           {shifts.map((shift) => (
             <div key={shift.id}>
               {claimedIds.has(shift.id) ? (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-success">
-                  Application submitted for {shift.title}
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-success">
+                  <p className="font-semibold">Application submitted for {shift.title}</p>
+                  <p className="mt-1 text-xs">Open <strong>Schedule</strong> to confirm your shift.</p>
                 </div>
               ) : (
                 <ShiftCard

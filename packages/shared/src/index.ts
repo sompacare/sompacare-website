@@ -1,5 +1,11 @@
 export * from "./rbac/permissions";
 export * from "./compliance/evaluate-compliance";
+export * from "./compliance/expiry";
+export * from "./geofence/distance";
+export * from "./payroll/calculate";
+export * from "./matching/calculate";
+export * from "./matching/payroll-anomalies";
+export * from "./matching/compliance-risks";
 
 export const API_VERSION = "v1";
 export const DEFAULT_PAGE_SIZE = 20;

@@ -1,4 +1,4 @@
-import { PrismaClient, PlatformRole, ClinicalRole, ShiftType } from "@prisma/client";
+import { PrismaClient, PlatformRole, ClinicalRole, ShiftType, CandidatePipelineStage } from "@prisma/client";
 import { ROLE_PERMISSIONS } from "@sompacare/shared";
 
 const prisma = new PrismaClient();
@@ -72,9 +72,23 @@ async function seedDemoData() {
     },
   });
 
+  const recruiter = await prisma.user.upsert({
+    where: { clerkId: "dev_recruiter" },
+    update: {},
+    create: {
+      clerkId: "dev_recruiter",
+      email: "recruiter@sompacare.com",
+      firstName: "Jordan",
+      lastName: "Williams",
+      status: "ACTIVE",
+      emailVerified: true,
+    },
+  });
+
   const adminRole = await prisma.role.findUnique({ where: { name: PlatformRole.SUPER_ADMIN } });
   const rnRole = await prisma.role.findUnique({ where: { name: PlatformRole.RN } });
   const fmRole = await prisma.role.findUnique({ where: { name: PlatformRole.FACILITY_MANAGER } });
+  const recruiterRole = await prisma.role.findUnique({ where: { name: PlatformRole.RECRUITER } });
 
   if (adminRole) {
     await prisma.userRole.upsert({
@@ -162,6 +176,14 @@ async function seedDemoData() {
     });
   }
 
+  if (recruiterRole) {
+    await prisma.userRole.upsert({
+      where: { userId_roleId: { userId: recruiter.id, roleId: recruiterRole.id } },
+      update: {},
+      create: { userId: recruiter.id, roleId: recruiterRole.id },
+    });
+  }
+
   const org = await prisma.organization.upsert({
     where: { slug: "fox-chase-healthcare" },
     update: {},
@@ -239,10 +261,112 @@ async function seedDemoData() {
     });
   }
 
+  if (recruiterRole && facility) {
+    const seedCandidates = [
+      { firstName: "Maria", lastName: "Garcia", email: "maria.garcia@example.com", clinicalRole: ClinicalRole.CNA, stage: CandidatePipelineStage.APPLIED, matchScore: 72 },
+      { firstName: "James", lastName: "Wilson", email: "james.wilson@example.com", clinicalRole: ClinicalRole.LPN, stage: CandidatePipelineStage.SCREENING, matchScore: 81 },
+      { firstName: "Emily", lastName: "Davis", email: "emily.davis@example.com", clinicalRole: ClinicalRole.RN, stage: CandidatePipelineStage.INTERVIEW, matchScore: 88 },
+      { firstName: "David", lastName: "Brown", email: "david.brown@example.com", clinicalRole: ClinicalRole.RN, stage: CandidatePipelineStage.OFFER, matchScore: 92 },
+      { firstName: "Lisa", lastName: "Taylor", email: "lisa.taylor@example.com", clinicalRole: ClinicalRole.CNA, stage: CandidatePipelineStage.PLACED, matchScore: 95, placedAt: new Date() },
+    ];
+
+    for (const c of seedCandidates) {
+      await prisma.candidate.upsert({
+        where: { id: `seed-candidate-${c.email}` },
+        update: { stage: c.stage, matchScore: c.matchScore },
+        create: {
+          id: `seed-candidate-${c.email}`,
+          recruiterId: recruiter.id,
+          facilityId: c.stage === CandidatePipelineStage.PLACED ? facility.id : undefined,
+          firstName: c.firstName,
+          lastName: c.lastName,
+          email: c.email,
+          clinicalRole: c.clinicalRole,
+          stage: c.stage,
+          matchScore: c.matchScore,
+          source: "Careers page",
+          placedAt: c.placedAt,
+        },
+      });
+    }
+  }
+
+  const publishedShift = await prisma.shift.findFirst({
+    where: { facilityId: facility.id, title: "RN — Med-Surg Per Diem" },
+  });
+
+  const featureFlags = [
+    { key: "ai_matching", description: "AI-powered shift matching", isEnabled: true },
+    { key: "instant_pay", description: "Instant pay for workers", isEnabled: true },
+    { key: "recruiter_portal", description: "Recruiter pipeline portal", isEnabled: true },
+    { key: "background_check_auto", description: "Auto-trigger Checkr on offer", isEnabled: false },
+  ];
+
+  for (const flag of featureFlags) {
+    await prisma.featureFlag.upsert({
+      where: { key: flag.key },
+      update: { description: flag.description, isEnabled: flag.isEnabled },
+      create: flag,
+    });
+  }
+
+  await prisma.supportTicket.upsert({
+    where: { id: "seed-ticket-urgent" },
+    update: {},
+    create: {
+      id: "seed-ticket-urgent",
+      userId: nurse.id,
+      subject: "Payroll discrepancy on last shift",
+      description: "My wallet shows $0 for the shift on Tuesday but timecard was approved.",
+      status: "OPEN",
+      priority: "URGENT",
+    },
+  });
+
+  await prisma.supportTicket.upsert({
+    where: { id: "seed-ticket-normal" },
+    update: {},
+    create: {
+      id: "seed-ticket-normal",
+      userId: facilityManager.id,
+      subject: "Need help publishing bulk shifts",
+      description: "Is there a bulk import for shift schedules?",
+      status: "IN_PROGRESS",
+      priority: "MEDIUM",
+    },
+  });
+
+  const auditEntries = [
+    { id: "seed-audit-login", userId: admin.id, action: "USER_LOGIN", entityType: "User", entityId: admin.id },
+    {
+      id: "seed-audit-shift",
+      userId: facilityManager.id,
+      action: "SHIFT_PUBLISHED",
+      entityType: "Shift",
+      entityId: publishedShift?.id,
+    },
+    {
+      id: "seed-audit-flag",
+      userId: admin.id,
+      action: "FEATURE_FLAG_UPDATED",
+      entityType: "FeatureFlag",
+      entityId: "ai_matching",
+    },
+  ];
+
+  for (const entry of auditEntries) {
+    await prisma.auditLog.upsert({
+      where: { id: entry.id },
+      update: {},
+      create: entry,
+    });
+  }
+
   console.log("Seed complete:");
   console.log("  Admin token:     Bearer dev_dev_admin");
   console.log("  Nurse token:     Bearer dev_dev_nurse_rn");
   console.log("  Facility token:  Bearer dev_dev_facility_mgr");
+  console.log("  Recruiter token: Bearer dev_dev_recruiter");
 }
 
 async function main() {

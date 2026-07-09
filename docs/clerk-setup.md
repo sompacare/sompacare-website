@@ -99,3 +99,22 @@ npm run dev --workspace=@sompacare/nurse-portal   # http://localhost:3001
 - [ ] Webhook endpoint added with signing secret
 - [ ] Keys in `.env.local` and `.env.platform`
 - [ ] First user assigned RN/CNA/LPN role in database
+
+## Troubleshooting: `host_invalid` / "Invalid host"
+
+This JSON error from `*.clerk.accounts.dev/v1/client/handshake` almost always means the **publishable key is wrong or incomplete** — not a code bug.
+
+1. Open [Clerk Dashboard → API Keys](https://dashboard.clerk.com/last-active?path=api-keys) for **Sompacare Staffing**.
+2. Click **Copy** on the publishable key (do not type it manually).
+3. Paste into `apps/nurse-portal/.env.local` as a single line:
+   ```
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+   ```
+   The key must appear **exactly once** — no duplicate `pk_test_` prefix.
+4. Use `http://localhost:3001` in the browser (not `127.0.0.1`).
+5. Clear cookies for `localhost` and `clerk.accounts.dev`, then restart the nurse portal:
+   ```bash
+   npm run dev --workspace=@sompacare/nurse-portal
+   ```
+
+If it still fails, regenerate the publishable key in Clerk and paste the new value.

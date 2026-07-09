@@ -201,6 +201,15 @@ enum ClinicalRole {
   OTHER
 }
 
+enum CandidatePipelineStage {
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  PLACED
+  REJECTED
+}
+
 // ─── CORE: USERS & AUTH ──────────────────────────────────────────────────────
 
 model User {
@@ -242,9 +251,12 @@ model User {
   referralsGiven      Referral[]         @relation("Referrer")
   referralsReceived   Referral[]         @relation("Referee")
   apiKeys             ApiKey[]
+  pushDevices         PushDevice[]
   favoriteFacilities  FacilityFavorite[]
   facilityBlacklist   FacilityBlacklist[]
   facilityFavorites   FacilityWorkerFavorite[] @relation("FavoriteWorker")
+  candidatesRecruited Candidate[]            @relation("RecruiterCandidates")
+  linkedCandidates    Candidate[]            @relation("CandidateWorker")
 
   @@index([email])
   @@index([status])
@@ -351,6 +363,61 @@ model WorkerAvailability {
   @@map("worker_availability")
 }
 
+// ─── RECRUITER PIPELINE ────────────────────────────────────────────────────────
+
+model Candidate {
+  id                   String                 @id @default(cuid())
+  recruiterId          String                 @map("recruiter_id")
+  firstName            String                 @map("first_name")
+  lastName             String                 @map("last_name")
+  email                String
+  phone                String?
+  clinicalRole         ClinicalRole           @map("clinical_role")
+  stage                CandidatePipelineStage @default(APPLIED)
+  resumeUrl            String?                @map("resume_url")
+  resumeParsedAt       DateTime?              @map("resume_parsed_at")
+  resumeParsedData     Json?                  @map("resume_parsed_data")
+  source               String?
+  notes                String?
+  workerId             String?                @map("worker_id")
+  facilityId           String?                @map("facility_id")
+  matchScore           Int?                   @map("match_score")
+  backgroundCheckStatus String?               @map("background_check_status") @default("pending")
+  referenceStatus      String?                @map("reference_status") @default("pending")
+  offerSentAt          DateTime?              @map("offer_sent_at")
+  offerAcceptedAt      DateTime?              @map("offer_accepted_at")
+  onboardingSentAt     DateTime?              @map("onboarding_sent_at")
+  placedAt             DateTime?              @map("placed_at")
+  hireDetails          Json?                  @map("hire_details")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  recruiter  User                 @relation("RecruiterCandidates", fields: [recruiterId], references: [id])
+  worker     User?                @relation("CandidateWorker", fields: [workerId], references: [id])
+  facility   Facility?            @relation(fields: [facilityId], references: [id])
+  interviews CandidateInterview[]
+
+  @@index([recruiterId, stage])
+  @@index([stage])
+  @@index([email])
+  @@map("candidates")
+}
+
+model CandidateInterview {
+  id          String   @id @default(cuid())
+  candidateId String   @map("candidate_id")
+  scheduledAt DateTime @map("scheduled_at")
+  mode        String   @default("video")
+  notes       String?
+  status      String   @default("scheduled")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@map("candidate_interviews")
+}
+
 // ─── ORGANIZATIONS & FACILITIES ──────────────────────────────────────────────
 
 model Organization {
@@ -428,6 +495,7 @@ model Facility {
   favoritedBy     FacilityFavorite[]
   ratings         Rating[]
   invoices        Invoice[]
+  candidates      Candidate[]
 
   @@index([organizationId])
   @@map("facilities")
@@ -1133,4 +1201,24 @@ model Report {
 
   @@index([type, createdAt])
   @@map("reports")
+}
+
+enum MobileApp {
+  NURSE
+  FACILITY
+}
+
+model PushDevice {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  platform  String
+  app       MobileApp
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, app])
+  @@map("push_devices")
 }

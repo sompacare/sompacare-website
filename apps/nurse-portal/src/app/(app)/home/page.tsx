@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight, CalendarCheck, Sparkles, Wallet } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import type { Assignment, Shift } from "@/lib/api";
 import { ShiftCard } from "@/components/shifts/shift-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatCurrency, estimateShiftEarnings } from "@/lib/utils";
 
 export default function HomePage() {
@@ -68,8 +69,8 @@ export default function HomePage() {
         {!complianceOk && (
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             Some credentials need attention.{" "}
-            <Link href="/profile" className="font-semibold underline">
-              View compliance
+            <Link href="/credentials" className="font-semibold underline">
+              View credentials
             </Link>
           </div>
         )}
@@ -85,6 +86,9 @@ export default function HomePage() {
             <p className="mt-2 text-2xl font-bold text-navy">
               {loading ? "—" : formatCurrency(weeklyEarnings)}
             </p>
+            <Link href="/wallet" className="mt-1 text-xs font-semibold text-primary">
+              View wallet →
+            </Link>
           </CardContent>
         </Card>
         <Card>
@@ -124,6 +128,15 @@ export default function HomePage() {
         </section>
       )}
 
+      {!loading && assignments.length > 0 && pendingConfirm.length === 0 && (
+        <EmptyState
+          icon={CalendarCheck}
+          title="No shifts awaiting confirmation"
+          description="When a facility approves you, confirm the assignment from your schedule."
+          action={{ label: "View schedule", href: "/assignments" }}
+        />
+      )}
+
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold text-navy">Recommended shifts</h2>
@@ -138,11 +151,12 @@ export default function HomePage() {
             <Skeleton className="h-40 w-full" />
           </div>
         ) : shifts.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-sm text-muted">
-              No open shifts right now. Check back soon or widen your filters.
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Sparkles}
+            title="No open shifts right now"
+            description="Check back soon or browse the marketplace for new opportunities."
+            action={{ label: "Browse shifts", href: "/shifts" }}
+          />
         ) : (
           <div className="space-y-3">
             {shifts.slice(0, 3).map((shift) => (

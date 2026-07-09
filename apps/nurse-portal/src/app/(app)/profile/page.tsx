@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { ShieldCheck, Star, Award } from "lucide-react";
+import { ChevronRight, ShieldCheck, Star, Award } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import type { WorkerProfileResponse } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -92,7 +93,7 @@ export default function ProfilePage() {
                 <ShieldCheck className="h-5 w-5 text-success" />
                 <div>
                   <p className="text-xs text-muted">Compliance</p>
-                  <p className="text-xl font-bold text-navy">{profile.profile.complianceScore}%</p>
+                  <p className="text-xl font-bold text-navy">{profile.compliance.score}%</p>
                 </div>
               </CardContent>
             </Card>
@@ -126,8 +127,35 @@ export default function ProfilePage() {
                   ))}
                 </ul>
               )}
+              <Link
+                href="/credentials"
+                className="mt-4 flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/5"
+              >
+                Manage credentials
+                <ChevronRight className="h-4 w-4" />
+              </Link>
             </CardContent>
           </Card>
+
+          {(profile.licenses?.length ?? 0) > 0 && (
+            <Card>
+              <CardContent className="p-5">
+                <h3 className="font-bold text-navy">Licenses on file</h3>
+                <ul className="mt-3 space-y-2">
+                  {profile.licenses!.map((lic) => (
+                    <li key={lic.id} className="flex items-center justify-between text-sm">
+                      <span>
+                        {lic.type} ({lic.state})
+                      </span>
+                      <Badge variant={lic.status === "ACTIVE" ? "success" : "warning"}>
+                        {lic.status}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           {profile.profile.specialties.length > 0 && (
             <Card>

@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { ApplicationStatus, AssignmentStatus, Prisma, ShiftStatus } from "@sompacare/database";
 import { AuditService } from "../../common/audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { ApplicationQueryDto } from "./dto/application.dto";
@@ -34,7 +35,8 @@ const applicationInclude = {
 export class ApplicationsService {
   constructor(
     private prisma: PrismaService,
-    private audit: AuditService
+    private audit: AuditService,
+    private notifications: NotificationsService
   ) {}
 
   async findAll(query: ApplicationQueryDto) {
@@ -134,6 +136,11 @@ export class ApplicationsService {
       entityId: id,
       changes: { assignmentId: result.assignment.id },
     });
+
+    void this.notifications.notifyApplicationApproved(
+      result.application,
+      result.assignment.id
+    );
 
     return result;
   }

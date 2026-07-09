@@ -30,7 +30,7 @@ export class WorkersService {
       throw new NotFoundException("Worker profile not found");
     }
 
-    const compliance = await this.complianceService.evaluateWorker(userId);
+    const compliance = await this.complianceService.syncComplianceScore(userId);
 
     return {
       user: {
@@ -42,7 +42,7 @@ export class WorkersService {
         phone: user.phone,
         roles: user.roles.map((r) => r.role.name),
       },
-      profile: user.profile,
+      profile: { ...user.profile, complianceScore: compliance.score },
       licenses: user.licenses,
       certifications: user.certifications,
       compliance,

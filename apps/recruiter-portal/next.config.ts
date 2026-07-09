@@ -1,0 +1,15 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  async rewrites() {
+    const apiBase = process.env.API_PROXY_TARGET ?? "http://localhost:4000";
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${apiBase}/api/v1/:path*`,
+      },
+    ];
+  },
+};
+
+export default nextConfig;

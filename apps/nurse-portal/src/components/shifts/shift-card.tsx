@@ -13,14 +13,16 @@ type ShiftCardProps = {
   onClaim?: (shift: Shift) => Promise<void>;
   claiming?: boolean;
   compact?: boolean;
+  matchScore?: number;
 };
 
-export function ShiftCard({ shift, onClaim, claiming, compact }: ShiftCardProps) {
+export function ShiftCard({ shift, onClaim, claiming, compact, matchScore }: ShiftCardProps) {
   const [error, setError] = useState<string | null>(null);
   const hourly = Number(shift.hourlyRate);
   const { date, time } = formatShiftTime(shift.startTime, shift.endTime);
   const earnings = estimateShiftEarnings(hourly, shift.startTime, shift.endTime);
   const slotsLeft = shift.slotsTotal - shift.slotsFilled;
+  const score = matchScore ?? shift.matchScore;
 
   async function handleClaim() {
     if (!onClaim) return;
@@ -28,9 +30,17 @@ export function ShiftCard({ shift, onClaim, claiming, compact }: ShiftCardProps)
     try {
       await onClaim(shift);
     } catch (e) {
-      const body = (e as { body?: { message?: string; blockedReasons?: string[] } }).body;
-      const reasons = body?.blockedReasons?.join(", ");
-      setError(reasons ?? (e as Error).message ?? "Could not claim shift");
+      const apiErr = e as { body?: { message?: string | string[]; blockedReasons?: string[] }; message?: string };
+      const raw = apiErr.body?.message;
+      const apiMessage = Array.isArray(raw) ? raw.join(", ") : raw;
+      const reasons = apiErr.body?.blockedReasons?.join(", ");
+      const fallback = apiErr.message ?? "Could not claim shift";
+      const message = reasons ?? apiMessage ?? fallback;
+      if (message.includes("already applied")) {
+        setError("You already applied to this shift. Open Schedule to confirm.");
+      } else {
+        setError(message);
+      }
     }
   }
 
@@ -43,6 +53,7 @@ export function ShiftCard({ shift, onClaim, claiming, compact }: ShiftCardProps)
               <Badge variant="blue">{shift.role}</Badge>
               {shift.isEmergency && <Badge variant="warning">Urgent</Badge>}
               <Badge>{shift.shiftType.replace("_", " ")}</Badge>
+              {score != null && <Badge variant="success">{score}% match</Badge>}
             </div>
             <h3 className="mt-2 text-base font-bold text-navy">{shift.title}</h3>
             <p className="mt-1 text-sm font-medium text-navy/80">{shift.facility.name}</p>

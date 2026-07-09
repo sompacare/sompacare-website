@@ -8,13 +8,21 @@ import { Prisma, ShiftStatus } from "@sompacare/database";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { ComplianceService } from "../compliance/compliance.service";
+import { MatchingService } from "../ai/matching.service";
+import { JobsService } from "../jobs/jobs.service";
+import { RealtimeService } from "../realtime/realtime.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { ApplyShiftDto, CreateShiftDto, ShiftQueryDto, UpdateShiftDto } from "./dto/shift.dto";
 
 @Injectable()
 export class ShiftsService {
   constructor(
     private prisma: PrismaService,
-    private complianceService: ComplianceService
+    private complianceService: ComplianceService,
+    private matchingService: MatchingService,
+    private notifications: NotificationsService,
+    private jobs: JobsService,
+    private realtime: RealtimeService
   ) {}
 
   async create(dto: CreateShiftDto, createdById: string) {
@@ -118,11 +126,57 @@ export class ShiftsService {
     if (shift.status !== ShiftStatus.DRAFT) {
       throw new BadRequestException("Only draft shifts can be published");
     }
-    return this.prisma.shift.update({
+    const updated = await this.prisma.shift.update({
       where: { id },
       data: { status: ShiftStatus.PUBLISHED, publishedAt: new Date() },
       include: { facility: true, location: true },
     });
+
+    this.realtime.emitShiftUpdate(updated.facilityId, {
+      type: "shift.published",
+      shiftId: updated.id,
+      title: updated.title,
+      role: updated.role,
+      status: updated.status,
+    });
+
+    const msUntilStart = updated.startTime.getTime() - Date.now();
+    const reminderDelay = Math.max(msUntilStart - 86400000, 5000);
+
+    const workers = await this.prisma.user.findMany({
+      where: { profile: { clinicalRole: updated.role } },
+      select: { id: true, email: true },
+      take: 20,
+    });
+
+    await Promise.all(
+      workers.map((w) =>
+        this.jobs.scheduleReminder(
+          {
+            type: "shift.reminder",
+            userId: w.id,
+            email: w.email,
+            title: "Upcoming shift reminder",
+            body: `${updated.title} at ${updated.facility.name} starts soon.`,
+            data: { type: "shift.reminder", shiftId: updated.id },
+          },
+          reminderDelay,
+          `shift-reminder-${updated.id}-${w.id}`
+        )
+      )
+    );
+
+    if (updated.isEmergency) {
+      void this.notifications.notifyUrgentShift({
+        id: updated.id,
+        title: updated.title,
+        facility: { id: updated.facilityId, name: updated.facility.name },
+        role: updated.role,
+        startTime: updated.startTime,
+      });
+    }
+
+    return updated;
   }
 
   async cancel(id: string, reason?: string) {
@@ -167,17 +221,29 @@ export class ShiftsService {
       throw new BadRequestException("You have already applied to this shift");
     }
 
-    return this.prisma.shiftApplication.create({
+    const matchScore = await this.matchingService.scoreApplication(shiftId, applicantId);
+
+    const application = await this.prisma.shiftApplication.create({
       data: {
         shiftId,
         applicantId,
         message: dto.message,
-        matchScore: compliance.score,
+        matchScore: matchScore || compliance.score,
       },
       include: {
-        shift: { include: { facility: true } },
-        applicant: { select: { id: true, firstName: true, lastName: true } },
+        shift: {
+          include: {
+            facility: { select: { name: true, organizationId: true } },
+          },
+        },
+        applicant: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
       },
     });
+
+    void this.notifications.notifyApplicationReceived(application);
+
+    return application;
   }
 }

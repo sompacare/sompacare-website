@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: Sompacare
+    orgId: 1
+    folder: Sompacare
+    type: file
+    disableDeletion: false
+    options:
+      path: /var/lib/grafana/dashboards

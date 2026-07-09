@@ -22,6 +22,10 @@ apps/*/.next/
 # production
 /build
 
+# local tooling binaries
+/tools/stripe/stripe
+/tools/stripe/stripe.exe
+
 # misc
 .DS_Store
 *.pem
@@ -30,6 +34,7 @@ dist/
 
 # platform
 apps/api/dist
+apps/api/node_modules
 packages/*/dist
 packages/database/node_modules/
 

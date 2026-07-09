@@ -21,7 +21,17 @@ const assignmentInclude = {
   shift: {
     include: {
       facility: { select: { id: true, name: true, slug: true } },
-      location: { select: { id: true, city: true, state: true, addressLine1: true } },
+      location: {
+        select: {
+          id: true,
+          city: true,
+          state: true,
+          addressLine1: true,
+          latitude: true,
+          longitude: true,
+          geofenceRadiusMeters: true,
+        },
+      },
     },
   },
   worker: {

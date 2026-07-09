@@ -155,4 +155,8 @@ export const defaultSiteMetadata: Metadata = {
     },
   },
   category: "Healthcare",
+  icons: {
+    icon: "/images/sompacare-logo.png",
+    apple: "/images/sompacare-logo.png",
+  },
 };

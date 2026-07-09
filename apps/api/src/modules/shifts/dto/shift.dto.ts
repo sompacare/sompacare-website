@@ -11,6 +11,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ClinicalRole, ShiftType } from "@sompacare/database";
+import { PaginationQueryDto } from "../../../common/decorators";
 
 export class CreateShiftDto {
   @ApiProperty()
@@ -107,8 +108,8 @@ export class UpdateShiftDto {
   endTime?: string;
 }
 
-export class ShiftQueryDto {
-  @ApiPropertyOptional()
+export class ShiftQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: ClinicalRole })
   @IsOptional()
   @IsEnum(ClinicalRole)
   role?: ClinicalRole;
@@ -122,16 +123,6 @@ export class ShiftQueryDto {
   @IsOptional()
   @IsString()
   facilityId?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  page?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  limit?: number;
 }
 
 export class ApplyShiftDto {
