@@ -74,7 +74,7 @@ services:
   - type: web
     name: sompacare-facility
     runtime: node
-    plan: free
+    plan: starter
     branch: platform
     buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
