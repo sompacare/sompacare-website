@@ -1,9 +1,18 @@
-# Render Blueprint — Sompacare Platform API
+# Render Blueprint — Sompacare Platform (API + 4 portals)
+envVarGroups:
+  - name: sompacare-portal-auth
+    envVars:
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+
 services:
   - type: web
     name: sompacare-api
     runtime: docker
     plan: free
+    branch: platform
     dockerfilePath: ./apps/api/Dockerfile
     healthCheckPath: /api/v1/health
     envVars:
@@ -32,19 +41,79 @@ services:
       - key: CLERK_WEBHOOK_SECRET
         sync: false
       - key: CORS_ORIGINS
-        sync: false
+        value: https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
+      - key: NURSE_PORTAL_URL
+        value: https://sompacare-nurse.onrender.com
+      - key: FACILITY_PORTAL_URL
+        value: https://sompacare-facility.onrender.com
+      - key: RECRUITER_PORTAL_URL
+        value: https://sompacare-recruiter.onrender.com
+      - key: ADMIN_PORTAL_URL
+        value: https://sompacare-admin.onrender.com
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
         sync: false
-      - key: NURSE_PORTAL_URL
-        sync: false
-      - key: FACILITY_PORTAL_URL
-        sync: false
-      - key: RECRUITER_PORTAL_URL
-        sync: false
-      - key: ADMIN_PORTAL_URL
-        sync: false
+
+  - type: web
+    name: sompacare-nurse
+    runtime: node
+    plan: free
+    branch: platform
+    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/nurse-portal
+    startCommand: npm run start --workspace=@sompacare/nurse-portal
+    envVars:
+      - fromGroup: sompacare-portal-auth
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://sompacare-api.onrender.com/api/v1
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        value: pk_live_51TrLFRExydo0cTefW5v7MsXRTFqLGk4JCbLEjYbDMXU7c6suSzJ2WP16iKNJ9sXFULvajqkBHrYdExZTXzm9uieM00OroLJ96T
+
+  - type: web
+    name: sompacare-facility
+    runtime: node
+    plan: free
+    branch: platform
+    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/facility-portal
+    startCommand: npm run start --workspace=@sompacare/facility-portal
+    envVars:
+      - fromGroup: sompacare-portal-auth
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://sompacare-api.onrender.com/api/v1
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        value: pk_live_51TrLFRExydo0cTefW5v7MsXRTFqLGk4JCbLEjYbDMXU7c6suSzJ2WP16iKNJ9sXFULvajqkBHrYdExZTXzm9uieM00OroLJ96T
+
+  - type: web
+    name: sompacare-recruiter
+    runtime: node
+    plan: free
+    branch: platform
+    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/recruiter-portal
+    startCommand: npm run start --workspace=@sompacare/recruiter-portal
+    envVars:
+      - fromGroup: sompacare-portal-auth
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://sompacare-api.onrender.com/api/v1
+
+  - type: web
+    name: sompacare-admin
+    runtime: node
+    plan: free
+    branch: platform
+    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/admin-portal
+    startCommand: npm run start --workspace=@sompacare/admin-portal
+    envVars:
+      - fromGroup: sompacare-portal-auth
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://sompacare-api.onrender.com/api/v1
 
 databases:
   - name: sompacare-db
