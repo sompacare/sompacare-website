@@ -1,12 +1,10 @@
 # Render Blueprint — Sompacare Platform API
-# Docs: https://render.com/docs/blueprint-spec
 services:
   - type: web
     name: sompacare-api
     runtime: docker
+    plan: free
     dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: .
-    plan: starter
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
@@ -50,6 +48,5 @@ services:
 
 databases:
   - name: sompacare-db
-    plan: starter
+    plan: free
     databaseName: sompacare_platform
-    user: sompacare
