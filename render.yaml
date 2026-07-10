@@ -11,7 +11,7 @@ services:
   - type: web
     name: sompacare-api
     runtime: docker
-    plan: free
+    plan: starter
     branch: platform
     dockerfilePath: ./apps/api/Dockerfile
     healthCheckPath: /api/v1/health
@@ -58,7 +58,7 @@ services:
   - type: web
     name: sompacare-nurse
     runtime: node
-    plan: free
+    plan: starter
     branch: platform
     buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/nurse-portal
     startCommand: npm run start --workspace=@sompacare/nurse-portal
@@ -117,5 +117,5 @@ services:
 
 databases:
   - name: sompacare-db
-    plan: free
+    plan: starter
     databaseName: sompacare_platform
