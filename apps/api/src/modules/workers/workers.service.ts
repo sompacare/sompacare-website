@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { WORKER_ROLES, platformRoleToClinicalRole } from "@sompacare/shared";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { ComplianceService } from "../compliance/compliance.service";
 import { UpdateWorkerProfileDto } from "./dto/worker.dto";
@@ -81,23 +82,18 @@ export class WorkersService {
     if (!user) throw new NotFoundException("User not found");
 
     const workerRole = user.roles.find((r) =>
-      ["RN", "LPN", "CNA", "NURSE"].includes(r.role.name)
+      WORKER_ROLES.includes(r.role.name as (typeof WORKER_ROLES)[number])
     );
     if (!workerRole) {
       throw new BadRequestException("User does not have a worker role");
     }
 
-    const clinicalRoleMap: Record<string, "RN" | "LPN" | "CNA"> = {
-      RN: "RN",
-      LPN: "LPN",
-      CNA: "CNA",
-      NURSE: "RN",
-    };
+    const clinicalRole = platformRoleToClinicalRole(workerRole.role.name) ?? "RN";
 
     return this.prisma.workerProfile.create({
       data: {
         userId,
-        clinicalRole: clinicalRoleMap[workerRole.role.name] ?? "RN",
+        clinicalRole,
         specialties: [],
         preferredShiftTypes: [],
       },

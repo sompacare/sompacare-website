@@ -8,6 +8,9 @@ export enum PlatformRole {
   CNA = "CNA",
   LPN = "LPN",
   RN = "RN",
+  GNA = "GNA",
+  CMA = "CMA",
+  MED_TECH = "MED_TECH",
   PAYROLL = "PAYROLL",
   COMPLIANCE_OFFICER = "COMPLIANCE_OFFICER",
   CUSTOMER_SUPPORT = "CUSTOMER_SUPPORT",
@@ -19,6 +22,21 @@ export const WORKER_ROLES: PlatformRole[] = [
   PlatformRole.CNA,
   PlatformRole.LPN,
   PlatformRole.RN,
+  PlatformRole.GNA,
+  PlatformRole.CMA,
+  PlatformRole.MED_TECH,
+];
+
+const WORKER_CLINICAL_PERMISSIONS: PermissionKey[] = [
+  "shifts:read",
+  "applications:read", "applications:write",
+  "assignments:read", "assignments:confirm",
+  "timecards:read",
+  "wallet:read", "wallet:instant_pay",
+  "notifications:read",
+  "messages:read", "messages:write",
+  "ratings:read", "ratings:write",
+  "compliance:read", "compliance:write",
 ];
 
 export const FACILITY_ROLES: PlatformRole[] = [
@@ -142,53 +160,13 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "messages:read", "messages:write",
   ],
 
-  [PlatformRole.NURSE]: [
-    "shifts:read",
-    "applications:read", "applications:write",
-    "assignments:read", "assignments:confirm",
-    "timecards:read",
-    "wallet:read", "wallet:instant_pay",
-    "notifications:read",
-    "messages:read", "messages:write",
-    "ratings:read", "ratings:write",
-    "compliance:read", "compliance:write",
-  ],
-
-  [PlatformRole.CNA]: [
-    "shifts:read",
-    "applications:read", "applications:write",
-    "assignments:read", "assignments:confirm",
-    "timecards:read",
-    "wallet:read", "wallet:instant_pay",
-    "notifications:read",
-    "messages:read", "messages:write",
-    "ratings:read", "ratings:write",
-    "compliance:read", "compliance:write",
-  ],
-
-  [PlatformRole.LPN]: [
-    "shifts:read",
-    "applications:read", "applications:write",
-    "assignments:read", "assignments:confirm",
-    "timecards:read",
-    "wallet:read", "wallet:instant_pay",
-    "notifications:read",
-    "messages:read", "messages:write",
-    "ratings:read", "ratings:write",
-    "compliance:read", "compliance:write",
-  ],
-
-  [PlatformRole.RN]: [
-    "shifts:read",
-    "applications:read", "applications:write",
-    "assignments:read", "assignments:confirm",
-    "timecards:read",
-    "wallet:read", "wallet:instant_pay",
-    "notifications:read",
-    "messages:read", "messages:write",
-    "ratings:read", "ratings:write",
-    "compliance:read", "compliance:write",
-  ],
+  [PlatformRole.NURSE]: WORKER_CLINICAL_PERMISSIONS,
+  [PlatformRole.CNA]: WORKER_CLINICAL_PERMISSIONS,
+  [PlatformRole.LPN]: WORKER_CLINICAL_PERMISSIONS,
+  [PlatformRole.RN]: WORKER_CLINICAL_PERMISSIONS,
+  [PlatformRole.GNA]: WORKER_CLINICAL_PERMISSIONS,
+  [PlatformRole.CMA]: WORKER_CLINICAL_PERMISSIONS,
+  [PlatformRole.MED_TECH]: WORKER_CLINICAL_PERMISSIONS,
 
   [PlatformRole.PAYROLL]: [
     "payroll:read", "payroll:write", "payroll:approve", "payroll:process",

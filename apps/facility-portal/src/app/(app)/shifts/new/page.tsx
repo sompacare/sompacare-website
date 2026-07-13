@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const ROLES = ["RN", "LPN", "CNA"] as const;
+const ROLES = ["RN", "LPN", "CNA", "GNA", "CMA", "MED_TECH"] as const;
 const SHIFT_TYPES = ["PER_DIEM", "CONTRACT", "TRAVEL", "BLOCK"] as const;
 
 function defaultStartTime() {
@@ -132,7 +132,9 @@ export default function NewShiftPage() {
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
                 >
                   {ROLES.map((r) => (
-                    <option key={r} value={r}>{r}</option>
+                    <option key={r} value={r}>
+                      {r === "MED_TECH" ? "Med Tech" : r}
+                    </option>
                   ))}
                 </Select>
               </div>

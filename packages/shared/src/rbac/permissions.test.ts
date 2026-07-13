@@ -12,6 +12,13 @@ test("SUPER_ADMIN has all permissions", () => {
   assert.equal(hasPermission([PlatformRole.SUPER_ADMIN], "payroll:process"), true);
 });
 
+test("GNA, CMA, and Med Tech have worker permissions", () => {
+  assert.equal(hasPermission([PlatformRole.GNA], "shifts:read"), true);
+  assert.equal(hasPermission([PlatformRole.GNA], "assignments:confirm"), true);
+  assert.equal(hasPermission([PlatformRole.CMA], "shifts:read"), true);
+  assert.equal(hasPermission([PlatformRole.MED_TECH], "wallet:instant_pay"), true);
+});
+
 test("RN can read shifts and confirm assignments", () => {
   assert.equal(hasPermission([PlatformRole.RN], "shifts:read"), true);
   assert.equal(hasPermission([PlatformRole.RN], "assignments:confirm"), true);

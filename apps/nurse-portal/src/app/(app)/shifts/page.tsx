@@ -7,7 +7,17 @@ import { ShiftCard } from "@/components/shifts/shift-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
-const ROLE_FILTERS = ["ALL", "RN", "LPN", "CNA"] as const;
+const ROLE_FILTERS = ["ALL", "RN", "LPN", "CNA", "GNA", "CMA", "MED_TECH"] as const;
+
+const ROLE_LABELS: Record<(typeof ROLE_FILTERS)[number], string> = {
+  ALL: "All",
+  RN: "RN",
+  LPN: "LPN",
+  CNA: "CNA",
+  GNA: "GNA",
+  CMA: "CMA",
+  MED_TECH: "Med Tech",
+};
 
 export default function ShiftsPage() {
   const api = useApi();
@@ -81,7 +91,7 @@ export default function ShiftsPage() {
             variant={roleFilter === role ? "primary" : "secondary"}
             onClick={() => setRoleFilter(role)}
           >
-            {role === "ALL" ? "All roles" : role}
+            {role === "ALL" ? "All roles" : ROLE_LABELS[role]}
           </Button>
         ))}
       </div>

@@ -127,6 +127,9 @@ export default function PipelinePage() {
                 <option value="RN">RN</option>
                 <option value="LPN">LPN</option>
                 <option value="CNA">CNA</option>
+                <option value="GNA">GNA</option>
+                <option value="CMA">CMA</option>
+                <option value="MED_TECH">Med Tech</option>
               </select>
               <Button type="submit" className="w-full" disabled={saving}>
                 {saving ? "Adding…" : "Add candidate"}

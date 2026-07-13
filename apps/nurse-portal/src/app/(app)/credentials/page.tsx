@@ -172,7 +172,7 @@ export default function CredentialsPage() {
               <form onSubmit={handleSubmitLicense} className="space-y-3">
                 <input
                   name="type"
-                  placeholder="Type (RN, LPN, CNA)"
+                  placeholder="Type (RN, LPN, CNA, GNA, CMA, Med Tech)"
                   required
                   className="w-full rounded-lg border px-3 py-2 text-sm"
                 />

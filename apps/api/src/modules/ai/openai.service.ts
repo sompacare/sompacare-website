@@ -125,7 +125,7 @@ export class OpenAiService {
     }
 
     const parsed = await this.chatJson<ParsedResume>(
-      `Extract healthcare clinician resume data as JSON with keys: clinicalRole (RN|LPN|CNA|NURSE), yearsExperience (number), specialties (string[]), licenses ({type,state,number}[]), certifications (string[]), skills (string[]), summary (string). Use only information present in the resume.`,
+      `Extract healthcare clinician resume data as JSON with keys: clinicalRole (RN|LPN|CNA|GNA|CMA|MED_TECH|NURSE), yearsExperience (number), specialties (string[]), licenses ({type,state,number}[]), certifications (string[]), skills (string[]), summary (string). Use only information present in the resume.`,
       source.slice(0, 12000)
     );
 

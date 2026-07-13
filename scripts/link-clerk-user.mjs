@@ -1,9 +1,9 @@
 /**
- * Assign RN role + worker profile to a Clerk user in the platform database.
+ * Assign a worker role + profile to a Clerk user in the platform database.
  *
  * Usage:
- *   node scripts/link-clerk-user.mjs --email you@example.com
- *   node scripts/link-clerk-user.mjs --clerk-id user_2abc...
+ *   node scripts/link-clerk-user.mjs --email you@example.com --role GNA
+ *   node scripts/link-clerk-user.mjs --clerk-id user_2abc... --role CMA
  */
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
@@ -34,10 +34,11 @@ function loadEnv() {
 }
 
 function parseArgs(argv) {
-  const args = { email: null, clerkId: null };
+  const args = { email: null, clerkId: null, role: "RN" };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === "--email" && argv[i + 1]) args.email = argv[++i];
     if (argv[i] === "--clerk-id" && argv[i + 1]) args.clerkId = argv[++i];
+    if (argv[i] === "--role" && argv[i + 1]) args.role = argv[++i].toUpperCase();
   }
   return args;
 }
@@ -89,33 +90,45 @@ async function ensurePlatformUser({ email, clerkId }) {
 
 async function main() {
   loadEnv();
-  const { email, clerkId } = parseArgs(process.argv);
+  const { email, clerkId, role } = parseArgs(process.argv);
   if (!email && !clerkId) {
-    console.error("Usage: node scripts/link-clerk-user.mjs --email you@example.com");
-    console.error("   or: node scripts/link-clerk-user.mjs --clerk-id user_...");
+    console.error("Usage: node scripts/link-clerk-user.mjs --email you@example.com [--role RN]");
+    console.error("   or: node scripts/link-clerk-user.mjs --clerk-id user_... [--role GNA]");
+    console.error("Roles: RN, LPN, CNA, GNA, CMA, MED_TECH");
     process.exit(1);
   }
 
   const user = await ensurePlatformUser({ email, clerkId });
 
-  const rnRole = await prisma.role.findUnique({ where: { name: "RN" } });
-  if (!rnRole) {
-    console.error("RN role missing — run: npm run db:seed");
+  const platformRole = await prisma.role.findUnique({ where: { name: role } });
+  if (!platformRole) {
+    console.error(`${role} role missing — run: npm run db:seed`);
     process.exit(1);
   }
 
+  const clinicalRoleMap = {
+    RN: "RN",
+    LPN: "LPN",
+    CNA: "CNA",
+    GNA: "GNA",
+    CMA: "CMA",
+    MED_TECH: "MED_TECH",
+    NURSE: "RN",
+  };
+  const clinicalRole = clinicalRoleMap[role] ?? "RN";
+
   await prisma.userRole.upsert({
-    where: { userId_roleId: { userId: user.id, roleId: rnRole.id } },
+    where: { userId_roleId: { userId: user.id, roleId: platformRole.id } },
     update: {},
-    create: { userId: user.id, roleId: rnRole.id },
+    create: { userId: user.id, roleId: platformRole.id },
   });
 
   await prisma.workerProfile.upsert({
     where: { userId: user.id },
-    update: {},
+    update: { clinicalRole },
     create: {
       userId: user.id,
-      clinicalRole: "RN",
+      clinicalRole,
       specialties: ["Med-Surg"],
       preferredShiftTypes: ["PER_DIEM"],
       minHourlyRate: 40,
@@ -131,8 +144,8 @@ async function main() {
     create: {
       id: `seed-license-${user.id}`,
       userId: user.id,
-      type: "RN",
-      number: "RN-MD-DEV-001",
+      type: role,
+      number: `${role}-MD-DEV-001`,
       state: "MD",
       status: "ACTIVE",
       expiresAt: licenseExpiry,
@@ -172,7 +185,7 @@ async function main() {
     create: { userId: user.id, balance: 0 },
   });
 
-  console.log(`Linked ${user.email} (${user.clerkId}) as RN with worker profile and credentials.`);
+  console.log(`Linked ${user.email} (${user.clerkId}) as ${role} with worker profile and credentials.`);
   console.log("Refresh http://localhost:3001/home to see open shifts.");
 }
 

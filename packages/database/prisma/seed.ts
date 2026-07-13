@@ -268,6 +268,9 @@ async function seedDemoData() {
       { firstName: "Emily", lastName: "Davis", email: "emily.davis@example.com", clinicalRole: ClinicalRole.RN, stage: CandidatePipelineStage.INTERVIEW, matchScore: 88 },
       { firstName: "David", lastName: "Brown", email: "david.brown@example.com", clinicalRole: ClinicalRole.RN, stage: CandidatePipelineStage.OFFER, matchScore: 92 },
       { firstName: "Lisa", lastName: "Taylor", email: "lisa.taylor@example.com", clinicalRole: ClinicalRole.CNA, stage: CandidatePipelineStage.PLACED, matchScore: 95, placedAt: new Date() },
+      { firstName: "Patricia", lastName: "Moore", email: "patricia.moore@example.com", clinicalRole: ClinicalRole.GNA, stage: CandidatePipelineStage.SCREENING, matchScore: 78 },
+      { firstName: "Robert", lastName: "Lee", email: "robert.lee@example.com", clinicalRole: ClinicalRole.CMA, stage: CandidatePipelineStage.APPLIED, matchScore: 74 },
+      { firstName: "Angela", lastName: "White", email: "angela.white@example.com", clinicalRole: ClinicalRole.MED_TECH, stage: CandidatePipelineStage.INTERVIEW, matchScore: 86 },
     ];
 
     for (const c of seedCandidates) {

@@ -29,6 +29,9 @@ enum PlatformRole {
   CNA
   LPN
   RN
+  GNA
+  CMA
+  MED_TECH
   PAYROLL
   COMPLIANCE_OFFICER
   CUSTOMER_SUPPORT
@@ -197,6 +200,9 @@ enum ClinicalRole {
   CNA
   LPN
   RN
+  GNA
+  CMA
+  MED_TECH
   ALLIED_HEALTH
   OTHER
 }
