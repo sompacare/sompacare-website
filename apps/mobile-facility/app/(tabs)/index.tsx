@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, Text, StyleSheet, RefreshControl, View } from "react-native";
+import { useAuth } from "@clerk/clerk-expo";
 import { api } from "@/lib/api";
-import { Badge, Card, ScreenHeader } from "@/components/ui";
+import { Badge, Card, PrimaryButton, ScreenHeader } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
 export default function HomeScreen() {
+  const { signOut } = useAuth();
   const [openShifts, setOpenShifts] = useState(0);
   const [pendingApps, setPendingApps] = useState(0);
   const [pendingTimecards, setPendingTimecards] = useState(0);
@@ -48,6 +50,9 @@ export default function HomeScreen() {
         <Text style={styles.label}>Unread notifications</Text>
         <Text style={styles.value}>{unread}</Text>
         {unread > 0 && <Badge label="Action needed" tone="warning" />}
+      </Card>
+      <Card>
+        <PrimaryButton label="Sign out" onPress={() => signOut()} />
       </Card>
     </ScrollView>
   );

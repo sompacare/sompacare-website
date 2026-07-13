@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ScrollView, Text, StyleSheet, Switch, Alert, View } from "react-native";
+import { useAuth } from "@clerk/clerk-expo";
 import * as ImagePicker from "expo-image-picker";
 import {
   authenticateWithBiometrics,
@@ -12,6 +13,7 @@ import { Card, PrimaryButton, ScreenHeader } from "@/components/ui";
 import { colors, spacing } from "@/theme";
 
 export default function ProfileScreen() {
+  const { signOut } = useAuth();
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricOn, setBiometricOn] = useState(false);
   const [complianceScore, setComplianceScore] = useState<number | null>(null);
@@ -80,6 +82,10 @@ export default function ProfileScreen() {
         <Text style={styles.label}>Upload credential</Text>
         <Text style={styles.hint}>Scan license or certification with your camera.</Text>
         <PrimaryButton label="Scan document" onPress={uploadCredential} />
+      </Card>
+
+      <Card>
+        <PrimaryButton label="Sign out" onPress={() => signOut()} />
       </Card>
     </ScrollView>
   );
