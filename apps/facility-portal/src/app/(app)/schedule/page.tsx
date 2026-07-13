@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { InvoiceCheckoutModal } from "@/components/billing/invoice-checkout";
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING_CONFIRMATION: "Awaiting worker confirm",
@@ -29,7 +30,7 @@ export default function SchedulePage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [payingId, setPayingId] = useState<string | null>(null);
+  const [checkoutInvoice, setCheckoutInvoice] = useState<Invoice | null>(null);
 
   const load = useCallback(async () => {
     if (!facility?.id) return;
@@ -67,14 +68,9 @@ export default function SchedulePage() {
     }
   }
 
-  async function handlePayInvoice(id: string) {
-    setPayingId(id);
-    try {
-      await api.payInvoice(id);
-      setInvoices((prev) => prev.filter((inv) => inv.id !== id));
-    } finally {
-      setPayingId(null);
-    }
+  async function handleInvoicePaid(invoiceId: string) {
+    setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceId));
+    await load();
   }
 
   return (
@@ -155,16 +151,25 @@ export default function SchedulePage() {
                 <Button
                   className="mt-3 w-full"
                   size="sm"
-                  onClick={() => handlePayInvoice(inv.id)}
-                  disabled={payingId === inv.id}
+                  onClick={() => setCheckoutInvoice(inv)}
                 >
-                  {payingId === inv.id ? "Processing…" : "Pay invoice"}
+                  Pay invoice
                 </Button>
               </CardContent>
             </Card>
           ))
         )}
       </section>
+
+      <InvoiceCheckoutModal
+        invoice={checkoutInvoice}
+        onClose={() => setCheckoutInvoice(null)}
+        onPaid={() => checkoutInvoice && handleInvoicePaid(checkoutInvoice.id)}
+        payInvoice={(id) => api.payInvoice(id)}
+        confirmPayment={(id, paymentIntentId) =>
+          api.confirmInvoicePayment(id, paymentIntentId).then(() => undefined)
+        }
+      />
 
       <section className="space-y-3">
         <h2 className="text-lg font-bold text-navy">Assignments</h2>

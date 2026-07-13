@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { Controller, Get, Param, Post, Query, Body } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InvoiceStatus } from "@sompacare/database";
 import { RequirePermissions } from "../../common/decorators";
@@ -6,6 +6,7 @@ import { PaginationQueryDto } from "../../common/decorators";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { InvoicesService } from "./invoices.service";
+import { ConfirmInvoicePaymentDto } from "./dto/confirm-invoice-payment.dto";
 
 class InvoiceQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional()
@@ -39,8 +40,15 @@ export class InvoicesController {
 
   @Post(":id/pay")
   @RequirePermissions("payments:write")
-  @ApiOperation({ summary: "Pay invoice via Stripe" })
+  @ApiOperation({ summary: "Create Stripe PaymentIntent for invoice checkout" })
   pay(@Param("id") id: string) {
     return this.invoicesService.payInvoice(id);
+  }
+
+  @Post(":id/confirm")
+  @RequirePermissions("payments:write")
+  @ApiOperation({ summary: "Confirm invoice payment after Stripe checkout" })
+  confirm(@Param("id") id: string, @Body() dto: ConfirmInvoicePaymentDto) {
+    return this.invoicesService.confirmPayment(id, dto.paymentIntentId);
   }
 }

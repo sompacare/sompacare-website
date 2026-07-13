@@ -177,4 +177,17 @@ export class StripeService {
     });
     return transfer.id;
   }
+
+  async retrievePaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent> {
+    if (this.isDevBypass()) {
+      return {
+        id: paymentIntentId,
+        status: "succeeded",
+        metadata: {},
+        amount_received: 0,
+      } as Stripe.PaymentIntent;
+    }
+    const stripe = this.getClient();
+    return stripe.paymentIntents.retrieve(paymentIntentId);
+  }
 }

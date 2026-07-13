@@ -216,7 +216,12 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       return withAuth<ListResponse<Invoice>>(`/invoices${qs}`);
     },
     payInvoice: (id: string) =>
-      withAuth<{ devPaid?: boolean }>(`/invoices/${id}/pay`, { method: "POST" }),
+      withAuth<PayInvoiceResult>(`/invoices/${id}/pay`, { method: "POST" }),
+    confirmInvoicePayment: (id: string, paymentIntentId: string) =>
+      withAuth<{ status: string }>(`/invoices/${id}/confirm`, {
+        method: "POST",
+        body: JSON.stringify({ paymentIntentId }),
+      }),
     getPayRuns: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";
       return withAuth<ListResponse<PayRun>>(`/payroll/runs${qs}`);
@@ -333,6 +338,14 @@ export type PayRun = {
     grossPay: string | number;
     netPay: string | number;
   }[];
+};
+
+export type PayInvoiceResult = {
+  clientSecret: string;
+  paymentIntentId: string;
+  devPaid?: boolean;
+  amount: number;
+  invoiceNumber: string;
 };
 
 export type Invoice = {

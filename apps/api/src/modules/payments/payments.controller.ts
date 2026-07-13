@@ -11,9 +11,9 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Public } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { StripeService } from "./stripe.service";
+import { PaymentSettlementService } from "./payment-settlement.service";
 import type { Request } from "express";
 import Stripe from "stripe";
-import { InvoiceStatus, PaymentStatus } from "@sompacare/database";
 
 @ApiTags("payments")
 @Controller({ path: "payments", version: "1" })
@@ -21,6 +21,7 @@ export class PaymentsController {
   constructor(
     private stripeService: StripeService,
     private config: ConfigService,
+    private settlement: PaymentSettlementService,
     private prisma: PrismaService
   ) {}
 
@@ -93,22 +94,12 @@ export class PaymentsController {
         const intent = event.data.object as Stripe.PaymentIntent;
         const invoiceId = intent.metadata?.sompacare_invoice_id;
         if (invoiceId) {
-          await this.prisma.$transaction([
-            this.prisma.payment.create({
-              data: {
-                invoiceId,
-                amount: intent.amount_received / 100,
-                status: PaymentStatus.COMPLETED,
-                method: "stripe",
-                stripePaymentId: intent.id,
-                processedAt: new Date(),
-              },
-            }),
-            this.prisma.invoice.update({
-              where: { id: invoiceId },
-              data: { status: InvoiceStatus.PAID, paidAt: new Date() },
-            }),
-          ]);
+          await this.settlement.settleInvoicePayment({
+            invoiceId,
+            paymentIntentId: intent.id,
+            amount: intent.amount_received / 100,
+            method: "stripe",
+          });
         }
         break;
       }

@@ -1,14 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-import { InvoiceStatus, PaymentStatus, Prisma } from "@sompacare/database";
+import { InvoiceStatus, Prisma } from "@sompacare/database";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
+import { PaymentSettlementService } from "../payments/payment-settlement.service";
 import { StripeService } from "../payments/stripe.service";
 
 @Injectable()
 export class InvoicesService {
   constructor(
     private prisma: PrismaService,
-    private stripe: StripeService
+    private stripe: StripeService,
+    private settlement: PaymentSettlementService
   ) {}
 
   async findAll(query: {
@@ -157,24 +159,58 @@ export class InvoicesService {
       });
 
     if (this.stripe.isDevBypass()) {
-      await this.prisma.$transaction([
-        this.prisma.payment.create({
-          data: {
-            invoiceId,
-            amount: invoice.total,
-            status: PaymentStatus.COMPLETED,
-            method: "dev",
-            stripePaymentId: paymentIntentId,
-            processedAt: new Date(),
-          },
-        }),
-        this.prisma.invoice.update({
-          where: { id: invoiceId },
-          data: { status: InvoiceStatus.PAID, paidAt: new Date() },
-        }),
-      ]);
+      await this.settlement.settleInvoicePayment({
+        invoiceId,
+        paymentIntentId,
+        amount: Number(invoice.total),
+        method: "dev",
+      });
     }
 
-    return { clientSecret, paymentIntentId, devPaid: this.stripe.isDevBypass() };
+    return {
+      clientSecret,
+      paymentIntentId,
+      devPaid: this.stripe.isDevBypass(),
+      amount: Number(invoice.total),
+      invoiceNumber: invoice.invoiceNumber,
+    };
+  }
+
+  async confirmPayment(invoiceId: string, paymentIntentId: string) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id: invoiceId },
+    });
+    if (!invoice) throw new NotFoundException("Invoice not found");
+    if (invoice.status === InvoiceStatus.PAID) {
+      return { status: "PAID", invoice };
+    }
+
+    if (this.stripe.isDevBypass()) {
+      const result = await this.settlement.settleInvoicePayment({
+        invoiceId,
+        paymentIntentId,
+        amount: Number(invoice.total),
+        method: "dev",
+      });
+      return { status: result.status, invoice: result.invoice };
+    }
+
+    const intent = await this.stripe.retrievePaymentIntent(paymentIntentId);
+    const linkedInvoiceId = intent.metadata?.sompacare_invoice_id;
+    if (linkedInvoiceId && linkedInvoiceId !== invoiceId) {
+      throw new BadRequestException("Payment intent does not match this invoice");
+    }
+    if (intent.status !== "succeeded") {
+      throw new BadRequestException(`Payment not completed (status: ${intent.status})`);
+    }
+
+    const result = await this.settlement.settleInvoicePayment({
+      invoiceId,
+      paymentIntentId: intent.id,
+      amount: intent.amount_received / 100,
+      method: "stripe",
+    });
+
+    return { status: result.status, invoice: result.invoice };
   }
 }
