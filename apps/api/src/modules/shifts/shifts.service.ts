@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { resolveShiftRates } from "@sompacare/shared";
 import { Prisma, ShiftStatus } from "@sompacare/database";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { paginate, paginationMeta } from "../../common/decorators";
@@ -33,6 +34,17 @@ export class ShiftsService {
       throw new BadRequestException("Invalid facility location");
     }
 
+    const payRateInput = dto.payRate ?? dto.hourlyRate;
+    if (payRateInput == null || payRateInput < 0) {
+      throw new BadRequestException("payRate (or hourlyRate) is required");
+    }
+
+    const rates = resolveShiftRates({
+      payRate: payRateInput,
+      role: dto.role,
+      billRate: dto.billRate,
+    });
+
     return this.prisma.shift.create({
       data: {
         facilityId: dto.facilityId,
@@ -42,7 +54,9 @@ export class ShiftsService {
         description: dto.description,
         role: dto.role,
         shiftType: dto.shiftType,
-        hourlyRate: dto.hourlyRate,
+        payRate: rates.payRate,
+        billRate: rates.billRate,
+        hourlyRate: rates.payRate,
         bonusRate: dto.bonusRate,
         startTime: new Date(dto.startTime),
         endTime: new Date(dto.endTime),
@@ -107,13 +121,25 @@ export class ShiftsService {
   }
 
   async update(id: string, dto: UpdateShiftDto) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+    const payRateInput = dto.payRate ?? dto.hourlyRate;
+    const rateUpdate =
+      payRateInput != null
+        ? resolveShiftRates({
+            payRate: payRateInput,
+            role: existing.role,
+            billRate: dto.billRate,
+          })
+        : null;
+
     return this.prisma.shift.update({
       where: { id },
       data: {
         title: dto.title,
         description: dto.description,
-        hourlyRate: dto.hourlyRate,
+        payRate: rateUpdate?.payRate,
+        billRate: rateUpdate?.billRate,
+        hourlyRate: rateUpdate?.payRate,
         startTime: dto.startTime ? new Date(dto.startTime) : undefined,
         endTime: dto.endTime ? new Date(dto.endTime) : undefined,
       },

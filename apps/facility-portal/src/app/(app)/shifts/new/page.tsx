@@ -12,6 +12,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 const ROLES = ["RN", "LPN", "CNA", "GNA", "CMA", "MED_TECH"] as const;
 const SHIFT_TYPES = ["PER_DIEM", "CONTRACT", "TRAVEL", "BLOCK"] as const;
 
+const ROLE_MARKUP: Record<string, number> = {
+  RN: 0.25,
+  LPN: 0.27,
+  CNA: 0.3,
+  GNA: 0.3,
+  CMA: 0.28,
+  MED_TECH: 0.3,
+};
+
+function estimatedBillRate(payRate: number, role: string) {
+  const markup = ROLE_MARKUP[role] ?? 0.27;
+  return Math.round(Math.max(payRate * (1 + markup), payRate + 4) * 100) / 100;
+}
+
 function defaultStartTime() {
   const d = new Date();
   d.setDate(d.getDate() + 2);
@@ -39,7 +53,7 @@ export default function NewShiftPage() {
     description: "Experienced clinician needed. BLS required.",
     role: "RN",
     shiftType: "PER_DIEM",
-    hourlyRate: "52",
+    payRate: "45",
     startTime: defaultStartTime(),
     endTime: defaultEndTime(),
     slotsTotal: "1",
@@ -62,7 +76,7 @@ export default function NewShiftPage() {
         description: form.description,
         role: form.role,
         shiftType: form.shiftType,
-        hourlyRate: Number(form.hourlyRate),
+        payRate: Number(form.payRate),
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
         slotsTotal: Number(form.slotsTotal),
@@ -154,17 +168,32 @@ export default function NewShiftPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="hourlyRate">Hourly rate ($)</Label>
+                <Label htmlFor="payRate">Clinician pay rate ($/hr)</Label>
                 <Input
-                  id="hourlyRate"
+                  id="payRate"
                   type="number"
                   min="0"
                   step="0.5"
-                  value={form.hourlyRate}
-                  onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
+                  value={form.payRate}
+                  onChange={(e) => setForm({ ...form, payRate: e.target.value })}
                   required
                 />
+                <p className="mt-1 text-xs text-muted">
+                  Nurses see this rate in the marketplace.
+                </p>
               </div>
+              <div>
+                <Label>Your bill rate ($/hr)</Label>
+                <p className="mt-2 text-2xl font-bold text-navy">
+                  ${estimatedBillRate(Number(form.payRate) || 0, form.role).toFixed(2)}
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  Includes Sompacare platform margin for {form.role}.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="slotsTotal">Open slots</Label>
                 <Input

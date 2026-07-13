@@ -1,5 +1,6 @@
 export * from "./rbac/permissions";
 export * from "./clinical-roles";
+export * from "./billing/margin";
 export * from "./compliance/evaluate-compliance";
 export * from "./compliance/expiry";
 export * from "./geofence/distance";

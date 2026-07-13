@@ -5,11 +5,12 @@ import { PaymentsModule } from "../payments/payments.module";
 import { WalletModule } from "../wallet/wallet.module";
 import { PayrollController } from "./payroll.controller";
 import { PayrollService } from "./payroll.service";
+import { PayoutGateService } from "./payout-gate.service";
 
 @Module({
   imports: [AuditModule, WalletModule, PaymentsModule, NotificationsModule],
   controllers: [PayrollController],
-  providers: [PayrollService],
-  exports: [PayrollService],
+  providers: [PayrollService, PayoutGateService],
+  exports: [PayrollService, PayoutGateService],
 })
 export class PayrollModule {}

@@ -118,8 +118,11 @@ export default function ShiftDetailPage() {
           </div>
           <h1 className="mt-2 text-2xl font-bold text-navy">{shift.title}</h1>
           <p className="mt-1 text-lg font-bold text-success">
-            {formatCurrency(Number(shift.hourlyRate))}
-            <span className="text-sm font-medium text-muted">/hr</span>
+            {formatCurrency(Number(shift.billRate ?? shift.hourlyRate))}
+            <span className="text-sm font-medium text-muted">/hr bill</span>
+          </p>
+          <p className="text-sm text-muted">
+            Clinician pay {formatCurrency(Number(shift.payRate ?? shift.hourlyRate))}/hr
           </p>
           <div className="mt-4 space-y-2 text-sm text-muted">
             <div className="flex items-center gap-2">

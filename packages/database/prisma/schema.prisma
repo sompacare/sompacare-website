@@ -602,6 +602,8 @@ model Shift {
   role            ClinicalRole
   shiftType       ShiftType    @map("shift_type")
   status          ShiftStatus  @default(DRAFT)
+  payRate         Decimal      @map("pay_rate") @db.Decimal(10, 2)
+  billRate        Decimal      @map("bill_rate") @db.Decimal(10, 2)
   hourlyRate      Decimal      @map("hourly_rate") @db.Decimal(10, 2)
   bonusRate       Decimal?     @map("bonus_rate") @db.Decimal(10, 2)
   startTime       DateTime     @map("start_time")
@@ -734,8 +736,12 @@ model Timecard {
   regularHours    Decimal        @default(0) @map("regular_hours") @db.Decimal(6, 2)
   overtimeHours   Decimal        @default(0) @map("overtime_hours") @db.Decimal(6, 2)
   breakMinutes    Int            @default(0) @map("break_minutes")
+  payRate         Decimal        @map("pay_rate") @db.Decimal(10, 2)
+  billRate        Decimal        @map("bill_rate") @db.Decimal(10, 2)
   hourlyRate      Decimal        @map("hourly_rate") @db.Decimal(10, 2)
   grossAmount     Decimal        @default(0) @map("gross_amount") @db.Decimal(10, 2)
+  billAmount      Decimal        @default(0) @map("bill_amount") @db.Decimal(10, 2)
+  invoiceId       String?        @map("invoice_id")
   approvedBy      String?        @map("approved_by")
   approvedAt      DateTime?      @map("approved_at")
   disputeReason   String?        @map("dispute_reason")
@@ -746,9 +752,11 @@ model Timecard {
   assignment ShiftAssignment @relation(fields: [assignmentId], references: [id])
   worker     User            @relation(fields: [workerId], references: [id])
   payRun     PayRun?         @relation(fields: [payRunId], references: [id])
+  invoice    Invoice?        @relation(fields: [invoiceId], references: [id])
 
   @@index([workerId, status])
   @@index([payRunId])
+  @@index([invoiceId])
   @@map("timecards")
 }
 
@@ -829,6 +837,7 @@ model Invoice {
   facility     Facility?    @relation(fields: [facilityId], references: [id])
   lineItems    InvoiceLineItem[]
   payments     Payment[]
+  timecards    Timecard[]
 
   @@index([organizationId, status])
   @@map("invoices")
@@ -837,6 +846,7 @@ model Invoice {
 model InvoiceLineItem {
   id          String  @id @default(cuid())
   invoiceId   String  @map("invoice_id")
+  timecardId  String? @unique @map("timecard_id")
   description String
   quantity    Decimal @db.Decimal(8, 2)
   unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)

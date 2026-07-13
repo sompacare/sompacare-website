@@ -7,6 +7,7 @@ import {
   Prisma,
   TimecardStatus,
   TransactionType,
+  InvoiceStatus,
 } from "@sompacare/database";
 import { PrismaService } from "../../common/prisma/prisma.module";
 
@@ -123,6 +124,19 @@ export class WalletService {
     if (!timecard) throw new NotFoundException("Timecard not found");
     if (timecard.status !== TimecardStatus.APPROVED) {
       throw new BadRequestException("Timecard must be approved before crediting wallet");
+    }
+
+    if (!timecard.invoiceId) {
+      throw new BadRequestException("Timecard has no facility invoice");
+    }
+
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id: timecard.invoiceId },
+    });
+    if (!invoice || invoice.status !== InvoiceStatus.PAID) {
+      throw new BadRequestException(
+        "Facility invoice must be paid before crediting worker wallet"
+      );
     }
 
     const existing = await this.prisma.walletTransaction.findFirst({

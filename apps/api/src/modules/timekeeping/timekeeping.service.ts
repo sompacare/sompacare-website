@@ -11,7 +11,7 @@ import {
   ShiftStatus,
   TimecardStatus,
 } from "@sompacare/database";
-import { isWithinGeofence } from "@sompacare/shared";
+import { calculateTimecardAmounts, isWithinGeofence } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { ClockLocationDto } from "./dto/clock.dto";
@@ -182,8 +182,13 @@ export class TimekeepingService {
     const msWorked = clockOutTime.getTime() - clockIn.timestamp.getTime();
     const breakMinutes = assignment.shift.breakMinutes ?? 0;
     const regularHours = Math.max(0, msWorked / 3_600_000 - breakMinutes / 60);
-    const hourlyRate = Number(assignment.shift.hourlyRate);
-    const grossAmount = Math.round(regularHours * hourlyRate * 100) / 100;
+    const payRate = Number(assignment.shift.payRate ?? assignment.shift.hourlyRate);
+    const billRate = Number(assignment.shift.billRate ?? assignment.shift.hourlyRate);
+    const { payAmount, billAmount } = calculateTimecardAmounts(
+      regularHours,
+      payRate,
+      billRate
+    );
 
     const result = await this.prisma.$transaction(async (tx) => {
       const event = await tx.clockEvent.create({
@@ -212,8 +217,11 @@ export class TimekeepingService {
         update: {
           regularHours,
           breakMinutes,
-          hourlyRate,
-          grossAmount,
+          payRate,
+          billRate,
+          hourlyRate: payRate,
+          grossAmount: payAmount,
+          billAmount,
           status: TimecardStatus.SUBMITTED,
         },
         create: {
@@ -221,8 +229,11 @@ export class TimekeepingService {
           workerId,
           regularHours,
           breakMinutes,
-          hourlyRate,
-          grossAmount,
+          payRate,
+          billRate,
+          hourlyRate: payRate,
+          grossAmount: payAmount,
+          billAmount,
           status: TimecardStatus.SUBMITTED,
         },
       });
@@ -240,7 +251,7 @@ export class TimekeepingService {
       action: "clock.out",
       entityType: "ShiftAssignment",
       entityId: assignmentId,
-      changes: { regularHours, grossAmount },
+      changes: { regularHours, grossAmount: payAmount, billAmount },
     });
 
     return result;

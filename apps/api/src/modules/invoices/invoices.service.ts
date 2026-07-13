@@ -44,8 +44,10 @@ export class InvoicesService {
   async createFromTimecard(timecard: {
     id: string;
     grossAmount: Prisma.Decimal | number;
+    billAmount: Prisma.Decimal | number;
     regularHours: Prisma.Decimal | number;
-    hourlyRate: Prisma.Decimal | number;
+    payRate: Prisma.Decimal | number;
+    billRate: Prisma.Decimal | number;
     assignment: {
       shift: {
         title: string;
@@ -61,20 +63,27 @@ export class InvoicesService {
     };
   }) {
     const facility = timecard.assignment.shift.facility;
-    const gross = Number(timecard.grossAmount);
+    const billTotal = Number(timecard.billAmount);
     const hours = Number(timecard.regularHours);
-    const rate = Number(timecard.hourlyRate);
+    const payRate = Number(timecard.payRate);
+    const billRate = Number(timecard.billRate);
+    const payTotal = Number(timecard.grossAmount);
+    const platformMargin = Math.round((billTotal - payTotal) * 100) / 100;
     const invoiceNumber = `INV-${Date.now()}-${timecard.id.slice(-6)}`;
 
-    const existing = await this.prisma.invoice.findFirst({
-      where: {
-        facilityId: facility.id,
-        lineItems: {
-          some: { description: { contains: timecard.id } },
-        },
-      },
+    const existing = await this.prisma.invoiceLineItem.findUnique({
+      where: { timecardId: timecard.id },
+      include: { invoice: true },
     });
-    if (existing) return existing;
+    if (existing?.invoice) {
+      if (!existing.invoice.paidAt) {
+        await this.prisma.timecard.update({
+          where: { id: timecard.id },
+          data: { invoiceId: existing.invoice.id },
+        });
+      }
+      return existing.invoice;
+    }
 
     const customerId = await this.stripe.ensureFacilityCustomer({
       facilityId: facility.id,
@@ -92,27 +101,35 @@ export class InvoicesService {
 
     const dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
-    return this.prisma.invoice.create({
+    const invoice = await this.prisma.invoice.create({
       data: {
         organizationId: facility.organizationId,
         facilityId: facility.id,
         invoiceNumber,
         status: InvoiceStatus.SENT,
-        subtotal: gross,
+        subtotal: billTotal,
         tax: 0,
-        total: gross,
+        total: billTotal,
         dueDate,
         lineItems: {
           create: {
-            description: `${timecard.assignment.shift.title} — ${hours}h @ $${rate}/hr (tc:${timecard.id})`,
+            timecardId: timecard.id,
+            description: `${timecard.assignment.shift.title} — ${hours}h @ $${billRate}/hr bill (pay $${payRate}/hr, margin $${platformMargin})`,
             quantity: hours,
-            unitPrice: rate,
-            amount: gross,
+            unitPrice: billRate,
+            amount: billTotal,
           },
         },
       },
       include: { lineItems: true },
     });
+
+    await this.prisma.timecard.update({
+      where: { id: timecard.id },
+      data: { invoiceId: invoice.id },
+    });
+
+    return invoice;
   }
 
   async payInvoice(invoiceId: string) {

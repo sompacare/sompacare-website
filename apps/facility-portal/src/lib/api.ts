@@ -25,6 +25,8 @@ export type Shift = {
   shiftType: string;
   status: string;
   hourlyRate: string | number;
+  payRate?: string | number;
+  billRate?: string | number;
   startTime: string;
   endTime: string;
   slotsTotal: number;
@@ -73,7 +75,9 @@ export type CreateShiftInput = {
   description?: string;
   role: string;
   shiftType: string;
-  hourlyRate: number;
+  payRate: number;
+  hourlyRate?: number;
+  billRate?: number;
   startTime: string;
   endTime: string;
   slotsTotal?: number;

@@ -7,15 +7,16 @@ import {
   PayRunStatus,
   Prisma,
   TimecardStatus,
+  InvoiceStatus,
 } from "@sompacare/database";
 import { aggregateWorkerPay } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
-import { StripeService } from "../payments/stripe.service";
 import { WalletService } from "../wallet/wallet.service";
 import { CreatePayRunDto } from "./dto/payroll.dto";
+import { PayoutGateService } from "./payout-gate.service";
 
 const payRunInclude = {
   entries: true,
@@ -37,8 +38,8 @@ export class PayrollService {
     private prisma: PrismaService,
     private audit: AuditService,
     private walletService: WalletService,
-    private stripeService: StripeService,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    private payoutGate: PayoutGateService
   ) {}
 
   async findAll(page = 1, limit = 20) {
@@ -75,6 +76,7 @@ export class PayrollService {
         status: TimecardStatus.APPROVED,
         payRunId: null,
         approvedAt: { gte: periodStart, lte: periodEnd },
+        invoice: { status: InvoiceStatus.PAID },
       },
       include: {
         worker: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -83,7 +85,7 @@ export class PayrollService {
 
     if (timecards.length === 0) {
       throw new BadRequestException(
-        "No approved timecards available for this pay period"
+        "No approved timecards with paid facility invoices available for this pay period"
       );
     }
 
@@ -112,7 +114,7 @@ export class PayrollService {
         const pay = aggregateWorkerPay(
           workerTimecards.map((tc) => ({
             regularHours: Number(tc.regularHours),
-            hourlyRate: Number(tc.hourlyRate),
+            hourlyRate: Number(tc.payRate ?? tc.hourlyRate),
           })),
           deductions
         );
@@ -168,6 +170,8 @@ export class PayrollService {
       throw new BadRequestException("Only pending pay runs can be approved");
     }
 
+    await this.payoutGate.assertPayRunInvoicesPaid(id);
+
     const updated = await this.prisma.payRun.update({
       where: { id },
       data: {
@@ -194,6 +198,8 @@ export class PayrollService {
       throw new BadRequestException("Pay run must be approved before processing");
     }
 
+    await this.payoutGate.assertPayRunInvoicesPaid(id);
+
     await this.prisma.payRun.update({
       where: { id },
       data: { status: PayRunStatus.PROCESSING },
@@ -205,34 +211,6 @@ export class PayrollService {
       const worker = await this.prisma.user.findUnique({
         where: { id: entry.workerId },
         include: { profile: true },
-      });
-
-      let transferId: string | undefined;
-      const profile = worker?.profile;
-      if (
-        profile?.stripeAccountId &&
-        profile.stripeOnboarded &&
-        profile.instantPayEnabled &&
-        Number(entry.netPay) > 0
-      ) {
-        try {
-          const ready = await this.stripeService.getConnectAccountReady(
-            profile.stripeAccountId
-          );
-          if (ready) {
-            transferId = await this.stripeService.createInstantPayout({
-              accountId: profile.stripeAccountId,
-              amountCents: Math.round(Number(entry.netPay) * 100),
-            });
-          }
-        } catch {
-          // Wallet is still credited; nurse can use instant pay after onboarding.
-        }
-      }
-
-      await this.prisma.payRunEntry.update({
-        where: { id: entry.id },
-        data: { stripeTransferId: transferId },
       });
 
       const credit = await this.walletService.creditFromPayRunEntry(
@@ -258,7 +236,7 @@ export class PayrollService {
         );
       }
 
-      results.push({ entryId: entry.id, transferId, credit });
+      results.push({ entryId: entry.id, credit });
     }
 
     const completed = await this.prisma.payRun.update({
@@ -286,7 +264,7 @@ export class PayrollService {
     const workerMap = new Map(workers.map((w) => [w.id, w]));
 
     const header =
-      "worker_name,worker_email,regular_hours,overtime_hours,gross_pay,deductions,net_pay,stripe_transfer_id";
+      "worker_name,worker_email,regular_hours,overtime_hours,gross_pay,deductions,net_pay";
     const rows = run.entries.map((e) => {
       const w = workerMap.get(e.workerId);
       const name = w ? `${w.firstName} ${w.lastName}` : e.workerId;
@@ -298,7 +276,6 @@ export class PayrollService {
         Number(e.grossPay),
         Number(e.deductions),
         Number(e.netPay),
-        e.stripeTransferId ?? "",
       ].join(",");
     });
 
