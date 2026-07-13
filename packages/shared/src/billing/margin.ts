@@ -1,3 +1,5 @@
+import { calculateTimecardTotals } from "../payroll/calculate";
+
 /**
  * Competitive per-shift markup for healthcare staffing (2025–2026 market).
  * Bill rate = what facilities pay; pay rate = what clinicians earn.
@@ -58,24 +60,23 @@ export function resolveShiftRates(input: ShiftRateInput): ResolvedShiftRates {
   };
 }
 
+/** @param workedHours Total hours worked (OT applied above 8h per shift). */
 export function calculateTimecardAmounts(
-  regularHours: number,
+  workedHours: number,
   payRate: number,
   billRate: number
 ): { payAmount: number; billAmount: number } {
-  const hours = Math.max(0, regularHours);
-  const payAmount = Math.round(hours * payRate * 100) / 100;
-  const billAmount = Math.round(hours * billRate * 100) / 100;
-  return { payAmount, billAmount };
+  const totals = calculateTimecardTotals(workedHours, payRate, billRate);
+  return { payAmount: totals.grossAmount, billAmount: totals.billAmount };
 }
 
 export function calculatePlatformMargin(
-  regularHours: number,
+  workedHours: number,
   payRate: number,
   billRate: number
 ): number {
   const { payAmount, billAmount } = calculateTimecardAmounts(
-    regularHours,
+    workedHours,
     payRate,
     billRate
   );

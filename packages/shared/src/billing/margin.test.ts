@@ -37,3 +37,7 @@ test("timecard amounts separate pay and bill", () => {
 test("platform margin per 8h RN shift", () => {
   assert.equal(calculatePlatformMargin(8, 40, 50), 80);
 });
+
+test("platform margin includes OT on both pay and bill sides", () => {
+  assert.equal(calculatePlatformMargin(12, 40, 50), 140);
+});

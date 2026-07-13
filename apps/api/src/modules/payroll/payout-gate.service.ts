@@ -3,6 +3,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { InvoiceStatus } from "@sompacare/database";
+import { getUnpaidTimecardBlockers } from "@sompacare/shared";
 import { PrismaService } from "../../common/prisma/prisma.module";
 
 @Injectable()
@@ -24,21 +25,16 @@ export class PayoutGateService {
       },
     });
 
-    const unpaid: string[] = [];
-
-    for (const tc of timecards) {
-      if (!tc.invoiceId || !tc.invoice) {
-        unpaid.push(
-          `${tc.assignment.shift.title} (timecard ${tc.id.slice(-6)}): no invoice`
-        );
-        continue;
-      }
-      if (tc.invoice.status !== InvoiceStatus.PAID) {
-        unpaid.push(
-          `${tc.assignment.shift.title}: invoice ${tc.invoice.invoiceNumber} is ${tc.invoice.status}`
-        );
-      }
-    }
+    const unpaid = getUnpaidTimecardBlockers(
+      timecards.map((tc) => ({
+        id: tc.id,
+        shiftTitle: tc.assignment.shift.title,
+        invoiceId: tc.invoiceId,
+        invoiceStatus: tc.invoice?.status ?? null,
+        invoiceNumber: tc.invoice?.invoiceNumber ?? null,
+      })),
+      InvoiceStatus.PAID
+    );
 
     if (unpaid.length > 0) {
       throw new BadRequestException(

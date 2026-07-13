@@ -33,6 +33,7 @@
     "test:api": "npm run test --workspace=@sompacare/api",
     "loadtest:shifts": "k6 run loadtests/shift-search.k6.js",
     "test:launch": "node scripts/test-m14-launch.mjs",
+    "test:invoice-checkout": "node scripts/test-invoice-checkout.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"
   },

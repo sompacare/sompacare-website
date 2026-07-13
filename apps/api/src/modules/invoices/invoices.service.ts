@@ -48,6 +48,7 @@ export class InvoicesService {
     grossAmount: Prisma.Decimal | number;
     billAmount: Prisma.Decimal | number;
     regularHours: Prisma.Decimal | number;
+    overtimeHours?: Prisma.Decimal | number;
     payRate: Prisma.Decimal | number;
     billRate: Prisma.Decimal | number;
     assignment: {
@@ -66,11 +67,17 @@ export class InvoicesService {
   }) {
     const facility = timecard.assignment.shift.facility;
     const billTotal = Number(timecard.billAmount);
-    const hours = Number(timecard.regularHours);
+    const regularHours = Number(timecard.regularHours);
+    const overtimeHours = Number(timecard.overtimeHours ?? 0);
+    const totalHours = Math.round((regularHours + overtimeHours) * 100) / 100;
     const payRate = Number(timecard.payRate);
     const billRate = Number(timecard.billRate);
     const payTotal = Number(timecard.grossAmount);
     const platformMargin = Math.round((billTotal - payTotal) * 100) / 100;
+    const hoursLabel =
+      overtimeHours > 0
+        ? `${regularHours}h reg + ${overtimeHours}h OT @ 1.5×`
+        : `${totalHours}h`;
     const invoiceNumber = `INV-${Date.now()}-${timecard.id.slice(-6)}`;
 
     const existing = await this.prisma.invoiceLineItem.findUnique({
@@ -116,9 +123,9 @@ export class InvoicesService {
         lineItems: {
           create: {
             timecardId: timecard.id,
-            description: `${timecard.assignment.shift.title} — ${hours}h @ $${billRate}/hr bill (pay $${payRate}/hr, margin $${platformMargin})`,
-            quantity: hours,
-            unitPrice: billRate,
+            description: `${timecard.assignment.shift.title} — ${hoursLabel} @ $${billRate}/hr bill (pay $${payRate}/hr, margin $${platformMargin})`,
+            quantity: 1,
+            unitPrice: billTotal,
             amount: billTotal,
           },
         },

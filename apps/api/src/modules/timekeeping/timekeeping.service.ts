@@ -11,7 +11,7 @@ import {
   ShiftStatus,
   TimecardStatus,
 } from "@sompacare/database";
-import { calculateTimecardAmounts, isWithinGeofence } from "@sompacare/shared";
+import { calculateTimecardTotals, isWithinGeofence } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { ClockLocationDto } from "./dto/clock.dto";
@@ -181,14 +181,10 @@ export class TimekeepingService {
     const clockOutTime = new Date();
     const msWorked = clockOutTime.getTime() - clockIn.timestamp.getTime();
     const breakMinutes = assignment.shift.breakMinutes ?? 0;
-    const regularHours = Math.max(0, msWorked / 3_600_000 - breakMinutes / 60);
+    const workedHours = Math.max(0, msWorked / 3_600_000 - breakMinutes / 60);
     const payRate = Number(assignment.shift.payRate ?? assignment.shift.hourlyRate);
     const billRate = Number(assignment.shift.billRate ?? assignment.shift.hourlyRate);
-    const { payAmount, billAmount } = calculateTimecardAmounts(
-      regularHours,
-      payRate,
-      billRate
-    );
+    const totals = calculateTimecardTotals(workedHours, payRate, billRate);
 
     const result = await this.prisma.$transaction(async (tx) => {
       const event = await tx.clockEvent.create({
@@ -215,25 +211,27 @@ export class TimekeepingService {
       const timecard = await tx.timecard.upsert({
         where: { assignmentId },
         update: {
-          regularHours,
+          regularHours: totals.regularHours,
+          overtimeHours: totals.overtimeHours,
           breakMinutes,
           payRate,
           billRate,
           hourlyRate: payRate,
-          grossAmount: payAmount,
-          billAmount,
+          grossAmount: totals.grossAmount,
+          billAmount: totals.billAmount,
           status: TimecardStatus.SUBMITTED,
         },
         create: {
           assignmentId,
           workerId,
-          regularHours,
+          regularHours: totals.regularHours,
+          overtimeHours: totals.overtimeHours,
           breakMinutes,
           payRate,
           billRate,
           hourlyRate: payRate,
-          grossAmount: payAmount,
-          billAmount,
+          grossAmount: totals.grossAmount,
+          billAmount: totals.billAmount,
           status: TimecardStatus.SUBMITTED,
         },
       });
@@ -251,7 +249,12 @@ export class TimekeepingService {
       action: "clock.out",
       entityType: "ShiftAssignment",
       entityId: assignmentId,
-      changes: { regularHours, grossAmount: payAmount, billAmount },
+      changes: {
+        regularHours: totals.regularHours,
+        overtimeHours: totals.overtimeHours,
+        grossAmount: totals.grossAmount,
+        billAmount: totals.billAmount,
+      },
     });
 
     return result;

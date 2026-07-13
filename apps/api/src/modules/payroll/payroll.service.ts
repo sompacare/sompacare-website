@@ -9,7 +9,7 @@ import {
   TimecardStatus,
   InvoiceStatus,
 } from "@sompacare/database";
-import { aggregateWorkerPay } from "@sompacare/shared";
+import { aggregateWorkerPayFromSnapshots } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
@@ -111,10 +111,11 @@ export class PayrollService {
 
       for (const [workerId, workerTimecards] of byWorker) {
         const deductions = await this.sumActiveDeductions(tx, workerId);
-        const pay = aggregateWorkerPay(
+        const pay = aggregateWorkerPayFromSnapshots(
           workerTimecards.map((tc) => ({
             regularHours: Number(tc.regularHours),
-            hourlyRate: Number(tc.payRate ?? tc.hourlyRate),
+            overtimeHours: Number(tc.overtimeHours),
+            grossAmount: Number(tc.grossAmount),
           })),
           deductions
         );

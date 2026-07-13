@@ -5,6 +5,7 @@ export * from "./compliance/evaluate-compliance";
 export * from "./compliance/expiry";
 export * from "./geofence/distance";
 export * from "./payroll/calculate";
+export * from "./payroll/payout-gate";
 export * from "./matching/calculate";
 export * from "./matching/payroll-anomalies";
 export * from "./matching/compliance-risks";

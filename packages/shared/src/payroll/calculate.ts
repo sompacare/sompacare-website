@@ -35,6 +35,60 @@ export function calculateShiftPay(input: TimecardPayInput): PayCalculation {
   return { regularHours, overtimeHours, grossPay };
 }
 
+export type TimecardTotals = {
+  regularHours: number;
+  overtimeHours: number;
+  grossAmount: number;
+  billAmount: number;
+};
+
+/** Pay and bill amounts for a single shift using the same OT split (8h + 1.5×). */
+export function calculateTimecardTotals(
+  workedHours: number,
+  payRate: number,
+  billRate: number
+): TimecardTotals {
+  const pay = calculateShiftPay({ regularHours: workedHours, hourlyRate: payRate });
+  const bill = calculateShiftPay({ regularHours: workedHours, hourlyRate: billRate });
+  return {
+    regularHours: pay.regularHours,
+    overtimeHours: pay.overtimeHours,
+    grossAmount: pay.grossPay,
+    billAmount: bill.grossPay,
+  };
+}
+
+/** Sum clock-out snapshots — avoids recalculating OT at pay-run time. */
+export function aggregateWorkerPayFromSnapshots(
+  timecards: {
+    regularHours: number;
+    overtimeHours: number;
+    grossAmount: number;
+  }[],
+  deductions = 0
+): PayCalculation & { netPay: number; deductions: number } {
+  let regularHours = 0;
+  let overtimeHours = 0;
+  let grossPay = 0;
+
+  for (const tc of timecards) {
+    regularHours += Number(tc.regularHours);
+    overtimeHours += Number(tc.overtimeHours);
+    grossPay += Number(tc.grossAmount);
+  }
+
+  grossPay = Math.round(grossPay * 100) / 100;
+  const netPay = Math.max(0, Math.round((grossPay - deductions) * 100) / 100);
+
+  return {
+    regularHours: Math.round(regularHours * 100) / 100,
+    overtimeHours: Math.round(overtimeHours * 100) / 100,
+    grossPay,
+    deductions,
+    netPay,
+  };
+}
+
 export function aggregateWorkerPay(
   timecards: TimecardPayInput[],
   deductions = 0
