@@ -47,7 +47,22 @@ Expect: `"status":"healthy"`
 
 ---
 
-## Phase 3 — Deploy portals on Vercel
+## Phase 3 — Deploy portals on Render
+
+All four portals are defined in root `render.yaml` and deploy automatically when you push branch `platform`:
+
+- Nurse: `https://sompacare-nurse.onrender.com`
+- Facility: `https://sompacare-facility.onrender.com`
+- Recruiter: `https://sompacare-recruiter.onrender.com`
+- Admin: `https://sompacare-admin.onrender.com`
+
+Attach the `sompacare-portal-auth` env group with Clerk keys (`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`).
+
+**Verify:** open each portal `/sign-in` — expect HTTP 200.
+
+---
+
+## Phase 3 (legacy) — Deploy portals on Vercel
 
 For **each** portal, create a Vercel project:
 
@@ -121,9 +136,11 @@ Save → Render redeploys automatically.
 
 ---
 
-## Phase 7 — Seed production database (optional demo data)
+## Phase 7 — Seed production database
 
-From your machine (one time):
+**Roles (GNA, CMA, Med Tech, etc.)** — seeded automatically on every API deploy via `docker-entrypoint.sh` (`db:seed:roles`). No manual step required.
+
+**Demo data** (optional, one time from your machine):
 
 ```bash
 DATABASE_URL="postgresql://..." npm run db:seed --workspace=@sompacare/database
@@ -131,9 +148,10 @@ DATABASE_URL="postgresql://..." npm run db:seed --workspace=@sompacare/database
 
 Get `DATABASE_URL` from Render → sompacare-db → **Connections**.
 
-Or link real Clerk users:
+Or link real Clerk users (after roles are seeded):
+
 ```bash
-node scripts/link-clerk-user.mjs --email nurse@yourdomain.com
+node scripts/link-clerk-user.mjs --email nurse@yourdomain.com --role GNA
 node scripts/link-facility-user.mjs --email facility@yourdomain.com
 ```
 

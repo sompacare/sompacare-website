@@ -21,8 +21,10 @@ export function getExpirySeverity(
 }
 
 export function reminderThreshold(days: number): number | null {
-  for (const threshold of EXPIRY_REMINDER_DAYS) {
-    if (days <= threshold && days > 0) return threshold;
+  if (days <= 0 || days > 30) return null;
+  const sorted = [...EXPIRY_REMINDER_DAYS].sort((a, b) => a - b);
+  for (const threshold of sorted) {
+    if (days <= threshold) return threshold;
   }
   return null;
 }

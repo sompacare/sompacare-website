@@ -3,7 +3,7 @@ import { ROLE_PERMISSIONS } from "@sompacare/shared";
 
 const prisma = new PrismaClient();
 
-async function seedRolesAndPermissions() {
+export async function seedRolesAndPermissions() {
   for (const [roleName, permissions] of Object.entries(ROLE_PERMISSIONS)) {
     const role = await prisma.role.upsert({
       where: { name: roleName as PlatformRole },
@@ -375,12 +375,20 @@ async function seedDemoData() {
 async function main() {
   console.log("Seeding Sompacare platform database...");
   await seedRolesAndPermissions();
-  await seedDemoData();
+  if (process.env.SEED_DEMO_DATA !== "false") {
+    await seedDemoData();
+  } else {
+    console.log("Skipped demo data (SEED_DEMO_DATA=false).");
+  }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+const isSeedEntrypoint = process.argv[1]?.replace(/\\/g, "/").endsWith("/prisma/seed.ts");
+
+if (isSeedEntrypoint) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

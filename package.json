@@ -24,6 +24,7 @@
     "db:generate": "npm run db:generate --workspace=@sompacare/database",
     "db:migrate": "npm run db:migrate --workspace=@sompacare/database",
     "db:seed": "npm run db:seed --workspace=@sompacare/database",
+    "db:seed:roles": "npm run db:seed:roles --workspace=@sompacare/database",
     "db:studio": "npm run db:studio --workspace=@sompacare/database",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",

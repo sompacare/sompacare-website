@@ -1,0 +1,31 @@
+# Production env — paste into Render → sompacare-api → Environment
+# Copy values from your local .env.platform. Do NOT commit real secrets.
+
+NODE_ENV=production
+API_PORT=4000
+AUTH_ALLOW_DEV_TOKENS=false
+GEOFENCE_DEV_BYPASS=false
+PAYMENTS_DEV_BYPASS=false
+
+# Stripe LIVE — from .env.platform
+STRIPE_SECRET_KEY=sk_live_YOUR_KEY
+STRIPE_WEBHOOK_SECRET=whsec_PASTE_AFTER_STRIPE_WEBHOOK_SETUP
+
+# Clerk — use production keys when ready (test keys work for initial deploy)
+CLERK_SECRET_KEY=sk_test_OR_sk_live_YOUR_KEY
+CLERK_PUBLISHABLE_KEY=pk_test_OR_pk_live_YOUR_KEY
+CLERK_WEBHOOK_SECRET=whsec_PASTE_AFTER_CLERK_WEBHOOK_SETUP
+
+# Render portal URLs (comma-separated, no spaces)
+CORS_ORIGINS=https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
+NURSE_PORTAL_URL=https://sompacare-nurse.onrender.com
+FACILITY_PORTAL_URL=https://sompacare-facility.onrender.com
+RECRUITER_PORTAL_URL=https://sompacare-recruiter.onrender.com
+ADMIN_PORTAL_URL=https://sompacare-admin.onrender.com
+
+# Email (optional)
+RESEND_API_KEY=re_YOUR_KEY
+RESEND_FROM_EMAIL=Sompacare <careers@sompacare.com>
+
+# DATABASE_URL — auto-set by Render from sompacare-db
+# Migrations + role seed run automatically on API container start (docker-entrypoint.sh)
