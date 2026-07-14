@@ -141,7 +141,7 @@ export class RecruitersService {
     }
 
     if (dto.stage === CandidatePipelineStage.PLACED && !existing.workerId) {
-      void this.careerFunnel.provisionWorkerFromCandidate(id);
+      await this.careerFunnel.provisionWorkerFromCandidate(id);
     }
 
     const updated = await this.prisma.candidate.update({

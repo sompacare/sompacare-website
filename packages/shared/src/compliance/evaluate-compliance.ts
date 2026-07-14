@@ -31,6 +31,8 @@ export type ComplianceEvaluationInput = {
     completedAt?: string | null;
   }>;
   requiredLicenseTypes?: string[];
+  /** Recruiter/admin marked candidate PLACED — allow shift booking while verification is pending */
+  placedBookingApproved?: boolean;
   now?: Date;
 };
 
@@ -47,9 +49,11 @@ export function evaluateCompliance(input: ComplianceEvaluationInput): Compliance
   const now = input.now ?? new Date();
   const issues: ComplianceIssue[] = [];
   const blockedReasons: string[] = [];
+  const placed = input.placedBookingApproved === true;
 
   const activeLicenses = input.licenses.filter((l) => l.status === "ACTIVE");
-  if (activeLicenses.length === 0) {
+
+  if (!placed && activeLicenses.length === 0) {
     blockedReasons.push("No active professional license on file");
   }
 
@@ -64,7 +68,7 @@ export function evaluateCompliance(input: ComplianceEvaluationInput): Compliance
         expiresAt: license.expiresAt,
       });
       blockedReasons.push(`${license.type} license expired`);
-    } else if (license.status !== "ACTIVE") {
+    } else if (!placed && license.status !== "ACTIVE") {
       issues.push({
         type: "LICENSE",
         id: license.id,
@@ -73,10 +77,19 @@ export function evaluateCompliance(input: ComplianceEvaluationInput): Compliance
         expiresAt: license.expiresAt,
       });
       blockedReasons.push(`${license.type} license is ${license.status.toLowerCase()}`);
+    } else if (placed && (license.status === "REVOKED" || license.status === "REJECTED")) {
+      issues.push({
+        type: "LICENSE",
+        id: license.id,
+        name: license.type,
+        status: license.status,
+        expiresAt: license.expiresAt,
+      });
+      blockedReasons.push(`${license.type} license was ${license.status.toLowerCase()}`);
     }
   }
 
-  if (input.requiredLicenseTypes?.length) {
+  if (!placed && input.requiredLicenseTypes?.length) {
     for (const required of input.requiredLicenseTypes) {
       const match = activeLicenses.find(
         (l) => l.type.toUpperCase() === required.toUpperCase() && new Date(l.expiresAt) > now
@@ -114,10 +127,12 @@ export function evaluateCompliance(input: ComplianceEvaluationInput): Compliance
   }
 
   for (const requiredName of REQUIRED_CERT_NAMES) {
+    if (placed) continue;
     const hasValid = input.certifications.some((c) => {
       const nameMatch = c.name.toUpperCase().includes(requiredName);
       const notExpired = !c.expiresAt || new Date(c.expiresAt) > now;
-      return nameMatch && c.status !== "REJECTED" && c.status !== "EXPIRED" && notExpired;
+      const statusOk = c.status !== "REJECTED" && c.status !== "EXPIRED";
+      return nameMatch && statusOk && notExpired;
     });
     if (!hasValid) {
       blockedReasons.push(`Missing valid ${requiredName} certification`);
@@ -133,7 +148,7 @@ export function evaluateCompliance(input: ComplianceEvaluationInput): Compliance
         status: check.status,
       });
       blockedReasons.push("Background check did not pass");
-    } else if (check.status !== "VERIFIED") {
+    } else if (!placed && check.status !== "VERIFIED") {
       blockedReasons.push("Background check pending verification");
     }
   }

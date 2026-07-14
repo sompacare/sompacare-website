@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, FileBadge, Plus, ShieldCheck } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import type { Certification, ComplianceAlert, License, BackgroundCheck } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,10 +58,8 @@ export default function CredentialsPage() {
       setAlerts(alertRes.data ?? []);
       setScore(complianceRes.data?.score ?? null);
       setBackgroundChecks(bgRes.data ?? []);
-    } catch {
-      setLicenses([]);
-      setCertifications([]);
-      setAlerts([]);
+    } catch (err) {
+      setMessage(formatApiError(err, "Unable to load credentials."));
     } finally {
       setLoading(false);
     }
@@ -87,7 +86,7 @@ export default function CredentialsPage() {
       setMessage("License submitted for verification.");
       await load();
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(formatApiError(err, "Unable to submit license."));
     } finally {
       setActing(false);
     }
@@ -110,7 +109,7 @@ export default function CredentialsPage() {
       setMessage("Certification submitted for verification.");
       await load();
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(formatApiError(err, "Unable to submit license."));
     } finally {
       setActing(false);
     }
@@ -132,7 +131,7 @@ export default function CredentialsPage() {
       );
       await load();
     } catch (err) {
-      setMessage((err as Error).message);
+      setMessage(formatApiError(err, "Unable to submit license."));
     } finally {
       setActing(false);
     }

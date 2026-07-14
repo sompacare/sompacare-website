@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -15,6 +17,10 @@ import {
   buildWorkerSignupUrl,
   careerPositionToClinicalRole,
   clinicalRoleToPlatformRole,
+  ADMIN_ROLES,
+  FACILITY_ROLES,
+  PlatformRole as SharedPlatformRole,
+  WORKER_ROLES,
 } from "@sompacare/shared";
 import { createClerkClient } from "@clerk/backend";
 import { AuditService } from "../../common/audit/audit.service";
@@ -264,15 +270,90 @@ export class CareersFunnelService {
     return { linked: true, candidateId: candidate.id };
   }
 
+  async ensureWorkerAccess(userId: string, email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { roles: { include: { role: true } } },
+    });
+    if (!user) throw new NotFoundException("User not found");
+
+    const workerRole = user.roles.find((entry) =>
+      WORKER_ROLES.includes(entry.role.name as (typeof WORKER_ROLES)[number])
+    );
+    if (workerRole) {
+      await this.workers.ensureWorkerProfile(userId).catch(() => undefined);
+      await this.prisma.wallet.upsert({
+        where: { userId },
+        update: {},
+        create: { userId, balance: 0 },
+      });
+      return {
+        ready: true,
+        role: workerRole.role.name,
+        linkedFromCandidate: false,
+      };
+    }
+
+    const portalOnlyRoles = [...FACILITY_ROLES, ...ADMIN_ROLES, SharedPlatformRole.RECRUITER];
+    if (
+      user.roles.some((entry) =>
+        portalOnlyRoles.includes(entry.role.name as SharedPlatformRole)
+      )
+    ) {
+      throw new ForbiddenException(
+        "This account is not set up as a worker. Sign in through the nurse portal with a worker account."
+      );
+    }
+
+    const linked = await this.linkWorkerFromClerkSignup(email, userId);
+    if (linked.linked) {
+      const updated = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { roles: { include: { role: true } } },
+      });
+      const role =
+        updated?.roles.find((entry) =>
+          WORKER_ROLES.includes(entry.role.name as (typeof WORKER_ROLES)[number])
+        )?.role.name ?? SharedPlatformRole.RN;
+      return { ready: true, role, linkedFromCandidate: true };
+    }
+
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { email: { equals: email.trim(), mode: "insensitive" } },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    if (candidate) {
+      await this.assignWorkerRoleAndProfile(userId, candidate.clinicalRole);
+      if (!candidate.workerId) {
+        await this.prisma.candidate.update({
+          where: { id: candidate.id },
+          data: { workerId: userId },
+        });
+      }
+      return {
+        ready: true,
+        role: clinicalRoleToPlatformRole(candidate.clinicalRole),
+        linkedFromCandidate: true,
+      };
+    }
+
+    await this.assignWorkerRoleAndProfile(userId, ClinicalRole.RN);
+    return { ready: true, role: SharedPlatformRole.RN, linkedFromCandidate: false };
+  }
+
   private async assignWorkerRoleAndProfile(userId: string, clinicalRole: ClinicalRole) {
     const platformRoleName = clinicalRoleToPlatformRole(clinicalRole);
 
-    const role = await this.prisma.role.findUnique({
+    const role = await this.prisma.role.upsert({
       where: { name: platformRoleName as PlatformRole },
+      update: {},
+      create: {
+        name: platformRoleName as PlatformRole,
+        displayName: platformRoleName.replace(/_/g, " "),
+        description: `${platformRoleName} platform role`,
+      },
     });
-    if (!role) {
-      throw new BadRequestException(`Worker role ${platformRoleName} is not configured`);
-    }
 
     await this.prisma.userRole.upsert({
       where: { userId_roleId: { userId, roleId: role.id } },

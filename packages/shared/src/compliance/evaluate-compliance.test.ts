@@ -62,4 +62,17 @@ describe("evaluateCompliance", () => {
     assert.equal(result.isCompliant, false);
     assert.ok(result.blockedReasons.some((r) => r.includes("LPN")));
   });
+
+  it("allows placed workers to book while background check is pending", () => {
+    const result = evaluateCompliance({
+      now,
+      placedBookingApproved: true,
+      licenses: [{ id: "1", type: "RN", status: "PENDING_VERIFICATION", expiresAt: future }],
+      certifications: [],
+      backgroundChecks: [{ id: "b1", status: "PENDING", completedAt: null }],
+    });
+
+    assert.equal(result.isCompliant, true);
+    assert.equal(result.blockedReasons.length, 0);
+  });
 });

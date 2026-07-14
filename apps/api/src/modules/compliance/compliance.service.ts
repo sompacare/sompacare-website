@@ -1,10 +1,5 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
-import { DocumentStatus, LegalDocumentType, LicenseStatus, Prisma } from "@sompacare/database";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { DocumentStatus, LegalDocumentType, LicenseStatus, Prisma, CandidatePipelineStage } from "@sompacare/database";
 import {
   evaluateCompliance,
   getExpirySeverity,
@@ -41,7 +36,8 @@ export class ComplianceService {
     userId: string,
     requiredLicenseTypes?: string[]
   ): Promise<ComplianceEvaluation> {
-    const [licenses, certifications, backgroundChecks] = await Promise.all([
+    const [licenses, certifications, backgroundChecks, placedBookingApproved] =
+      await Promise.all([
       this.prisma.license.findMany({ where: { userId } }),
       this.prisma.certification.findMany({ where: { userId } }),
       this.prisma.backgroundCheck.findMany({
@@ -49,10 +45,12 @@ export class ComplianceService {
         orderBy: { createdAt: "desc" },
         take: 1,
       }),
+      this.isPlacedForBooking(userId),
     ]);
 
     return evaluateCompliance({
       requiredLicenseTypes,
+      placedBookingApproved,
       licenses: licenses.map((l) => ({
         id: l.id,
         type: l.type,
@@ -71,6 +69,27 @@ export class ComplianceService {
         completedAt: b.completedAt?.toISOString() ?? null,
       })),
     });
+  }
+
+  private async isPlacedForBooking(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!user) return false;
+
+    const placed = await this.prisma.candidate.findFirst({
+      where: {
+        stage: CandidatePipelineStage.PLACED,
+        OR: [
+          { workerId: userId },
+          { email: { equals: user.email.trim(), mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+
+    return Boolean(placed);
   }
 
   async assertWorkerCanBook(userId: string, requiredLicenseTypes?: string[]) {

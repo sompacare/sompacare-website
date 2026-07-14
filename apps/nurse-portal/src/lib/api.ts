@@ -129,6 +129,27 @@ export class ApiError extends Error {
   }
 }
 
+export function extractApiMessage(body: unknown): string | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const msg = (body as { message?: unknown }).message;
+  if (Array.isArray(msg)) return msg.join(", ");
+  if (typeof msg === "string" && msg.trim()) return msg.trim();
+  return undefined;
+}
+
+export function formatApiError(err: unknown, fallback = "Something went wrong. Please try again.") {
+  if (err instanceof ApiError) {
+    const fromBody = extractApiMessage(err.body);
+    if (fromBody) return fromBody;
+  }
+  const fromBody = extractApiMessage((err as { body?: unknown })?.body);
+  if (fromBody) return fromBody;
+  if (err instanceof Error && err.message && !err.message.startsWith("API ")) {
+    return err.message;
+  }
+  return fallback;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit & { token?: string | null } = {}
@@ -155,7 +176,11 @@ export async function apiFetch<T>(
     } catch {
       body = undefined;
     }
-    throw new ApiError(`API ${res.status}: ${path}`, res.status, body);
+    throw new ApiError(
+      extractApiMessage(body) ?? `Request failed (${res.status})`,
+      res.status,
+      body
+    );
   }
 
   return res.json() as Promise<T>;
@@ -176,6 +201,11 @@ export function createApiClient(getToken: () => Promise<string | null>) {
   }
 
   return {
+    bootstrapWorker: () =>
+      withAuth<{ data: { ready: boolean; role: string; linkedFromCandidate: boolean } }>(
+        "/auth/bootstrap-worker",
+        { method: "POST" }
+      ),
     getShifts: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";
       return withAuth<ListResponse<Shift>>(`/shifts${qs}`);

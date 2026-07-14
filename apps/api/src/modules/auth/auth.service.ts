@@ -316,6 +316,11 @@ export class AuthService {
 
   }
 
+  async bootstrapWorkerAccess(userId: string, email: string) {
+    const result = await this.careerFunnel.ensureWorkerAccess(userId, email);
+    return { data: result };
+  }
+
 
 
   async handleClerkWebhook(event: ClerkWebhookEvent) {

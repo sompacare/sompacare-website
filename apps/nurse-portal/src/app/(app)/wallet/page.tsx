@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowDownLeft, ArrowUpRight, Banknote, Wallet as WalletIcon } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import type { WalletInfo, WalletTransaction } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export default function WalletPage() {
         }
         return load();
       }).catch((e) => {
-        setMessage((e as Error).message);
+        setMessage((e) => formatApiError(e, "Unable to finish payout setup."));
       });
     }
   }, [searchParams, api, load]);
@@ -70,7 +71,7 @@ export default function WalletPage() {
         window.location.href = res.url;
       }
     } catch (e) {
-      setMessage((e as Error).message);
+      setMessage(formatApiError(e, "Unable to start payout setup."));
     } finally {
       setActing(false);
     }
@@ -85,7 +86,7 @@ export default function WalletPage() {
       setMessage("Instant payout sent.");
       await load();
     } catch (e) {
-      setMessage((e as Error).message);
+      setMessage(formatApiError(e, "Unable to start payout setup."));
     } finally {
       setActing(false);
     }
