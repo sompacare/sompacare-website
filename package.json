@@ -15,7 +15,7 @@
     "dev:platform": "turbo dev --filter=@sompacare/api --filter=@sompacare/nurse-portal --filter=@sompacare/facility-portal --filter=@sompacare/recruiter-portal --filter=@sompacare/admin-portal",
     "dev:mobile": "turbo dev --filter=@sompacare/mobile-nurse --filter=@sompacare/mobile-facility",
     "test:mobile-shared": "npm run test --workspace=@sompacare/mobile-shared",
-    "build": "next build",
+    "build": "npm run build --workspace=@sompacare/shared && next build",
     "build:platform": "turbo build --filter=@sompacare/api --filter=@sompacare/shared --filter=@sompacare/database",
     "start": "next start",
     "lint": "eslint",
@@ -42,6 +42,7 @@
     "stripe:listen": "node scripts/stripe-listen.mjs"
   },
   "dependencies": {
+    "@sompacare/shared": "*",
     "@stripe/react-stripe-js": "^6.7.0",
     "@stripe/stripe-js": "^9.9.0",
     "@supabase/supabase-js": "^2.108.2",

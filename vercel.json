@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build --workspace=@sompacare/shared && next build",
+  "installCommand": "npm install",
   "build": {
     "env": {
       "NODE_OPTIONS": "--max-old-space-size=4096"

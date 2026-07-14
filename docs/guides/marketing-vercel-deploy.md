@@ -25,7 +25,11 @@ Or merge `platform` into your current production branch (`main`) and redeploy.
 
 `PLATFORM_API_URL` is required for careers consent recording (`POST /legal/consent/public`) and funnel ingest.
 
-## 3. API CORS
+## 3. Build note
+
+The marketing site imports `@sompacare/shared` for `/privacy` and `/terms`. Vercel must compile that workspace package before `next build` (configured in root `vercel.json` and `package.json`).
+
+## 4. API CORS
 
 Render `sompacare-api` must allow the marketing origin. `render.yaml` includes:
 
@@ -35,7 +39,7 @@ https://www.sompacare.com,https://sompacare.com
 
 Redeploy the API after pushing `platform`.
 
-## 4. Deploy
+## 5. Deploy
 
 ```bash
 npx vercel --prod
@@ -43,7 +47,7 @@ npx vercel --prod
 
 Or push to `platform` with Vercel Git integration enabled.
 
-## 5. Verify
+## 6. Verify
 
 ```bash
 curl -I https://www.sompacare.com/privacy
@@ -53,7 +57,7 @@ curl -I https://www.sompacare.com/trust
 
 Expect **200** (not 404).
 
-## 6. App Store
+## 7. App Store
 
 Update App Store Connect privacy URL to:
 
