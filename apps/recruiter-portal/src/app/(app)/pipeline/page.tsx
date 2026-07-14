@@ -16,6 +16,7 @@ const STAGES: { key: CandidateStage; label: string; color: string }[] = [
   { key: "INTERVIEW", label: "Interview", color: "bg-amber-50" },
   { key: "OFFER", label: "Offer", color: "bg-purple-50" },
   { key: "PLACED", label: "Placed", color: "bg-emerald-50" },
+  { key: "HIRED", label: "Hired", color: "bg-green-100" },
 ];
 
 export default function PipelinePage() {
@@ -174,7 +175,7 @@ export default function PipelinePage() {
                             <p className="text-xs text-primary">Match {c.matchScore}%</p>
                           )}
                         </Link>
-                        {key !== "PLACED" && (
+                        {key !== "PLACED" && key !== "HIRED" && (
                           <select
                             className="w-full rounded border border-border px-2 py-1 text-[11px]"
                             value={c.stage}

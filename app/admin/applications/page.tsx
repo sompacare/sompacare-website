@@ -9,6 +9,7 @@ const STATUS_COLORS: Record<ApplicationStatus, string> = {
   new: "bg-blue-100 text-blue-800",
   reviewing: "bg-amber-100 text-amber-800",
   interviewed: "bg-purple-100 text-purple-800",
+  placed: "bg-emerald-100 text-emerald-800",
   hired: "bg-green-100 text-green-800",
   rejected: "bg-slate-200 text-slate-700",
 };
@@ -25,9 +26,12 @@ export default async function AdminApplicationsPage() {
     applications = [];
   }
 
+  const placedCount = applications.filter((app) => app.status === "placed").length;
   const hiredCount = applications.filter((app) => app.status === "hired").length;
   const pipelineCount = applications.filter((app) => ["reviewing", "interviewed"].includes(app.status)).length;
-  const orientationPending = applications.filter((app) => app.status === "hired" && !app.onboarding_sent_at).length;
+  const orientationPending = applications.filter(
+    (app) => app.status === "placed" && !app.onboarding_sent_at
+  ).length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -37,17 +41,21 @@ export default async function AdminApplicationsPage() {
         description="Review candidates, manage interview stages, and launch orientation packages for new hires."
       />
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-bold tracking-widest text-brand-slate uppercase">In Pipeline</p>
           <p className="mt-1 text-2xl font-bold text-brand-navy">{pipelineCount}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-[10px] font-bold tracking-widest text-brand-slate uppercase">Hired</p>
+          <p className="text-[10px] font-bold tracking-widest text-brand-slate uppercase">Placed</p>
+          <p className="mt-1 text-2xl font-bold text-brand-navy">{placedCount}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-[10px] font-bold tracking-widest text-brand-slate uppercase">Portal Hired</p>
           <p className="mt-1 text-2xl font-bold text-brand-navy">{hiredCount}</p>
         </div>
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
-          <p className="text-[10px] font-bold tracking-widest text-amber-800 uppercase">Orientation Pending</p>
+          <p className="text-[10px] font-bold tracking-widest text-amber-800 uppercase">Onboarding Pending</p>
           <p className="mt-1 text-2xl font-bold text-amber-900">{orientationPending}</p>
         </div>
       </div>

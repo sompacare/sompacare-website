@@ -166,6 +166,11 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       const qs = params ? `?${new URLSearchParams(params)}` : "";
       return withAuth<ListResponse<UserRecord>>(`/users${qs}`);
     },
+    updateUserStatus: (id: string, status: string) =>
+      withAuth<{ data: UserRecord }>(`/users/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
     getFacilities: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";
       return withAuth<ListResponse<FacilityRecord>>(`/facilities${qs}`);

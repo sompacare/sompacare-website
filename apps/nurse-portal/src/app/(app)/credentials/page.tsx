@@ -83,7 +83,7 @@ export default function CredentialsPage() {
         documentUrl: String(form.get("documentUrl") || "") || undefined,
       });
       setShowLicenseForm(false);
-      setMessage("License submitted for verification.");
+      setMessage("License submitted for HR verification.");
       await load();
     } catch (err) {
       setMessage(formatApiError(err, "Unable to submit license."));
@@ -106,32 +106,10 @@ export default function CredentialsPage() {
         documentUrl: String(form.get("documentUrl") || "") || undefined,
       });
       setShowCertForm(false);
-      setMessage("Certification submitted for verification.");
+      setMessage("Certification submitted for HR verification.");
       await load();
     } catch (err) {
-      setMessage(formatApiError(err, "Unable to submit license."));
-    } finally {
-      setActing(false);
-    }
-  }
-
-  async function startBackgroundCheck() {
-    setActing(true);
-    setMessage(null);
-    try {
-      await api.recordLegalConsent({
-        documentTypes: ["BACKGROUND_CHECK_DISCLOSURE"],
-        context: "background_check",
-      });
-      const result = await api.initiateBackgroundCheck();
-      setMessage(
-        result.devBypass
-          ? "Background check cleared (dev mode)."
-          : "Background check initiated — you'll be notified when complete."
-      );
-      await load();
-    } catch (err) {
-      setMessage(formatApiError(err, "Unable to submit license."));
+      setMessage(formatApiError(err, "Unable to submit certification."));
     } finally {
       setActing(false);
     }
@@ -144,7 +122,7 @@ export default function CredentialsPage() {
       <div>
         <h1 className="text-2xl font-bold text-navy">Credentials</h1>
         <p className="mt-1 text-sm text-muted">
-          Licenses, certifications, and compliance status
+          Licenses, certifications, and HR compliance status
         </p>
       </div>
 
@@ -184,23 +162,19 @@ export default function CredentialsPage() {
       )}
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-navy">Background check</h2>
-          {!latestBackgroundCheck && (
-            <Button size="sm" variant="outline" disabled={acting} onClick={() => void startBackgroundCheck()}>
-              Authorize screening
-            </Button>
-          )}
-        </div>
+        <h2 className="font-bold text-navy">Background screening</h2>
         {loading ? (
           <Skeleton className="h-20 w-full" />
         ) : latestBackgroundCheck ? (
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="font-semibold text-navy">Checkr screening</p>
+                <p className="font-semibold text-navy">HR employment screening</p>
                 <p className="text-xs text-muted">
-                  Submitted {formatDate(latestBackgroundCheck.createdAt)}
+                  Completed manually by Sompacare HR
+                  {latestBackgroundCheck.completedAt
+                    ? ` · ${formatDate(latestBackgroundCheck.completedAt)}`
+                    : ""}
                 </p>
               </div>
               <Badge variant={STATUS_VARIANT[latestBackgroundCheck.status] ?? "default"}>
@@ -210,7 +184,8 @@ export default function CredentialsPage() {
           </Card>
         ) : (
           <p className="text-sm text-muted">
-            Employment screening is required before booking shifts. Authorize the FCRA disclosure to begin.
+            Background screening is handled by Sompacare HR after you apply on our careers page.
+            Your recruiter will update your status once cleared.
           </p>
         )}
       </section>
@@ -272,7 +247,7 @@ export default function CredentialsPage() {
           <EmptyState
             icon={FileBadge}
             title="No licenses on file"
-            description="Add your professional license to claim shifts."
+            description="Add your professional license for HR verification."
           />
         ) : (
           licenses.map((lic) => (

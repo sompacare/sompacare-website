@@ -192,7 +192,7 @@ export class ComplianceController {
 
   @Post("background-checks")
   @RequirePermissions("compliance:write")
-  @ApiOperation({ summary: "Initiate background check (Checkr)" })
+  @ApiOperation({ summary: "Request background check (HR manual screening)" })
   initiateBackgroundCheck(@CurrentUser() user: AuthenticatedUser) {
     return this.complianceService.initiateBackgroundCheck(user.id);
   }

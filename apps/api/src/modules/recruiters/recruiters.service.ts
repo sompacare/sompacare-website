@@ -31,6 +31,7 @@ const STAGE_ORDER: CandidatePipelineStage[] = [
   CandidatePipelineStage.INTERVIEW,
   CandidatePipelineStage.OFFER,
   CandidatePipelineStage.PLACED,
+  CandidatePipelineStage.HIRED,
 ];
 
 const candidateInclude = {
@@ -131,22 +132,37 @@ export class RecruitersService {
 
   async updateStage(id: string, recruiterId: string, dto: UpdateCandidateStageDto) {
     const existing = await this.findOne(id, recruiterId);
-    const data: Prisma.CandidateUpdateInput = {
-      stage: dto.stage,
-      notes: dto.notes ?? existing.notes,
-    };
 
     if (dto.stage === CandidatePipelineStage.PLACED) {
-      data.placedAt = new Date();
+      const placed = await this.careerFunnel.placeCandidate(id, recruiterId);
+      await this.audit.log({
+        userId: recruiterId,
+        action: "recruiter.candidate.stage_changed",
+        entityType: "Candidate",
+        entityId: id,
+        changes: { from: existing.stage, to: dto.stage, offerSent: placed.offerSent },
+      });
+      return placed.candidate;
     }
 
-    if (dto.stage === CandidatePipelineStage.PLACED && !existing.workerId) {
-      await this.careerFunnel.provisionWorkerFromCandidate(id);
+    if (dto.stage === CandidatePipelineStage.HIRED) {
+      const hire = await this.careerFunnel.hireCandidate(id, recruiterId);
+      await this.audit.log({
+        userId: recruiterId,
+        action: "recruiter.candidate.stage_changed",
+        entityType: "Candidate",
+        entityId: id,
+        changes: { from: existing.stage, to: dto.stage, employeeNumber: hire.employeeNumber },
+      });
+      return hire.candidate;
     }
 
     const updated = await this.prisma.candidate.update({
       where: { id },
-      data,
+      data: {
+        stage: dto.stage,
+        notes: dto.notes ?? existing.notes,
+      },
       include: candidateInclude,
     });
 
@@ -250,28 +266,11 @@ export class RecruitersService {
       include: candidateInclude,
     });
 
-    const autoFlag = await this.prisma.featureFlag.findUnique({
-      where: { key: "background_check_auto" },
-    });
-    if (autoFlag?.isEnabled && updated.workerId) {
-      void this.compliance
-        .initiateBackgroundCheck(updated.workerId)
-        .then(() =>
-          this.prisma.candidate.update({
-            where: { id },
-            data: { backgroundCheckStatus: "in_progress" },
-          })
-        )
-        .catch((err) => {
-          this.logger.warn(`Auto background check skipped: ${(err as Error).message}`);
-        });
-    }
-
     return updated;
   }
 
   async sendOnboarding(id: string, recruiterId: string) {
-    return this.careerFunnel.sendWorkerOnboarding(id, recruiterId);
+    return this.careerFunnel.sendOnboardingPackage(id, recruiterId);
   }
 
   async getResumeDownload(id: string, recruiterId: string) {
@@ -310,8 +309,8 @@ export class RecruitersService {
   }
 
   async updateChecklist(id: string, recruiterId: string, dto: UpdateChecklistDto) {
-    await this.findOne(id, recruiterId);
-    return this.prisma.candidate.update({
+    const candidate = await this.findOne(id, recruiterId);
+    const updated = await this.prisma.candidate.update({
       where: { id },
       data: {
         backgroundCheckStatus: dto.backgroundCheckStatus,
@@ -319,10 +318,16 @@ export class RecruitersService {
       },
       include: candidateInclude,
     });
+
+    if (dto.backgroundCheckStatus === "cleared" && updated.workerId) {
+      await this.compliance.markHrBackgroundCleared(updated.workerId);
+    }
+
+    return updated;
   }
 
   async getMetrics(recruiterId: string) {
-    const [byStage, placed, recent] = await Promise.all([
+    const [byStage, placed, hired, recent] = await Promise.all([
       this.prisma.candidate.groupBy({
         by: ["stage"],
         where: { recruiterId },
@@ -331,28 +336,37 @@ export class RecruitersService {
       this.prisma.candidate.count({
         where: { recruiterId, stage: CandidatePipelineStage.PLACED },
       }),
+      this.prisma.candidate.count({
+        where: { recruiterId, stage: CandidatePipelineStage.HIRED },
+      }),
       this.prisma.candidate.findMany({
-        where: { recruiterId, stage: CandidatePipelineStage.PLACED },
-        orderBy: { placedAt: "desc" },
+        where: { recruiterId, stage: CandidatePipelineStage.HIRED },
+        orderBy: { hiredAt: "desc" },
         take: 5,
         select: {
           id: true,
           firstName: true,
           lastName: true,
           clinicalRole: true,
-          placedAt: true,
+          hiredAt: true,
           facility: { select: { name: true } },
         },
       }),
     ]);
 
     const active = byStage
-      .filter((s) => s.stage !== CandidatePipelineStage.PLACED && s.stage !== CandidatePipelineStage.REJECTED)
+      .filter(
+        (s) =>
+          s.stage !== CandidatePipelineStage.PLACED &&
+          s.stage !== CandidatePipelineStage.HIRED &&
+          s.stage !== CandidatePipelineStage.REJECTED
+      )
       .reduce((sum, s) => sum + s._count, 0);
 
     return {
       activePipeline: active,
       placedTotal: placed,
+      hiredTotal: hired,
       byStage: Object.fromEntries(byStage.map((s) => [s.stage, s._count])),
       recentPlacements: recent,
     };

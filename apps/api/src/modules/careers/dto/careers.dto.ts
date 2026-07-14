@@ -75,3 +75,15 @@ export class IngestCareerApplicationDto {
   @IsString()
   referralCode?: string;
 }
+
+export class HireCareerApplicationDto {
+  @ApiProperty({ description: "Supabase careers application UUID" })
+  @IsUUID()
+  applicationId!: string;
+}
+
+export class PlaceCareerApplicationDto {
+  @ApiProperty({ description: "Supabase careers application UUID" })
+  @IsUUID()
+  applicationId!: string;
+}

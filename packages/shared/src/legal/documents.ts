@@ -115,7 +115,7 @@ export const BACKGROUND_CHECK_DISCLOSURE: LegalDocumentContent = {
     {
       id: "disclosure",
       title: "Disclosure",
-      body: "Sompacare may obtain a consumer report and/or investigative consumer report about you from a consumer reporting agency for employment purposes, including through our screening partner Checkr, Inc. This may include criminal history, employment verification, education verification, motor vehicle records, and other information permitted by law.",
+      body: "Sompacare may obtain a consumer report and/or investigative consumer report about you for employment purposes. Screening is completed manually by Sompacare HR in accordance with applicable law and may include criminal history, employment verification, education verification, and other information permitted by law.",
     },
     {
       id: "authorization",
@@ -128,9 +128,9 @@ export const BACKGROUND_CHECK_DISCLOSURE: LegalDocumentContent = {
       body: "You have the right to request disclosure of the nature and scope of any investigative consumer report. If adverse action is taken based on a consumer report, you will receive required notices including a copy of the report and a summary of your rights under the FCRA.",
     },
     {
-      id: "checkr",
-      title: "Screening Partner",
-      body: "Reports may be prepared by Checkr, Inc., One Montgomery Street, Suite 2400, San Francisco, CA 94104 | checkr.com | applicant checkr.com/applicant for copies of reports.",
+      id: "hr-screening",
+      title: "HR Screening",
+      body: "Background screening is coordinated by Sompacare HR. Questions about your screening status should be directed to your recruiter or HR contact.",
     },
   ],
 };

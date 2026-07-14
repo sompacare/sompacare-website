@@ -115,7 +115,7 @@ export default async function AdminApplicationDetailPage({
         initialDetails={hireDetails}
         onboardingSentAt={application.onboarding_sent_at}
         orientationPackageSentAt={application.orientation_package_sent_at}
-        isHired={application.status === "hired"}
+        isHired={application.status === "placed" || application.status === "hired"}
       />
     </div>
   );

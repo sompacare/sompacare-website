@@ -25,6 +25,7 @@ export default function UsersPage() {
   const [risks, setRisks] = useState<ComplianceRisk[]>([]);
   const [riskMeta, setRiskMeta] = useState<{ score: number; isCompliant: boolean } | null>(null);
   const [riskLoading, setRiskLoading] = useState(false);
+  const [statusBusy, setStatusBusy] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +46,20 @@ export default function UsersPage() {
       cancelled = true;
     };
   }, [api]);
+
+  async function updateAccess(userId: string, status: "ACTIVE" | "INACTIVE") {
+    setStatusBusy(userId);
+    try {
+      const res = await api.updateUserStatus(userId, status);
+      setUsers((prev) =>
+        prev.map((entry) => (entry.id === userId ? { ...entry, status: res.data.status } : entry))
+      );
+    } catch {
+      // keep list unchanged on failure
+    } finally {
+      setStatusBusy(null);
+    }
+  }
 
   async function loadRisks(userId: string) {
     if (riskUserId === userId) {
@@ -114,6 +129,25 @@ export default function UsersPage() {
                       <AlertTriangle className="h-4 w-4" />
                       {riskUserId === user.id ? "Hide risks" : "AI risks"}
                     </Button>
+                    {user.status === "ACTIVE" ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={statusBusy === user.id}
+                        onClick={() => updateAccess(user.id, "INACTIVE")}
+                      >
+                        Terminate access
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={statusBusy === user.id}
+                        onClick={() => updateAccess(user.id, "ACTIVE")}
+                      >
+                        Reactivate
+                      </Button>
+                    )}
                   </div>
                 </div>
 

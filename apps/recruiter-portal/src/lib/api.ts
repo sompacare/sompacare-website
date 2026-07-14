@@ -4,6 +4,7 @@ export type CandidateStage =
   | "INTERVIEW"
   | "OFFER"
   | "PLACED"
+  | "HIRED"
   | "REJECTED";
 
 export type Candidate = {
@@ -31,6 +32,8 @@ export type Candidate = {
   offerAcceptedAt?: string | null;
   onboardingSentAt?: string | null;
   placedAt?: string | null;
+  hiredAt?: string | null;
+  employeeNumber?: string | null;
   hireDetails?: { payRate?: string; startDate?: string; sentAt?: string } | null;
   createdAt: string;
   updatedAt: string;

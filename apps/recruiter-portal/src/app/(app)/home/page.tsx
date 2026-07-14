@@ -16,6 +16,7 @@ const STAGE_LABELS: Record<string, string> = {
   INTERVIEW: "Interview",
   OFFER: "Offer",
   PLACED: "Placed",
+  HIRED: "Hired",
 };
 
 export default function HomePage() {

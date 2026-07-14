@@ -1,18 +1,10 @@
-import {
-  Controller,
-  Get,
-  Headers,
-  Post,
-  RawBodyRequest,
-  Req,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { Body, Controller, Get, Headers, Post, RawBodyRequest, Req, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { CurrentUser, AuthenticatedUser, Public } from "../../common/decorators";
 import { AuthService } from "./auth.service";
-
+import { BootstrapWorkerDto, VerifyEmployeeDto } from "./dto/worker-auth.dto";
 @ApiTags("auth")
 @Controller({ path: "auth", version: "1" })
 export class AuthController {
@@ -32,8 +24,15 @@ export class AuthController {
   @Post("bootstrap-worker")
   @ApiBearerAuth()
   @ApiOperation({ summary: "Ensure nurse portal user has worker role, profile, and wallet" })
-  bootstrapWorker(@CurrentUser() user: AuthenticatedUser) {
-    return this.authService.bootstrapWorkerAccess(user.id, user.email);
+  bootstrapWorker(@CurrentUser() user: AuthenticatedUser, @Body() dto: BootstrapWorkerDto) {
+    return this.authService.bootstrapWorkerAccess(user.id, user.email, dto.employeeNumber);
+  }
+
+  @Post("verify-employee")
+  @Public()
+  @ApiOperation({ summary: "Verify HR-issued employee number before nurse portal sign-up" })
+  verifyEmployee(@Body() dto: VerifyEmployeeDto) {
+    return this.authService.verifyEmployee(dto.email, dto.employeeNumber);
   }
 
   @Post("webhook/clerk")
@@ -75,4 +74,4 @@ export class AuthController {
     return { data: result };
   }
 }
-
+

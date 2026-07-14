@@ -1,13 +1,19 @@
-import { Controller, Get, Module, Param, Query } from "@nestjs/common";
+import { Body, Controller, Get, Module, Param, Patch, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { RequirePermissions, paginate, paginationMeta } from "../../common/decorators";
+import { AuditModule } from "../../common/audit/audit.module";
 import { PrismaService } from "../../common/prisma/prisma.module";
+import { UpdateUserStatusDto } from "./dto/users.dto";
+import { UsersService } from "./users.service";
 
 @ApiTags("users")
 @ApiBearerAuth()
 @Controller({ path: "users", version: "1" })
 export class UsersController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private usersService: UsersService
+  ) {}
 
   @Get()
   @RequirePermissions("users:read")
@@ -36,7 +42,19 @@ export class UsersController {
     });
     return { data: user };
   }
+
+  @Patch(":id/status")
+  @RequirePermissions("users:write")
+  @ApiOperation({ summary: "Update user access status (terminate or reactivate)" })
+  updateStatus(@Param("id") id: string, @Body() dto: UpdateUserStatusDto) {
+    return this.usersService.updateStatus(id, dto.status);
+  }
 }
 
-@Module({ controllers: [UsersController] })
+@Module({
+  imports: [AuditModule],
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],
+})
 export class UsersModule {}

@@ -316,8 +316,13 @@ export class AuthService {
 
   }
 
-  async bootstrapWorkerAccess(userId: string, email: string) {
-    const result = await this.careerFunnel.ensureWorkerAccess(userId, email);
+  async bootstrapWorkerAccess(userId: string, email: string, employeeNumber?: string) {
+    const result = await this.careerFunnel.ensureWorkerAccess(userId, email, employeeNumber);
+    return { data: result };
+  }
+
+  async verifyEmployee(email: string, employeeNumber: string) {
+    const result = await this.careerFunnel.verifyEmployeeAccess(email, employeeNumber);
     return { data: result };
   }
 
@@ -404,6 +409,14 @@ export class AuthService {
       },
 
     });
+
+
+
+    if (user.status !== UserStatus.ACTIVE) {
+
+      return { synced: false, reason: "user_terminated", userId: user.id };
+
+    }
 
 
 

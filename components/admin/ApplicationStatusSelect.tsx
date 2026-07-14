@@ -4,7 +4,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { ApplicationStatus } from "@/lib/supabase/types";
 
-const STATUSES: ApplicationStatus[] = ["new", "reviewing", "interviewed", "hired", "rejected"];
+const STATUSES: ApplicationStatus[] = [
+  "new",
+  "reviewing",
+  "interviewed",
+  "placed",
+  "hired",
+  "rejected",
+];
 
 type OnboardingResult = {
   sent: boolean;
@@ -53,7 +60,29 @@ export function ApplicationStatusSelect({
       setStatus(next);
 
       const onboarding = data.onboarding as OnboardingResult | null | undefined;
-      if (next === "hired" && onboarding) {
+      const platformPlace = data.platformPlace as
+        | { placed?: boolean; offerSent?: boolean; onboardingSent?: boolean; reason?: string }
+        | null
+        | undefined;
+      const platformHire = data.platformHire as
+        | { hired?: boolean; employeeNumber?: string; reason?: string }
+        | null
+        | undefined;
+
+      if (next === "placed" && platformPlace?.placed) {
+        setSentAt(data.application?.onboarding_sent_at ?? new Date().toISOString());
+        setFeedback(
+          "Placed — offer letter and onboarding package sent.",
+          "success",
+        );
+      } else if (next === "hired" && platformHire?.hired) {
+        setFeedback(
+          platformHire.employeeNumber
+            ? `Hired — portal invite sent with employee number ${platformHire.employeeNumber}.`
+            : "Hired — portal invite with employee number sent.",
+          "success",
+        );
+      } else if (next === "placed" && onboarding) {
         if (onboarding.sent) {
           setSentAt(data.application?.onboarding_sent_at ?? new Date().toISOString());
           setFeedback(
@@ -112,7 +141,7 @@ export function ApplicationStatusSelect({
     }
   }
 
-  const showResend = status === "hired" && !sentAt;
+  const showResend = status === "placed" && !sentAt;
 
   return (
     <div className="min-w-[220px]">

@@ -304,7 +304,21 @@ export default function CandidateDetailPage() {
 
       <Card>
         <CardContent className="space-y-3 p-4">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Offer & onboarding</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Hire & portal access</h2>
+          {candidate.employeeNumber && (
+            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+              Employee number: <strong>{candidate.employeeNumber}</strong>
+              {candidate.hiredAt
+                ? ` · portal invite sent ${new Date(candidate.hiredAt).toLocaleDateString()}`
+                : ""}
+            </p>
+          )}
+          {candidate.onboardingSentAt && (
+            <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+              Onboarding sent {new Date(candidate.onboardingSentAt).toLocaleDateString()}
+              {candidate.placedAt ? ` · placed ${new Date(candidate.placedAt).toLocaleDateString()}` : ""}
+            </p>
+          )}
           {hire?.payRate && (
             <p className="text-sm">
               Offer: {hire.payRate}
@@ -338,15 +352,48 @@ export default function CandidateDetailPage() {
                 Mark offer accepted
               </Button>
             )}
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={busy === "onboarding"}
-              onClick={() => run("onboarding", () => api.sendOnboarding(id))}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Send onboarding package
-            </Button>
+            {candidate.stage !== "PLACED" && candidate.stage !== "HIRED" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={busy === "place"}
+                onClick={() => run("place", () => api.updateStage(id, "PLACED"))}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Mark as placed (offer + onboarding)
+              </Button>
+            )}
+            {candidate.stage === "PLACED" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={busy === "onboarding"}
+                onClick={() => run("onboarding", () => api.sendOnboarding(id))}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Resend onboarding package
+              </Button>
+            )}
+            {candidate.stage !== "HIRED" ? (
+              <Button
+                size="sm"
+                disabled={busy === "hire"}
+                onClick={() => run("hire", () => api.updateStage(id, "HIRED"))}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Mark as hired & send portal invite
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={busy === "hire"}
+                onClick={() => run("hire", () => api.updateStage(id, "HIRED"))}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Resend portal invite
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

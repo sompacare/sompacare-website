@@ -13,7 +13,6 @@ import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
 import { LegalService } from "../legal/legal.service";
-import { CheckrService } from "./checkr.service";
 import {
   AlertsQueryDto,
   ComplianceQueryDto,
@@ -28,7 +27,6 @@ export class ComplianceService {
     private prisma: PrismaService,
     private audit: AuditService,
     private notifications: NotificationsService,
-    private checkrService: CheckrService,
     private legal: LegalService
   ) {}
 
@@ -80,7 +78,7 @@ export class ComplianceService {
 
     const placed = await this.prisma.candidate.findFirst({
       where: {
-        stage: CandidatePipelineStage.PLACED,
+        stage: CandidatePipelineStage.HIRED,
         OR: [
           { workerId: userId },
           { email: { equals: user.email.trim(), mode: "insensitive" } },
@@ -393,36 +391,47 @@ export class ComplianceService {
     return { licenses, certifications, total: licenses.length + certifications.length };
   }
 
-  async initiateBackgroundCheck(userId: string) {
-    const hasConsent = await this.legal.hasConsent({
-      userId,
-      documentType: LegalDocumentType.BACKGROUND_CHECK_DISCLOSURE,
-      context: "background_check",
+  async initiateBackgroundCheck(_userId: string) {
+    throw new BadRequestException(
+      "Background screening is completed manually by Sompacare HR. Contact your recruiter if you have questions."
+    );
+  }
+
+  async markHrBackgroundCleared(userId: string) {
+    const existing = await this.prisma.backgroundCheck.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
     });
-    if (!hasConsent) {
-      throw new BadRequestException(
-        "Background check disclosure consent is required before initiating screening"
-      );
+
+    if (existing?.status === DocumentStatus.VERIFIED) {
+      return existing;
     }
 
-    const pending = await this.prisma.backgroundCheck.findFirst({
-      where: { userId, status: DocumentStatus.PENDING },
-    });
-    if (pending) {
-      throw new BadRequestException("Background check already in progress");
-    }
+    const check = existing
+      ? await this.prisma.backgroundCheck.update({
+          where: { id: existing.id },
+          data: {
+            status: DocumentStatus.VERIFIED,
+            provider: "hr_manual",
+            completedAt: new Date(),
+          },
+        })
+      : await this.prisma.backgroundCheck.create({
+          data: {
+            userId,
+            provider: "hr_manual",
+            status: DocumentStatus.VERIFIED,
+            completedAt: new Date(),
+          },
+        });
 
-    const result = await this.checkrService.initiateBackgroundCheck(userId);
-
-    await this.audit.log({
-      userId,
-      action: "compliance.background_check.initiated",
-      entityType: "BackgroundCheck",
-      entityId: result.check.id,
+    await this.prisma.candidate.updateMany({
+      where: { workerId: userId },
+      data: { backgroundCheckStatus: "cleared" },
     });
 
     await this.syncComplianceScore(userId);
-    return result;
+    return check;
   }
 
   async onBackgroundCheckUpdated(userId: string, checkId: string) {

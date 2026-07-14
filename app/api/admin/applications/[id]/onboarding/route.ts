@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import {
+  hireCareerApplicationOnPlatform,
+  placeCareerApplicationOnPlatform,
+} from "@/lib/career-funnel";
 import { sendApplicantOnboarding } from "@/lib/onboarding-service";
-import { getApplication } from "@/lib/supabase/admin";
+import { getApplication, markOnboardingSent } from "@/lib/supabase/admin";
 
 export async function POST(
   _request: Request,
@@ -19,11 +23,34 @@ export async function POST(
       return NextResponse.json({ error: "Application not found." }, { status: 404 });
     }
 
-    if (application.status !== "hired") {
+    if (application.status === "hired") {
+      const platformHire = await hireCareerApplicationOnPlatform(id);
+      return NextResponse.json({
+        success: platformHire.hired,
+        platformHire,
+      });
+    }
+
+    if (application.status !== "placed") {
       return NextResponse.json(
-        { error: "Mark the applicant as hired before sending onboarding." },
+        { error: "Mark the applicant as placed before resending onboarding." },
         { status: 400 },
       );
+    }
+
+    const platformPlace = await placeCareerApplicationOnPlatform(id);
+    if (platformPlace.placed) {
+      try {
+        await markOnboardingSent(id);
+      } catch (error) {
+        console.error("Unable to record onboarding_sent_at after platform place:", error);
+      }
+
+      return NextResponse.json({
+        success: true,
+        platformPlace,
+        onboarding_sent_at: new Date().toISOString(),
+      });
     }
 
     if (application.onboarding_sent_at) {
@@ -40,6 +67,7 @@ export async function POST(
         {
           error: onboarding.error ?? "Unable to send onboarding email.",
           onboarding,
+          platformPlace,
         },
         { status: 502 },
       );
@@ -48,6 +76,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       onboarding,
+      platformPlace,
       onboarding_sent_at: new Date().toISOString(),
     });
   } catch {

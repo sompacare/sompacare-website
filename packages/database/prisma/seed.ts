@@ -166,7 +166,7 @@ async function seedDemoData() {
       create: {
         id: "seed-bg-nurse",
         userId: nurse.id,
-        provider: "checkr",
+        provider: "hr_manual",
         status: "VERIFIED",
         completedAt: new Date(),
       },
@@ -309,7 +309,7 @@ async function seedDemoData() {
     { key: "ai_matching", description: "AI-powered shift matching", isEnabled: true },
     { key: "instant_pay", description: "Instant pay for workers", isEnabled: true },
     { key: "recruiter_portal", description: "Recruiter pipeline portal", isEnabled: true },
-    { key: "background_check_auto", description: "Auto-trigger Checkr on offer", isEnabled: true },
+    { key: "background_check_auto", description: "HR manual background screening (recruiter checklist)", isEnabled: false },
   ];
 
   for (const flag of featureFlags) {

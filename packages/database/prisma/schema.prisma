@@ -226,6 +226,7 @@ enum CandidatePipelineStage {
   INTERVIEW
   OFFER
   PLACED
+  HIRED
   REJECTED
 }
 
@@ -244,6 +245,7 @@ model User {
   mfaEnabled      Boolean    @default(false) @map("mfa_enabled")
   lastLoginAt     DateTime?  @map("last_login_at")
   referralCode    String?    @unique @map("referral_code")
+  employeeNumber  String?    @unique @map("employee_number")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
   deletedAt       DateTime?  @map("deleted_at")
@@ -409,6 +411,7 @@ model Candidate {
   referralCode         String?                @map("referral_code")
   notes                String?
   workerId             String?                @map("worker_id")
+  employeeNumber       String?                @unique @map("employee_number")
   facilityId           String?                @map("facility_id")
   matchScore           Int?                   @map("match_score")
   backgroundCheckStatus String?               @map("background_check_status") @default("pending")
@@ -417,6 +420,7 @@ model Candidate {
   offerAcceptedAt      DateTime?              @map("offer_accepted_at")
   onboardingSentAt     DateTime?              @map("onboarding_sent_at")
   placedAt             DateTime?              @map("placed_at")
+  hiredAt              DateTime?              @map("hired_at")
   hireDetails          Json?                  @map("hire_details")
   createdAt            DateTime               @default(now()) @map("created_at")
   updatedAt            DateTime               @updatedAt @map("updated_at")

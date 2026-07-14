@@ -6,6 +6,7 @@ import {
   Prisma,
   UserStatus,
 } from "@sompacare/database";
+import { SOMPACARE_BRAND } from "@sompacare/shared";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { RealtimeService } from "../realtime/realtime.service";
 import { PushService } from "./push.service";
@@ -321,6 +322,40 @@ export class NotificationsService {
       title: "Offer sent",
       body: `Offer letter sent to ${candidateName}.`,
       data: { type: "recruiter.offer_sent", candidateId },
+    });
+  }
+
+  async notifyCandidateOfferLetter(
+    actorUserId: string,
+    email: string,
+    firstName: string,
+    clinicalRole: string,
+    payRate: string,
+    startDate: string | null | undefined,
+    candidateId: string
+  ) {
+    const startLine = startDate ? ` Your anticipated start date is ${startDate}.` : "";
+    await this.notify({
+      userId: actorUserId,
+      email,
+      title: "Your Sompacare offer letter",
+      body: `Hi ${firstName}, congratulations! We are pleased to extend you an offer to join Sompacare as ${clinicalRole.replace(/_/g, " ")} at ${payRate}.${startLine} Our HR team will follow up with your onboarding package shortly. Questions? Reply to this email or contact us at ${SOMPACARE_BRAND.email}.`,
+      data: { type: "candidate.offer_letter", candidateId, url: SOMPACARE_BRAND.careersUrl },
+    });
+  }
+
+  async notifyCandidateOnboardingPackage(
+    actorUserId: string,
+    email: string,
+    firstName: string,
+    candidateId: string
+  ) {
+    await this.notify({
+      userId: actorUserId,
+      email,
+      title: "Welcome to Sompacare — onboarding package",
+      body: `Hi ${firstName}, welcome to the Sompacare team! Your onboarding package is ready. Please review credential requirements, confirm your contact details, and prepare your license, CPR/BLS, and immunization records. HR will coordinate orientation and assignment details with you directly.`,
+      data: { type: "candidate.onboarding_package", candidateId, url: SOMPACARE_BRAND.marketingUrl },
     });
   }
 

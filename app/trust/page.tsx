@@ -21,7 +21,7 @@ const pillars = [
   },
   {
     title: "Background screening",
-    body: "Employment background checks are conducted through Checkr with FCRA disclosures and authorizations. Status is tracked in the compliance engine.",
+    body: "Employment background checks are completed manually by Sompacare HR. Status is tracked in the compliance engine and updated by your recruiter.",
   },
   {
     title: "Audit & access control",

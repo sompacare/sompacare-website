@@ -46,7 +46,9 @@ export class AdminService {
         where: { status: { in: ["OPEN", "IN_PROGRESS", "WAITING_ON_CUSTOMER"] } },
       }),
       this.prisma.license.count({ where: { status: "PENDING_VERIFICATION" } }),
-      this.prisma.candidate.count({ where: { stage: "PLACED" } }),
+      this.prisma.candidate.count({
+        where: { stage: { in: ["PLACED", "HIRED"] } },
+      }),
       this.prisma.workerProfile.count(),
     ]);
 

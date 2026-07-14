@@ -201,10 +201,18 @@ export function createApiClient(getToken: () => Promise<string | null>) {
   }
 
   return {
-    bootstrapWorker: () =>
+    bootstrapWorker: (employeeNumber?: string) =>
       withAuth<{ data: { ready: boolean; role: string; linkedFromCandidate: boolean } }>(
         "/auth/bootstrap-worker",
-        { method: "POST" }
+        {
+          method: "POST",
+          body: JSON.stringify({ employeeNumber }),
+        }
+      ),
+    verifyEmployee: (body: { email: string; employeeNumber: string }) =>
+      apiFetch<{ data: { email: string; employeeNumber: string; candidateId: string } }>(
+        "/auth/verify-employee",
+        { method: "POST", body: JSON.stringify(body) }
       ),
     getShifts: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";

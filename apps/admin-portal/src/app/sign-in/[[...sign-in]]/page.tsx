@@ -1,16 +1,13 @@
 import { SignIn } from "@clerk/nextjs";
-import { Logo } from "@/components/brand/logo";
+import { PortalAuthShell } from "@/components/brand/portal-auth-shell";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <Logo height={56} subtitle="Admin" />
-          <p className="mt-4 text-sm text-muted">Sign in to manage the platform</p>
-        </div>
-        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
-      </div>
-    </div>
+    <PortalAuthShell
+      portalLabel="Admin portal"
+      subtitle="Sign in to manage operations, compliance, and platform settings"
+    >
+      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+    </PortalAuthShell>
   );
 }

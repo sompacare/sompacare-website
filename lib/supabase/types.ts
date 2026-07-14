@@ -1,6 +1,6 @@
 import type { HireDetails } from "@/lib/hire-orientation";
 
-export type ApplicationStatus = "new" | "reviewing" | "interviewed" | "hired" | "rejected";
+export type ApplicationStatus = "new" | "reviewing" | "interviewed" | "placed" | "hired" | "rejected";
 
 export type CertificationFile = {
   url: string;
