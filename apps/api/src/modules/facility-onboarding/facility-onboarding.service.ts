@@ -7,8 +7,8 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FacilityInviteStatus, PlatformRole } from "@sompacare/database";
-import { ADMIN_ROLES } from "@sompacare/shared";
+import { FacilityInviteStatus, PlatformRole as DbPlatformRole } from "@sompacare/database";
+import { ADMIN_ROLES, PlatformRole } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -417,7 +417,7 @@ export class FacilityOnboardingService {
 
   private async linkUserToOrganization(userId: string, organizationId: string) {
     const fmRole = await this.prisma.role.findUnique({
-      where: { name: PlatformRole.FACILITY_MANAGER },
+      where: { name: DbPlatformRole.FACILITY_MANAGER },
     });
     if (!fmRole) {
       throw new BadRequestException("FACILITY_MANAGER role is not configured");
