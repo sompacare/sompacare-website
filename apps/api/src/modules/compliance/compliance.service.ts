@@ -4,11 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import {
-  DocumentStatus,
-  LicenseStatus,
-  Prisma,
-} from "@sompacare/database";
+import { DocumentStatus, LegalDocumentType, LicenseStatus, Prisma } from "@sompacare/database";
 import {
   evaluateCompliance,
   getExpirySeverity,
@@ -20,6 +16,7 @@ import { AuditService } from "../../common/audit/audit.service";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
+import { LegalService } from "../legal/legal.service";
 import { CheckrService } from "./checkr.service";
 import {
   AlertsQueryDto,
@@ -35,7 +32,8 @@ export class ComplianceService {
     private prisma: PrismaService,
     private audit: AuditService,
     private notifications: NotificationsService,
-    private checkrService: CheckrService
+    private checkrService: CheckrService,
+    private legal: LegalService
   ) {}
 
   async evaluateWorker(
@@ -342,6 +340,17 @@ export class ComplianceService {
   }
 
   async initiateBackgroundCheck(userId: string) {
+    const hasConsent = await this.legal.hasConsent({
+      userId,
+      documentType: LegalDocumentType.BACKGROUND_CHECK_DISCLOSURE,
+      context: "background_check",
+    });
+    if (!hasConsent) {
+      throw new BadRequestException(
+        "Background check disclosure consent is required before initiating screening"
+      );
+    }
+
     const pending = await this.prisma.backgroundCheck.findFirst({
       where: { userId, status: DocumentStatus.PENDING },
     });
@@ -360,6 +369,42 @@ export class ComplianceService {
 
     await this.syncComplianceScore(userId);
     return result;
+  }
+
+  async onBackgroundCheckUpdated(userId: string, checkId: string) {
+    await this.syncComplianceScore(userId);
+    await this.audit.log({
+      userId,
+      action: "compliance.background_check.updated",
+      entityType: "BackgroundCheck",
+      entityId: checkId,
+    });
+
+    const check = await this.prisma.backgroundCheck.findUnique({ where: { id: checkId } });
+    if (check?.status === DocumentStatus.VERIFIED) {
+      await this.prisma.candidate.updateMany({
+        where: { workerId: userId },
+        data: { backgroundCheckStatus: "cleared" },
+      });
+    } else if (check?.status === DocumentStatus.REJECTED) {
+      await this.prisma.candidate.updateMany({
+        where: { workerId: userId },
+        data: { backgroundCheckStatus: "failed" },
+      });
+    } else if (check?.status === DocumentStatus.PENDING) {
+      await this.prisma.candidate.updateMany({
+        where: { workerId: userId },
+        data: { backgroundCheckStatus: "in_progress" },
+      });
+    }
+  }
+
+  async getBackgroundChecks(userId: string) {
+    const checks = await this.prisma.backgroundCheck.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+    return { data: checks };
   }
 
   async scanExpirations() {

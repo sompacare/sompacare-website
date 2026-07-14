@@ -11,6 +11,7 @@ import { PrismaService } from "../../common/prisma/prisma.module";
 import { AuthenticatedUser } from "../../common/decorators";
 
 import { AuditService } from "../../common/audit/audit.service";
+import { TenantService } from "../../common/tenant/tenant.service";
 import { CareersFunnelService } from "../careers/careers-funnel.service";
 
 
@@ -56,7 +57,9 @@ export class AuthService {
     private audit: AuditService,
 
     @Inject(forwardRef(() => CareersFunnelService))
-    private careerFunnel: CareersFunnelService
+    private careerFunnel: CareersFunnelService,
+
+    private tenant: TenantService
 
   ) {}
 
@@ -144,7 +147,7 @@ export class AuthService {
 
 
 
-      return this.toAuthenticatedUser(user);
+      return this.attachTenant(this.toAuthenticatedUser(user));
 
     } catch (error) {
 
@@ -246,8 +249,14 @@ export class AuthService {
 
 
 
-    return this.toAuthenticatedUser(user);
+    return this.attachTenant(this.toAuthenticatedUser(user));
+  }
 
+
+
+  private async attachTenant(user: Omit<AuthenticatedUser, "tenant">): Promise<AuthenticatedUser> {
+    const tenant = await this.tenant.resolveForUser(user);
+    return { ...user, tenant };
   }
 
 
@@ -266,7 +275,7 @@ export class AuthService {
 
     roles: Array<{ role: { name: string } }>;
 
-  }): AuthenticatedUser {
+  }): Omit<AuthenticatedUser, "tenant"> {
 
     return {
 

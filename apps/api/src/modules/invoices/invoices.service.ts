@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { InvoiceStatus, Prisma } from "@sompacare/database";
+import type { AuthenticatedUser } from "../../common/decorators";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
+import { TenantService } from "../../common/tenant/tenant.service";
 import { PaymentSettlementService } from "../payments/payment-settlement.service";
 import { StripeService } from "../payments/stripe.service";
 
@@ -10,10 +12,13 @@ export class InvoicesService {
   constructor(
     private prisma: PrismaService,
     private stripe: StripeService,
-    private settlement: PaymentSettlementService
+    private settlement: PaymentSettlementService,
+    private tenant: TenantService
   ) {}
 
-  async findAll(query: {
+  async findAll(
+    user: AuthenticatedUser,
+    query: {
     facilityId?: string;
     organizationId?: string;
     status?: InvoiceStatus;
@@ -22,9 +27,25 @@ export class InvoicesService {
   }) {
     const { take, skip } = paginate(query.page, query.limit);
     const where: Prisma.InvoiceWhereInput = {};
-    if (query.facilityId) where.facilityId = query.facilityId;
-    if (query.organizationId) where.organizationId = query.organizationId;
     if (query.status) where.status = query.status;
+
+    if (user.tenant.scope === "organization") {
+      if (query.facilityId) {
+        this.tenant.assertFacilityAccess(user.tenant, query.facilityId);
+        where.facilityId = query.facilityId;
+      } else if (user.tenant.facilityIds.length > 0) {
+        where.facilityId = { in: user.tenant.facilityIds };
+      } else {
+        where.facilityId = { in: ["__no_access__"] };
+      }
+      if (query.organizationId) {
+        this.tenant.assertOrganizationAccess(user.tenant, query.organizationId);
+        where.organizationId = query.organizationId;
+      }
+    } else {
+      if (query.facilityId) where.facilityId = query.facilityId;
+      if (query.organizationId) where.organizationId = query.organizationId;
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.invoice.findMany({

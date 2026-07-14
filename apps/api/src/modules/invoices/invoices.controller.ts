@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Query, Body } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InvoiceStatus } from "@sompacare/database";
-import { RequirePermissions } from "../../common/decorators";
+import { AuthenticatedUser, CurrentUser, RequirePermissions } from "../../common/decorators";
 import { PaginationQueryDto } from "../../common/decorators";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
@@ -34,8 +34,8 @@ export class InvoicesController {
   @Get()
   @RequirePermissions("invoices:read")
   @ApiOperation({ summary: "List invoices" })
-  findAll(@Query() query: InvoiceQueryDto) {
-    return this.invoicesService.findAll(query);
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query() query: InvoiceQueryDto) {
+    return this.invoicesService.findAll(user, query);
   }
 
   @Post(":id/pay")

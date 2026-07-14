@@ -421,6 +421,29 @@ export function CareerApplicationSection() {
         <FieldError message={errors.additionalNotes} />
       </div>
 
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <label className="flex items-start gap-3 text-sm text-brand-navy">
+          <input
+            type="checkbox"
+            name="privacyAgreed"
+            value="true"
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-blue focus:ring-brand-blue"
+          />
+          <span>
+            I agree to Sompacare&apos;s{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue hover:underline">
+              Privacy Policy
+            </a>{" "}
+            and{" "}
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue hover:underline">
+              Terms of Service
+            </a>
+            , and consent to the processing of my application data.
+          </span>
+        </label>
+        <FieldError message={errors.privacyAgreed} />
+      </div>
+
       <button
         type="submit"
         disabled={loading}

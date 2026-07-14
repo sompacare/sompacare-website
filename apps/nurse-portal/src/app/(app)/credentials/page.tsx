@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, FileBadge, Plus, ShieldCheck } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
-import type { Certification, ComplianceAlert, License } from "@/lib/api";
+import type { Certification, ComplianceAlert, License, BackgroundCheck } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +34,7 @@ export default function CredentialsPage() {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [alerts, setAlerts] = useState<ComplianceAlert[]>([]);
+  const [backgroundChecks, setBackgroundChecks] = useState<BackgroundCheck[]>([]);
   const [score, setScore] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [showLicenseForm, setShowLicenseForm] = useState(false);
@@ -44,16 +45,18 @@ export default function CredentialsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [licRes, certRes, alertRes, complianceRes] = await Promise.all([
+      const [licRes, certRes, alertRes, complianceRes, bgRes] = await Promise.all([
         api.getLicenses(),
         api.getCertifications(),
         api.getComplianceAlerts(),
         api.getCompliance(),
+        api.getBackgroundChecks(),
       ]);
       setLicenses(licRes.data ?? []);
       setCertifications(certRes.data ?? []);
       setAlerts(alertRes.data ?? []);
       setScore(complianceRes.data?.score ?? null);
+      setBackgroundChecks(bgRes.data ?? []);
     } catch {
       setLicenses([]);
       setCertifications([]);
@@ -113,6 +116,30 @@ export default function CredentialsPage() {
     }
   }
 
+  async function startBackgroundCheck() {
+    setActing(true);
+    setMessage(null);
+    try {
+      await api.recordLegalConsent({
+        documentTypes: ["BACKGROUND_CHECK_DISCLOSURE"],
+        context: "background_check",
+      });
+      const result = await api.initiateBackgroundCheck();
+      setMessage(
+        result.devBypass
+          ? "Background check cleared (dev mode)."
+          : "Background check initiated — you'll be notified when complete."
+      );
+      await load();
+    } catch (err) {
+      setMessage((err as Error).message);
+    } finally {
+      setActing(false);
+    }
+  }
+
+  const latestBackgroundCheck = backgroundChecks[0];
+
   return (
     <div className="space-y-5">
       <div>
@@ -156,6 +183,38 @@ export default function CredentialsPage() {
           </CardContent>
         </Card>
       )}
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-navy">Background check</h2>
+          {!latestBackgroundCheck && (
+            <Button size="sm" variant="outline" disabled={acting} onClick={() => void startBackgroundCheck()}>
+              Authorize screening
+            </Button>
+          )}
+        </div>
+        {loading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : latestBackgroundCheck ? (
+          <Card>
+            <CardContent className="flex items-center justify-between p-4">
+              <div>
+                <p className="font-semibold text-navy">Checkr screening</p>
+                <p className="text-xs text-muted">
+                  Submitted {formatDate(latestBackgroundCheck.createdAt)}
+                </p>
+              </div>
+              <Badge variant={STATUS_VARIANT[latestBackgroundCheck.status] ?? "default"}>
+                {latestBackgroundCheck.status}
+              </Badge>
+            </CardContent>
+          </Card>
+        ) : (
+          <p className="text-sm text-muted">
+            Employment screening is required before booking shifts. Authorize the FCRA disclosure to begin.
+          </p>
+        )}
+      </section>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">

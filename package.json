@@ -37,6 +37,7 @@
     "test:career-funnel": "node scripts/test-career-funnel.mjs",
     "test:referrals-jobs": "node scripts/test-referrals-jobs.mjs",
     "test:resume-sync": "node scripts/test-resume-sync.mjs",
+    "test:trust-layer": "node scripts/test-trust-layer.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"
   },

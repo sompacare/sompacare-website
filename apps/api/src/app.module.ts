@@ -33,6 +33,8 @@ import { JobsModule } from "./modules/jobs/jobs.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { MobileModule } from "./modules/mobile/mobile.module";
 import { ObservabilityModule } from "./modules/observability/observability.module";
+import { TenantModule } from "./common/tenant/tenant.module";
+import { LegalModule } from "./modules/legal/legal.module";
 
 @Module({
   imports: [
@@ -58,12 +60,14 @@ import { ObservabilityModule } from "./modules/observability/observability.modul
     }),
     PrismaModule,
     AuditModule,
+    TenantModule,
     HealthModule,
     AuthModule,
     UsersModule,
     OrganizationsModule,
     FacilitiesModule,
     ComplianceModule,
+    LegalModule,
     ShiftsModule,
     ApplicationsModule,
     AssignmentsModule,

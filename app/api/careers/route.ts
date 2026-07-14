@@ -15,6 +15,7 @@ import {
   uploadApplicationFile,
 } from "@/lib/supabase/admin";
 import { ingestCareerApplicationToPlatform } from "@/lib/career-funnel";
+import { recordPlatformConsent } from "@/lib/record-platform-consent";
 
 export const runtime = "nodejs";
 
@@ -58,6 +59,14 @@ export async function POST(request: Request) {
   const { resume, certificationFiles } = fileValidation;
   const applicationId = randomUUID();
   const reference = formatApplicationId(applicationId);
+
+  void recordPlatformConsent({
+    email: data.email,
+    context: "careers_apply",
+    documentTypes: ["PRIVACY_POLICY", "TERMS_OF_SERVICE"],
+    ipAddress: request.headers.get("x-forwarded-for") ?? undefined,
+    userAgent: request.headers.get("user-agent") ?? undefined,
+  });
 
   let resumePath: string | null = null;
   let resumeFileName: string | null = null;

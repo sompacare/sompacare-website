@@ -183,6 +183,13 @@ export class ComplianceController {
     return this.complianceService.scanExpirations();
   }
 
+  @Get("background-checks")
+  @RequirePermissions("compliance:read")
+  @ApiOperation({ summary: "List background checks for current user" })
+  listBackgroundChecks(@CurrentUser() user: AuthenticatedUser) {
+    return this.complianceService.getBackgroundChecks(user.id);
+  }
+
   @Post("background-checks")
   @RequirePermissions("compliance:write")
   @ApiOperation({ summary: "Initiate background check (Checkr)" })

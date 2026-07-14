@@ -36,8 +36,13 @@ export const footerNav = {
   ],
   company: [
     { label: "About Us", href: "/about" },
+    { label: "Trust & Security", href: "/trust" },
     { label: "Careers Portal", href: "/careers" },
     { label: "Contact", href: "/contact" },
+  ],
+  legal: [
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
   ],
 };
 

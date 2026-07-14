@@ -32,10 +32,14 @@ export type CareerFormFields = {
   availability: CareerAvailability;
   additionalNotes: string;
   referralCode: string;
+  privacyAgreed: boolean;
 };
 
 export type CareerFormErrors = Partial<
-  Record<keyof CareerFormFields | "form" | "resume" | "certificationFiles" | "certifications", string>
+  Record<
+    keyof CareerFormFields | "form" | "resume" | "certificationFiles" | "certifications" | "privacyAgreed",
+    string
+  >
 >;
 
 const NAME_PATTERN = /^[a-zA-Z' -]+$/;
@@ -120,6 +124,10 @@ export function validateCareerFields(input: FormData | Record<string, unknown>):
   const availability = get("availability");
   const additionalNotes = get("additionalNotes");
   const referralCode = get("referralCode").toUpperCase();
+  const privacyAgreed =
+    get("privacyAgreed") === "on" ||
+    get("privacyAgreed") === "true" ||
+    get("privacyAgreed") === "1";
 
   if (!firstName) errors.firstName = "First name is required.";
   else if (firstName.length < 2) errors.firstName = "First name must be at least 2 characters.";
@@ -180,6 +188,10 @@ export function validateCareerFields(input: FormData | Record<string, unknown>):
     errors.additionalNotes = "Additional notes must be 3000 characters or fewer.";
   }
 
+  if (!privacyAgreed) {
+    errors.privacyAgreed = "You must agree to the Privacy Policy and Terms of Service.";
+  }
+
   if (Object.keys(errors).length > 0) {
     return { success: false, errors };
   }
@@ -208,6 +220,7 @@ export function validateCareerFields(input: FormData | Record<string, unknown>):
       availability: availability as CareerAvailability,
       additionalNotes,
       referralCode,
+      privacyAgreed,
     },
   };
 }

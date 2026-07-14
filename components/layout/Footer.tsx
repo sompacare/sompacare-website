@@ -80,6 +80,15 @@ export function Footer() {
             &copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </p>
           <div className="flex gap-6">
+            <Link href="/privacy" className="text-xs text-white/40 transition-colors hover:text-white">
+              Privacy
+            </Link>
+            <Link href="/terms" className="text-xs text-white/40 transition-colors hover:text-white">
+              Terms
+            </Link>
+            <Link href="/trust" className="text-xs text-white/40 transition-colors hover:text-white">
+              Trust
+            </Link>
             <Link href="/contact" className="text-xs text-white/40 transition-colors hover:text-white">
               Contact
             </Link>

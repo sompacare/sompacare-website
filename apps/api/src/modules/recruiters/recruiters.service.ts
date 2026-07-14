@@ -1,6 +1,7 @@
 import {
-  BadRequestException,
   Injectable,
+  Logger,
+  BadRequestException,
   NotFoundException,
 } from "@nestjs/common";
 import {
@@ -22,6 +23,7 @@ import {
 import { ResumeParserService } from "./resume-parser.service";
 import { CareersFunnelService } from "../careers/careers-funnel.service";
 import { CandidateResumeSyncService } from "../careers/candidate-resume-sync.service";
+import { ComplianceService } from "../compliance/compliance.service";
 
 const STAGE_ORDER: CandidatePipelineStage[] = [
   CandidatePipelineStage.APPLIED,
@@ -40,13 +42,16 @@ const candidateInclude = {
 
 @Injectable()
 export class RecruitersService {
+  private readonly logger = new Logger(RecruitersService.name);
+
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
     private notifications: NotificationsService,
     private resumeParser: ResumeParserService,
     private careerFunnel: CareersFunnelService,
-    private resumeSync: CandidateResumeSyncService
+    private resumeSync: CandidateResumeSyncService,
+    private compliance: ComplianceService
   ) {}
 
   async getPipeline(recruiterId: string) {
@@ -239,11 +244,30 @@ export class RecruitersService {
       throw new BadRequestException("Candidate must be in OFFER stage");
     }
 
-    return this.prisma.candidate.update({
+    const updated = await this.prisma.candidate.update({
       where: { id },
       data: { offerAcceptedAt: new Date() },
       include: candidateInclude,
     });
+
+    const autoFlag = await this.prisma.featureFlag.findUnique({
+      where: { key: "background_check_auto" },
+    });
+    if (autoFlag?.isEnabled && updated.workerId) {
+      void this.compliance
+        .initiateBackgroundCheck(updated.workerId)
+        .then(() =>
+          this.prisma.candidate.update({
+            where: { id },
+            data: { backgroundCheckStatus: "in_progress" },
+          })
+        )
+        .catch((err) => {
+          this.logger.warn(`Auto background check skipped: ${(err as Error).message}`);
+        });
+    }
+
+    return updated;
   }
 
   async sendOnboarding(id: string, recruiterId: string) {

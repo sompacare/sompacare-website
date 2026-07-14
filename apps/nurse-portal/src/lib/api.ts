@@ -86,6 +86,15 @@ export type ComplianceAlert = {
   createdAt: string;
 };
 
+export type BackgroundCheck = {
+  id: string;
+  provider: string;
+  status: string;
+  completedAt?: string | null;
+  createdAt: string;
+  result?: Record<string, unknown> | null;
+};
+
 type ListResponse<T> = {
   data: T[];
   meta?: { page: number; limit: number; total: number; totalPages: number };
@@ -237,6 +246,16 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       }),
     getComplianceAlerts: () =>
       withAuth<ListResponse<ComplianceAlert>>(`/compliance/alerts`),
+    getBackgroundChecks: () =>
+      withAuth<{ data: BackgroundCheck[] }>(`/compliance/background-checks`),
+    recordLegalConsent: (body: {
+      documentTypes: string[];
+      context: string;
+    }) =>
+      withAuth(`/legal/consent`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
     initiateBackgroundCheck: () =>
       withAuth<{ check: { id: string; status: string }; devBypass?: boolean }>(
         `/compliance/background-checks`,

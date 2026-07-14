@@ -271,6 +271,7 @@ model User {
   candidatesRecruited Candidate[]            @relation("RecruiterCandidates")
   linkedCandidates    Candidate[]            @relation("CandidateWorker")
   jobPostingsCreated  JobPosting[]           @relation("JobPostingsCreated")
+  consents            UserConsent[]
 
   @@index([email])
   @@index([status])
@@ -1281,4 +1282,46 @@ model PushDevice {
 
   @@index([userId, app])
   @@map("push_devices")
+}
+
+// ─── LEGAL & CONSENT ─────────────────────────────────────────────────────────
+
+enum LegalDocumentType {
+  PRIVACY_POLICY
+  TERMS_OF_SERVICE
+  BACKGROUND_CHECK_DISCLOSURE
+}
+
+model LegalDocument {
+  id          String            @id @default(cuid())
+  type        LegalDocumentType
+  version     String
+  title       String
+  summary     String?
+  content     Json
+  effectiveAt DateTime          @map("effective_at")
+  isCurrent   Boolean           @default(false) @map("is_current")
+  createdAt   DateTime          @default(now()) @map("created_at")
+
+  @@unique([type, version])
+  @@index([type, isCurrent])
+  @@map("legal_documents")
+}
+
+model UserConsent {
+  id              String            @id @default(cuid())
+  userId          String?           @map("user_id")
+  email           String?
+  documentType    LegalDocumentType @map("document_type")
+  documentVersion String            @map("document_version")
+  context         String
+  ipAddress       String?           @map("ip_address")
+  userAgent       String?           @map("user_agent")
+  acceptedAt      DateTime          @default(now()) @map("accepted_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email, documentType])
+  @@index([userId, documentType])
+  @@map("user_consents")
 }

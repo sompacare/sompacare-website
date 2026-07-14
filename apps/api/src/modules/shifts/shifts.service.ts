@@ -7,7 +7,8 @@ import {
 import { resolveShiftRates } from "@sompacare/shared";
 import { Prisma, ShiftStatus } from "@sompacare/database";
 import { PrismaService } from "../../common/prisma/prisma.module";
-import { paginate, paginationMeta } from "../../common/decorators";
+import { paginate, paginationMeta, type AuthenticatedUser } from "../../common/decorators";
+import { TenantService } from "../../common/tenant/tenant.service";
 import { ComplianceService } from "../compliance/compliance.service";
 import { MatchingService } from "../ai/matching.service";
 import { JobsService } from "../jobs/jobs.service";
@@ -23,10 +24,12 @@ export class ShiftsService {
     private matchingService: MatchingService,
     private notifications: NotificationsService,
     private jobs: JobsService,
-    private realtime: RealtimeService
+    private realtime: RealtimeService,
+    private tenant: TenantService
   ) {}
 
-  async create(dto: CreateShiftDto, createdById: string) {
+  async create(dto: CreateShiftDto, user: AuthenticatedUser) {
+    this.tenant.assertFacilityAccess(user.tenant, dto.facilityId);
     const location = await this.prisma.facilityLocation.findFirst({
       where: { id: dto.locationId, facilityId: dto.facilityId, isActive: true },
     });
@@ -49,7 +52,7 @@ export class ShiftsService {
       data: {
         facilityId: dto.facilityId,
         locationId: dto.locationId,
-        createdById,
+        createdById: user.id,
         title: dto.title,
         description: dto.description,
         role: dto.role,

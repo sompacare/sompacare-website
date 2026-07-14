@@ -23,6 +23,11 @@ export interface AuthenticatedUser {
   firstName: string;
   lastName: string;
   roles: PlatformRole[];
+  tenant: {
+    scope: "all" | "organization";
+    organizationIds: string[];
+    facilityIds: string[];
+  };
 }
 
 export const CurrentUser = createParamDecorator(

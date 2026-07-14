@@ -62,7 +62,7 @@ export class ShiftsController {
   @RequirePermissions("shifts:write")
   @ApiOperation({ summary: "Create a new shift" })
   create(@Body() dto: CreateShiftDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.shiftsService.create(dto, user.id);
+    return this.shiftsService.create(dto, user);
   }
 
   @Patch(":id")
