@@ -294,7 +294,7 @@ export function contactPageSchema() {
 }
 
 export function careersPageSchema(
-  postings: Array<{ id: string; title: string; description: string }> = careerPositions
+  postings: ReadonlyArray<{ id: string; title: string; description: string }> = careerPositions
 ) {
   return graph(
     webPageSchema({

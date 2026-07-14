@@ -51,7 +51,7 @@ Master checklist for Sompacare platform go-live. Check items in order.
 - [ ] Facility portal on Vercel
 - [ ] Recruiter portal on Vercel
 - [ ] Admin portal on Vercel
-- [ ] Marketing site (root app) — deploy to Vercel; verify `/privacy` and `/terms` live
+- [ ] Marketing site on Vercel — [marketing-vercel-deploy.md](../guides/marketing-vercel-deploy.md); verify `/privacy` and `/terms` return 200
 - [ ] Mobile apps submitted to App Store / Play Store (or TestFlight beta)
 
 ## Pilot validation

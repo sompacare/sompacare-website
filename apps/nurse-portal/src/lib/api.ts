@@ -260,14 +260,6 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       }),
     getBackgroundChecks: () =>
       withAuth<{ data: BackgroundCheck[] }>(`/compliance/background-checks`),
-    recordLegalConsent: (body: {
-      documentTypes: string[];
-      context: string;
-    }) =>
-      withAuth(`/legal/consent`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      }),
     initiateBackgroundCheck: () =>
       withAuth<{ check: { id: string; status: string }; devBypass?: boolean }>(
         `/compliance/background-checks`,

@@ -154,6 +154,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "timecards:read", "timecards:approve",
     "invoices:read", "payments:write",
     "payroll:read", "payroll:write", "payroll:approve", "payroll:process",
+    "compliance:read", "compliance:verify",
     "notifications:read", "notifications:write",
     "messages:read", "messages:write",
     "ratings:read", "ratings:write",
