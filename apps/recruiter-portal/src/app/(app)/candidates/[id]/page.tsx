@@ -213,7 +213,7 @@ export default function CandidateDetailPage() {
           )}
           {(candidate.resumeStorageKey || candidate.resumeUrl) && (
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               disabled={busy === "resume"}
               onClick={() => void downloadResume()}

@@ -1,7 +1,11 @@
--- Legal documents and user consent audit trail
-CREATE TYPE "LegalDocumentType" AS ENUM ('PRIVACY_POLICY', 'TERMS_OF_SERVICE', 'BACKGROUND_CHECK_DISCLOSURE');
+-- Legal documents and user consent audit trail (idempotent for Render redeploys)
+DO $$ BEGIN
+  CREATE TYPE "LegalDocumentType" AS ENUM ('PRIVACY_POLICY', 'TERMS_OF_SERVICE', 'BACKGROUND_CHECK_DISCLOSURE');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE TABLE "legal_documents" (
+CREATE TABLE IF NOT EXISTS "legal_documents" (
     "id" TEXT NOT NULL,
     "type" "LegalDocumentType" NOT NULL,
     "version" TEXT NOT NULL,
@@ -15,7 +19,7 @@ CREATE TABLE "legal_documents" (
     CONSTRAINT "legal_documents_pkey" PRIMARY KEY ("id")
 );
 
-CREATE TABLE "user_consents" (
+CREATE TABLE IF NOT EXISTS "user_consents" (
     "id" TEXT NOT NULL,
     "user_id" TEXT,
     "email" TEXT,
@@ -29,9 +33,13 @@ CREATE TABLE "user_consents" (
     CONSTRAINT "user_consents_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "legal_documents_type_version_key" ON "legal_documents"("type", "version");
-CREATE INDEX "legal_documents_type_is_current_idx" ON "legal_documents"("type", "is_current");
-CREATE INDEX "user_consents_email_document_type_idx" ON "user_consents"("email", "document_type");
-CREATE INDEX "user_consents_user_id_document_type_idx" ON "user_consents"("user_id", "document_type");
+CREATE UNIQUE INDEX IF NOT EXISTS "legal_documents_type_version_key" ON "legal_documents"("type", "version");
+CREATE INDEX IF NOT EXISTS "legal_documents_type_is_current_idx" ON "legal_documents"("type", "is_current");
+CREATE INDEX IF NOT EXISTS "user_consents_email_document_type_idx" ON "user_consents"("email", "document_type");
+CREATE INDEX IF NOT EXISTS "user_consents_user_id_document_type_idx" ON "user_consents"("user_id", "document_type");
 
-ALTER TABLE "user_consents" ADD CONSTRAINT "user_consents_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "user_consents" ADD CONSTRAINT "user_consents_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;

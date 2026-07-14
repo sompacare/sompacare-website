@@ -64,6 +64,10 @@ services:
         sync: false
       - key: CHECKR_PACKAGE
         value: tasker_standard
+      - key: JOBS_DEV_BYPASS
+        value: "true"
+      - key: SUPABASE_RESUME_LOCAL_MIRROR
+        value: "false"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
