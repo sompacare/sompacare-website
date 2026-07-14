@@ -123,4 +123,25 @@ export class LegalService {
     });
     return { data: consents };
   }
+
+  async getPortalConsentStatus(userId: string) {
+    const required = [
+      LegalDocumentType.PRIVACY_POLICY,
+      LegalDocumentType.TERMS_OF_SERVICE,
+    ];
+    const missing: LegalDocumentType[] = [];
+    for (const documentType of required) {
+      const ok = await this.hasConsent({
+        userId,
+        documentType,
+        context: "portal_access",
+      });
+      if (!ok) missing.push(documentType);
+    }
+    return {
+      complete: missing.length === 0,
+      missing,
+      marketingUrl: process.env.SITE_URL ?? "https://www.sompacare.com",
+    };
+  }
 }

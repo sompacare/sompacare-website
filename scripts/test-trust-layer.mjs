@@ -58,6 +58,12 @@ async function main() {
   const checks = await api("/compliance/background-checks", { token: NURSE });
   if (!checks.data?.length) throw new Error("Expected background checks list");
 
+  console.log("5. Portal legal consent status endpoint…");
+  const portalStatus = await api("/legal/consent/status", { token: NURSE });
+  if (typeof portalStatus.complete !== "boolean") {
+    throw new Error("Expected portal consent status");
+  }
+
   console.log("\nTrust layer test passed.");
 }
 

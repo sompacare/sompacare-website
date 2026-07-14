@@ -56,6 +56,30 @@ services:
         sync: false
       - key: CAREERS_INGEST_SECRET
         sync: false
+      - key: CHECKR_DEV_BYPASS
+        value: "false"
+      - key: CHECKR_API_KEY
+        sync: false
+      - key: CHECKR_WEBHOOK_SECRET
+        sync: false
+      - key: CHECKR_PACKAGE
+        value: tasker_standard
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: API_PUBLIC_URL
+        value: https://sompacare-api.onrender.com/api/v1
+      - key: SITE_URL
+        value: https://www.sompacare.com
+      - key: S3_BUCKET_DOCUMENTS
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1
 
   - type: web
     name: sompacare-nurse

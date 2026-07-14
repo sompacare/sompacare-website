@@ -194,5 +194,14 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         devBypass?: boolean;
         risks: Array<{ type: string; severity: string; message: string }>;
       }>(`/ai/compliance/risks/${userId}`),
+    getLegalConsentStatus: () =>
+      withAuth<{ complete: boolean; missing: string[]; marketingUrl: string }>(
+        "/legal/consent/status"
+      ),
+    recordLegalConsent: (body: { documentTypes: string[]; context: string }) =>
+      withAuth(`/legal/consent`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
   };
 }

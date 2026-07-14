@@ -38,6 +38,7 @@ Master checklist for Sompacare platform go-live. Check items in order.
 
 - [ ] Clerk production — portals + webhook
 - [ ] Stripe live — Connect + invoicing webhooks ([stripe-live-setup.md](../stripe-live-setup.md))
+- [ ] Checkr — API key, webhook, FCRA flow ([checkr-production-setup.md](../guides/checkr-production-setup.md))
 - [ ] Resend — verified sending domain
 - [ ] Firebase push (optional) — mobile notifications
 - [ ] OpenAI (optional) — AI matching
@@ -50,7 +51,7 @@ Master checklist for Sompacare platform go-live. Check items in order.
 - [ ] Facility portal on Vercel
 - [ ] Recruiter portal on Vercel
 - [ ] Admin portal on Vercel
-- [ ] Marketing site (root app) — if separate deploy
+- [ ] Marketing site (root app) — deploy to Vercel; verify `/privacy` and `/terms` live
 - [ ] Mobile apps submitted to App Store / Play Store (or TestFlight beta)
 
 ## Pilot validation

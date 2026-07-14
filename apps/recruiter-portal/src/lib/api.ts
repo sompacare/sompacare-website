@@ -231,6 +231,15 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         body: JSON.stringify(body),
       }),
     getMetrics: () => withAuth<RecruiterMetrics>("/recruiters/metrics"),
+    getLegalConsentStatus: () =>
+      withAuth<{ complete: boolean; missing: string[]; marketingUrl: string }>(
+        "/legal/consent/status"
+      ),
+    recordLegalConsent: (body: { documentTypes: string[]; context: string }) =>
+      withAuth(`/legal/consent`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
     getLeaderboard: () => withAuth<LeaderboardEntry[]>("/recruiters/leaderboard"),
     getJobPostings: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";

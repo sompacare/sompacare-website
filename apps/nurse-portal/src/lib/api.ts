@@ -246,6 +246,18 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       }),
     getComplianceAlerts: () =>
       withAuth<ListResponse<ComplianceAlert>>(`/compliance/alerts`),
+    getLegalConsentStatus: () =>
+      withAuth<{ complete: boolean; missing: string[]; marketingUrl: string }>(
+        "/legal/consent/status"
+      ),
+    recordLegalConsent: (body: {
+      documentTypes: string[];
+      context: string;
+    }) =>
+      withAuth(`/legal/consent`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
     getBackgroundChecks: () =>
       withAuth<{ data: BackgroundCheck[] }>(`/compliance/background-checks`),
     recordLegalConsent: (body: {

@@ -153,7 +153,19 @@ export function createApiClient(getToken: () => Promise<string | null>) {
 
   return {
     getMe: () => withAuth<{ data: unknown }>("/auth/me"),
-    getFacilities: () => withAuth<ListResponse<Facility>>("/facilities?limit=20"),
+    getFacilities: (params?: Record<string, string>) => {
+      const qs = params ? `?${new URLSearchParams(params)}` : "?limit=20";
+      return withAuth<ListResponse<Facility>>(`/facilities${qs}`);
+    },
+    getLegalConsentStatus: () =>
+      withAuth<{ complete: boolean; missing: string[]; marketingUrl: string }>(
+        "/legal/consent/status"
+      ),
+    recordLegalConsent: (body: { documentTypes: string[]; context: string }) =>
+      withAuth(`/legal/consent`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
     getFacility: (id: string) => withAuth<{ data: Facility }>(`/facilities/${id}`),
     getShifts: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";

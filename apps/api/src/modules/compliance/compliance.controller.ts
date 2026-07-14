@@ -171,9 +171,9 @@ export class ComplianceController {
 
   @Get("verification-queue")
   @RequirePermissions("compliance:verify")
-  @ApiOperation({ summary: "Pending licenses and certifications to verify" })
-  verificationQueue() {
-    return this.complianceService.getVerificationQueue();
+  @ApiOperation({ summary: "Pending licenses and certifications to verify (tenant-scoped)" })
+  verificationQueue(@CurrentUser() user: AuthenticatedUser) {
+    return this.complianceService.getVerificationQueue(user.tenant);
   }
 
   @Post("scan-expirations")

@@ -48,6 +48,12 @@ export class LegalController {
     });
   }
 
+  @Get("consent/status")
+  @ApiOperation({ summary: "Check whether current user accepted required portal legal terms" })
+  consentStatus(@CurrentUser() user: AuthenticatedUser) {
+    return this.legalService.getPortalConsentStatus(user.id);
+  }
+
   @Get("consent/me")
   @ApiOperation({ summary: "List consent records for current user" })
   myConsents(@CurrentUser() user: AuthenticatedUser) {

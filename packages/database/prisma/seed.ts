@@ -309,7 +309,7 @@ async function seedDemoData() {
     { key: "ai_matching", description: "AI-powered shift matching", isEnabled: true },
     { key: "instant_pay", description: "Instant pay for workers", isEnabled: true },
     { key: "recruiter_portal", description: "Recruiter pipeline portal", isEnabled: true },
-    { key: "background_check_auto", description: "Auto-trigger Checkr on offer", isEnabled: false },
+    { key: "background_check_auto", description: "Auto-trigger Checkr on offer", isEnabled: true },
   ];
 
   for (const flag of featureFlags) {

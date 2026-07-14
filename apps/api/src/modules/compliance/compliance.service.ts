@@ -13,6 +13,7 @@ import {
   type ComplianceEvaluation,
 } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
+import type { TenantContext } from "../../common/tenant/tenant.service";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -318,17 +319,51 @@ export class ComplianceService {
     });
   }
 
-  async getVerificationQueue() {
+  async getVerificationQueue(tenant: TenantContext) {
+    let userIds: string[] | undefined;
+
+    if (tenant.scope === "organization") {
+      if (tenant.facilityIds.length === 0) {
+        return { licenses: [], certifications: [], total: 0 };
+      }
+
+      const [assignments, applications] = await Promise.all([
+        this.prisma.shiftAssignment.findMany({
+          where: { shift: { facilityId: { in: tenant.facilityIds } } },
+          select: { workerId: true },
+          distinct: ["workerId"],
+        }),
+        this.prisma.shiftApplication.findMany({
+          where: { shift: { facilityId: { in: tenant.facilityIds } } },
+          select: { applicantId: true },
+          distinct: ["applicantId"],
+        }),
+      ]);
+
+      userIds = [
+        ...new Set([
+          ...assignments.map((a) => a.workerId),
+          ...applications.map((a) => a.applicantId),
+        ]),
+      ];
+
+      if (userIds.length === 0) {
+        return { licenses: [], certifications: [], total: 0 };
+      }
+    }
+
+    const userFilter = userIds ? { userId: { in: userIds } } : {};
+
     const [licenses, certifications] = await Promise.all([
       this.prisma.license.findMany({
-        where: { status: LicenseStatus.PENDING_VERIFICATION },
+        where: { status: LicenseStatus.PENDING_VERIFICATION, ...userFilter },
         include: {
           user: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
         orderBy: { createdAt: "asc" },
       }),
       this.prisma.certification.findMany({
-        where: { status: DocumentStatus.PENDING },
+        where: { status: DocumentStatus.PENDING, ...userFilter },
         include: {
           user: { select: { id: true, firstName: true, lastName: true, email: true } },
         },

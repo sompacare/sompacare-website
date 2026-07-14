@@ -7,6 +7,7 @@ import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 import { UserButton } from "@clerk/nextjs";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { useFacility } from "@/hooks/use-facility";
 
 const navItems = [
   { href: "/home", label: "Home", icon: Home },
@@ -18,6 +19,7 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { facilities, facilityId, setFacilityId } = useFacility();
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -29,6 +31,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <UserButton afterSignOutUrl="/sign-in" />
           </div>
         </div>
+        {facilities.length > 1 && (
+          <div className="border-t border-border px-4 py-2">
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-muted">
+              Facility
+            </label>
+            <select
+              className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-sm"
+              value={facilityId ?? ""}
+              onChange={(e) => setFacilityId(e.target.value)}
+            >
+              {facilities.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </header>
 
       <main className="mx-auto max-w-lg px-4 py-5">{children}</main>
