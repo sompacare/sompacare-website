@@ -365,14 +365,81 @@ export class FacilityOnboardingService {
     email: string,
     dto: TenantSetupInput
   ) {
-    const { organization, facility, location } = await this.createOrganizationAndFacility(
-      dto,
-      dto.facilityEmail ?? email
-    );
+    const coords = await this.resolveLocationCoordinates(dto.location);
+    const contactEmail = dto.facilityEmail ?? email;
 
-    await this.linkUserToOrganization(userId, organization.id);
+    return this.prisma.$transaction(async (tx) => {
+      const orgSlug = await uniqueSlug(dto.organizationName, async (slug) =>
+        Boolean(await tx.organization.findUnique({ where: { slug } }))
+      );
+      const facilitySlug = await uniqueSlug(dto.facilityName, async (slug) =>
+        Boolean(await tx.facility.findUnique({ where: { slug } }))
+      );
 
-    return { organization, facility, location };
+      const organization = await tx.organization.create({
+        data: {
+          name: dto.organizationName.trim(),
+          slug: orgSlug,
+          type: "healthcare_provider",
+          email: contactEmail,
+        },
+      });
+
+      const facility = await tx.facility.create({
+        data: {
+          organizationId: organization.id,
+          name: dto.facilityName.trim(),
+          slug: facilitySlug,
+          type: dto.facilityType,
+          email: dto.facilityEmail?.trim() ?? contactEmail,
+          phone: dto.facilityPhone?.trim(),
+        },
+      });
+
+      const location = await tx.facilityLocation.create({
+        data: {
+          facilityId: facility.id,
+          name: dto.location.name.trim(),
+          addressLine1: dto.location.addressLine1.trim(),
+          addressLine2: dto.location.addressLine2?.trim(),
+          city: dto.location.city.trim(),
+          state: dto.location.state.trim().toUpperCase(),
+          zipCode: dto.location.zipCode.trim(),
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          isPrimary: true,
+        },
+      });
+
+      const fmRole = await tx.role.upsert({
+        where: { name: DbPlatformRole.FACILITY_MANAGER },
+        update: {},
+        create: {
+          name: DbPlatformRole.FACILITY_MANAGER,
+          displayName: "Facility Manager",
+          description: "FACILITY_MANAGER platform role",
+        },
+      });
+
+      await tx.userRole.upsert({
+        where: { userId_roleId: { userId, roleId: fmRole.id } },
+        update: {},
+        create: { userId, roleId: fmRole.id },
+      });
+
+      await tx.organizationMember.upsert({
+        where: { organizationId_userId: { organizationId: organization.id, userId } },
+        update: { title: "Facility Manager", isPrimary: true },
+        create: {
+          organizationId: organization.id,
+          userId,
+          title: "Facility Manager",
+          isPrimary: true,
+        },
+      });
+
+      return { organization, facility, location };
+    });
   }
 
   private async createOrganizationAndFacility(dto: TenantSetupInput, contactEmail: string) {
@@ -447,12 +514,15 @@ export class FacilityOnboardingService {
   }
 
   private async linkUserToOrganization(userId: string, organizationId: string) {
-    const fmRole = await this.prisma.role.findUnique({
+    const fmRole = await this.prisma.role.upsert({
       where: { name: DbPlatformRole.FACILITY_MANAGER },
+      update: {},
+      create: {
+        name: DbPlatformRole.FACILITY_MANAGER,
+        displayName: "Facility Manager",
+        description: "FACILITY_MANAGER platform role",
+      },
     });
-    if (!fmRole) {
-      throw new BadRequestException("FACILITY_MANAGER role is not configured");
-    }
 
     await this.prisma.$transaction([
       this.prisma.userRole.upsert({

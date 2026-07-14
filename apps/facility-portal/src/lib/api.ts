@@ -102,13 +102,24 @@ export class ApiError extends Error {
   }
 }
 
+export function extractApiMessage(body: unknown): string | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const msg = (body as { message?: unknown }).message;
+  if (Array.isArray(msg)) return msg.join(", ");
+  if (typeof msg === "string" && msg.trim()) return msg.trim();
+  return undefined;
+}
+
 export function formatApiError(err: unknown, fallback = "Something went wrong. Please try again.") {
   if (err instanceof ApiError) {
-    const body = err.body as { message?: string | string[] } | undefined;
-    const msg = body?.message;
-    if (Array.isArray(msg)) return msg.join(", ");
-    if (typeof msg === "string" && msg.trim()) return msg;
+    const fromBody = extractApiMessage(err.body);
+    if (fromBody) return fromBody;
   }
+
+  const body = (err as { body?: unknown })?.body;
+  const fromBody = extractApiMessage(body);
+  if (fromBody) return fromBody;
+
   if (err instanceof Error && err.message && !err.message.startsWith("API ")) {
     return err.message;
   }
@@ -141,7 +152,11 @@ export async function apiFetch<T>(
     } catch {
       body = undefined;
     }
-    throw new ApiError(`API ${res.status}: ${path}`, res.status, body);
+    throw new ApiError(
+      extractApiMessage(body) ?? `Request failed (${res.status})`,
+      res.status,
+      body
+    );
   }
 
   return res.json() as Promise<T>;

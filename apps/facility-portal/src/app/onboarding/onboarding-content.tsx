@@ -189,12 +189,6 @@ export default function FacilityOnboardingPage() {
     setBusy(true);
     setError(null);
     try {
-      let coords = geocoded;
-      if (!coords) {
-        coords = await geocodeCurrentAddress();
-        setGeocoded(coords);
-      }
-
       await api.completeFacilitySelfServiceOnboarding({
         organizationName: form.organizationName.trim(),
         facilityName: form.facilityName.trim(),
@@ -208,8 +202,6 @@ export default function FacilityOnboardingPage() {
           city: form.city.trim(),
           state: form.state.trim().toUpperCase(),
           zipCode: form.zipCode.trim(),
-          latitude: coords.latitude,
-          longitude: coords.longitude,
         },
       });
       router.replace("/home");
