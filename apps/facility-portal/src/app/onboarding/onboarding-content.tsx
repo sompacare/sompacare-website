@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 
 const FACILITY_TYPES = [
   { value: "skilled_nursing", label: "Skilled nursing" },
@@ -108,7 +109,7 @@ export default function FacilityOnboardingPage() {
         setMode("self_service");
       } catch (err) {
         if (!cancelled) {
-          setError((err as Error).message);
+          setError(formatApiError(err, "Unable to load onboarding."));
           setMode("self_service");
         }
       }
@@ -146,7 +147,7 @@ export default function FacilityOnboardingPage() {
       await api.acceptFacilityInvite(token);
       router.replace("/home");
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to accept invitation."));
     } finally {
       setBusy(false);
     }
@@ -173,7 +174,7 @@ export default function FacilityOnboardingPage() {
         setGeocoded(result);
         setStep(3);
       } catch (err) {
-        setError((err as Error).message);
+        setError(formatApiError(err, "We couldn't verify that address. Check the street, city, state, and ZIP."));
       } finally {
         setBusy(false);
       }
@@ -213,7 +214,7 @@ export default function FacilityOnboardingPage() {
       });
       router.replace("/home");
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to create your facility. Please try again."));
     } finally {
       setBusy(false);
     }

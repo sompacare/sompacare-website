@@ -102,6 +102,19 @@ export class ApiError extends Error {
   }
 }
 
+export function formatApiError(err: unknown, fallback = "Something went wrong. Please try again.") {
+  if (err instanceof ApiError) {
+    const body = err.body as { message?: string | string[] } | undefined;
+    const msg = body?.message;
+    if (Array.isArray(msg)) return msg.join(", ");
+    if (typeof msg === "string" && msg.trim()) return msg;
+  }
+  if (err instanceof Error && err.message && !err.message.startsWith("API ")) {
+    return err.message;
+  }
+  return fallback;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit & { token?: string | null } = {}

@@ -77,8 +77,8 @@ export class GeocodingService {
       }
 
       return {
-        latitude: y,
-        longitude: x,
+        latitude: this.roundCoordinate(y),
+        longitude: this.roundCoordinate(x),
         formattedAddress: match.matchedAddress ?? address,
         source: "census",
       };
@@ -114,8 +114,8 @@ export class GeocodingService {
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
 
       return {
-        latitude,
-        longitude,
+        latitude: this.roundCoordinate(latitude),
+        longitude: this.roundCoordinate(longitude),
         formattedAddress: hit.display_name ?? address,
         source: "nominatim",
       };
@@ -123,5 +123,9 @@ export class GeocodingService {
       this.logger.warn(`Nominatim geocode failed: ${(error as Error).message}`);
       return null;
     }
+  }
+
+  private roundCoordinate(value: number) {
+    return Math.round(value * 10_000_000) / 10_000_000;
   }
 }

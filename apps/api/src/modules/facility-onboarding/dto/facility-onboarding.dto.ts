@@ -8,6 +8,7 @@ import {
   IsString,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from "class-validator";
 
 export const FACILITY_TYPES = [
@@ -131,6 +132,7 @@ export class SelfServiceFacilityOnboardingDto {
   facilityPhone?: string;
 
   @ApiProperty({ type: FacilityLocationInputDto })
+  @ValidateNested()
   @Type(() => FacilityLocationInputDto)
   location!: FacilityLocationInputDto;
 }
