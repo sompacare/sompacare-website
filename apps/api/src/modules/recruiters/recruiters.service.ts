@@ -20,6 +20,8 @@ import {
   UpdateChecklistDto,
 } from "./dto/recruiters.dto";
 import { ResumeParserService } from "./resume-parser.service";
+import { CareersFunnelService } from "../careers/careers-funnel.service";
+import { CandidateResumeSyncService } from "../careers/candidate-resume-sync.service";
 
 const STAGE_ORDER: CandidatePipelineStage[] = [
   CandidatePipelineStage.APPLIED,
@@ -32,6 +34,7 @@ const STAGE_ORDER: CandidatePipelineStage[] = [
 const candidateInclude = {
   recruiter: { select: { id: true, firstName: true, lastName: true, email: true } },
   facility: { select: { id: true, name: true } },
+  worker: { select: { id: true, email: true, firstName: true, lastName: true } },
   interviews: { orderBy: { scheduledAt: "desc" as const } },
 } satisfies Prisma.CandidateInclude;
 
@@ -41,7 +44,9 @@ export class RecruitersService {
     private prisma: PrismaService,
     private audit: AuditService,
     private notifications: NotificationsService,
-    private resumeParser: ResumeParserService
+    private resumeParser: ResumeParserService,
+    private careerFunnel: CareersFunnelService,
+    private resumeSync: CandidateResumeSyncService
   ) {}
 
   async getPipeline(recruiterId: string) {
@@ -128,6 +133,10 @@ export class RecruitersService {
 
     if (dto.stage === CandidatePipelineStage.PLACED) {
       data.placedAt = new Date();
+    }
+
+    if (dto.stage === CandidatePipelineStage.PLACED && !existing.workerId) {
+      void this.careerFunnel.provisionWorkerFromCandidate(id);
     }
 
     const updated = await this.prisma.candidate.update({
@@ -238,29 +247,13 @@ export class RecruitersService {
   }
 
   async sendOnboarding(id: string, recruiterId: string) {
-    const candidate = await this.findOne(id, recruiterId);
+    return this.careerFunnel.sendWorkerOnboarding(id, recruiterId);
+  }
 
-    const updated = await this.prisma.candidate.update({
-      where: { id },
-      data: { onboardingSentAt: new Date() },
-      include: candidateInclude,
-    });
-
-    void this.notifications.notifyOnboardingPackage(
-      recruiterId,
-      candidate.email,
-      `${candidate.firstName} ${candidate.lastName}`,
-      id
-    );
-
-    await this.audit.log({
-      userId: recruiterId,
-      action: "recruiter.candidate.onboarding_sent",
-      entityType: "Candidate",
-      entityId: id,
-    });
-
-    return updated;
+  async getResumeDownload(id: string, recruiterId: string) {
+    const result = await this.resumeSync.getResumeDownload(id, recruiterId);
+    if (!result) throw new NotFoundException("Resume not available");
+    return result;
   }
 
   async parseResume(id: string, recruiterId: string, resumeText?: string) {

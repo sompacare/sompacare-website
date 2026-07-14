@@ -339,6 +339,10 @@ export class NotificationsService {
     });
   }
 
+  async notifyUser(input: NotifyInput) {
+    return this.notify(input);
+  }
+
   private async notify(input: NotifyInput) {
     const notification = await this.createInApp(input);
 

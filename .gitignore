@@ -35,6 +35,7 @@ dist/
 # platform
 apps/api/dist
 apps/api/node_modules
+apps/api/uploads/
 packages/*/dist
 packages/database/node_modules/
 

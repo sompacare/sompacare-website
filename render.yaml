@@ -54,6 +54,8 @@ services:
         sync: false
       - key: RESEND_FROM_EMAIL
         sync: false
+      - key: CAREERS_INGEST_SECRET
+        sync: false
 
   - type: web
     name: sompacare-nurse

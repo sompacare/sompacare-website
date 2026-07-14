@@ -33,6 +33,7 @@ const WORKER_CLINICAL_PERMISSIONS: PermissionKey[] = [
   "assignments:read", "assignments:confirm",
   "timecards:read",
   "wallet:read", "wallet:instant_pay",
+  "referrals:read", "referrals:write",
   "notifications:read",
   "messages:read", "messages:write",
   "ratings:read", "ratings:write",
@@ -98,7 +99,12 @@ export type PermissionKey =
   | "support:read"
   | "support:write"
   | "recruiter:pipeline"
-  | "recruiter:placements";
+  | "recruiter:placements"
+  | "referrals:read"
+  | "referrals:write"
+  | "referrals:manage"
+  | "job_postings:read"
+  | "job_postings:write";
 
 export const ALL_PERMISSIONS: PermissionKey[] = [
   "users:read", "users:write", "users:delete",
@@ -119,6 +125,8 @@ export const ALL_PERMISSIONS: PermissionKey[] = [
   "admin:dashboard", "admin:audit_logs", "admin:feature_flags", "admin:analytics",
   "support:read", "support:write",
   "recruiter:pipeline", "recruiter:placements",
+  "referrals:read", "referrals:write", "referrals:manage",
+  "job_postings:read", "job_postings:write",
 ];
 
 export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
@@ -135,6 +143,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "notifications:read", "notifications:write",
     "messages:read", "messages:write",
     "recruiter:pipeline", "recruiter:placements",
+    "job_postings:read", "job_postings:write",
   ],
 
   [PlatformRole.FACILITY_MANAGER]: [
@@ -174,6 +183,7 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "users:read",
     "admin:dashboard",
     "notifications:read",
+    "referrals:manage",
   ],
 
   [PlatformRole.COMPLIANCE_OFFICER]: [

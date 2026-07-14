@@ -190,6 +190,12 @@ enum ReferralStatus {
   EXPIRED
 }
 
+enum JobPostingStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
 enum WebhookStatus {
   ACTIVE
   INACTIVE
@@ -230,6 +236,7 @@ model User {
   emailVerified   Boolean    @default(false) @map("email_verified")
   mfaEnabled      Boolean    @default(false) @map("mfa_enabled")
   lastLoginAt     DateTime?  @map("last_login_at")
+  referralCode    String?    @unique @map("referral_code")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
   deletedAt       DateTime?  @map("deleted_at")
@@ -263,6 +270,7 @@ model User {
   facilityFavorites   FacilityWorkerFavorite[] @relation("FavoriteWorker")
   candidatesRecruited Candidate[]            @relation("RecruiterCandidates")
   linkedCandidates    Candidate[]            @relation("CandidateWorker")
+  jobPostingsCreated  JobPosting[]           @relation("JobPostingsCreated")
 
   @@index([email])
   @@index([status])
@@ -381,9 +389,14 @@ model Candidate {
   clinicalRole         ClinicalRole           @map("clinical_role")
   stage                CandidatePipelineStage @default(APPLIED)
   resumeUrl            String?                @map("resume_url")
+  resumeStorageKey     String?                @map("resume_storage_key")
+  resumeFileName       String?                @map("resume_file_name")
+  resumeSourcePath     String?                @map("resume_source_path")
   resumeParsedAt       DateTime?              @map("resume_parsed_at")
   resumeParsedData     Json?                  @map("resume_parsed_data")
   source               String?
+  sourceApplicationId  String?                @unique @map("source_application_id")
+  referralCode         String?                @map("referral_code")
   notes                String?
   workerId             String?                @map("worker_id")
   facilityId           String?                @map("facility_id")
@@ -402,6 +415,7 @@ model Candidate {
   worker     User?                @relation("CandidateWorker", fields: [workerId], references: [id])
   facility   Facility?            @relation(fields: [facilityId], references: [id])
   interviews CandidateInterview[]
+  referrals  Referral[]
 
   @@index([recruiterId, stage])
   @@index([stage])
@@ -422,6 +436,30 @@ model CandidateInterview {
 
   @@index([candidateId])
   @@map("candidate_interviews")
+}
+
+// ─── JOB POSTINGS (careers growth) ───────────────────────────────────────────
+
+model JobPosting {
+  id           String           @id @default(cuid())
+  slug         String           @unique
+  title        String
+  category     String
+  employment   String
+  locations    String
+  description  String
+  requirements String[]
+  clinicalRole ClinicalRole     @map("clinical_role")
+  status       JobPostingStatus @default(DRAFT)
+  publishedAt  DateTime?        @map("published_at")
+  createdById  String?          @map("created_by_id")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  createdBy User? @relation("JobPostingsCreated", fields: [createdById], references: [id])
+
+  @@index([status, publishedAt])
+  @@map("job_postings")
 }
 
 // ─── ORGANIZATIONS & FACILITIES ──────────────────────────────────────────────
@@ -1061,15 +1099,21 @@ model Referral {
   referrerId   String         @map("referrer_id")
   refereeId    String?        @map("referee_id")
   refereeEmail String         @map("referee_email")
+  referralCode String?        @map("referral_code")
+  candidateId  String?        @map("candidate_id")
   status       ReferralStatus @default(PENDING)
   bonusAmount  Decimal?       @map("bonus_amount") @db.Decimal(10, 2)
   paidAt       DateTime?      @map("paid_at")
+  qualifiedAt  DateTime?      @map("qualified_at")
   createdAt    DateTime       @default(now()) @map("created_at")
 
-  referrer User  @relation("Referrer", fields: [referrerId], references: [id])
-  referee  User? @relation("Referee", fields: [refereeId], references: [id])
+  referrer  User       @relation("Referrer", fields: [referrerId], references: [id])
+  referee   User?      @relation("Referee", fields: [refereeId], references: [id])
+  candidate Candidate? @relation(fields: [candidateId], references: [id])
 
   @@index([referrerId])
+  @@index([refereeEmail])
+  @@index([referralCode])
   @@map("referrals")
 }
 

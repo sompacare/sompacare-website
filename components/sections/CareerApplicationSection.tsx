@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { siteConfig } from "@/lib/data";
 import {
@@ -39,6 +40,7 @@ function getPositionFromHash(): string | null {
 }
 
 export function CareerApplicationSection() {
+  const searchParams = useSearchParams();
   const [confirmation, setConfirmation] = useState<{
     reference: string;
     position: string;
@@ -49,6 +51,12 @@ export function CareerApplicationSection() {
   const [position, setPosition] = useState("rn");
   const [selectedCerts, setSelectedCerts] = useState<string[]>([]);
   const [showOtherCert, setShowOtherCert] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) setReferralCode(ref.trim().toUpperCase());
+  }, [searchParams]);
 
   useEffect(() => {
     function syncFromHash(shouldScroll: boolean) {
@@ -221,6 +229,12 @@ export function CareerApplicationSection() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate encType="multipart/form-data">
+      {referralCode && (
+        <div className="rounded-xl border border-brand-green/25 bg-brand-green/5 px-4 py-3 text-sm text-brand-navy">
+          Referred by code <span className="font-bold">{referralCode}</span> — thank you for applying through a Sompacare clinician.
+        </div>
+      )}
+      <input type="hidden" name="referralCode" value={referralCode} />
       {errors.form && (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {errors.form}

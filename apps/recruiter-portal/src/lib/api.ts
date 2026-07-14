@@ -15,9 +15,14 @@ export type Candidate = {
   clinicalRole: string;
   stage: CandidateStage;
   resumeUrl?: string | null;
+  resumeFileName?: string | null;
+  resumeStorageKey?: string | null;
   resumeParsedAt?: string | null;
   resumeParsedData?: Record<string, unknown> | null;
   source?: string | null;
+  sourceApplicationId?: string | null;
+  workerId?: string | null;
+  worker?: { id: string; email: string; firstName: string; lastName: string } | null;
   notes?: string | null;
   matchScore?: number | null;
   backgroundCheckStatus?: string | null;
@@ -72,6 +77,21 @@ export type LeaderboardEntry = {
   rank: number;
   recruiter?: { id: string; firstName: string; lastName: string; email: string };
   placements: number;
+};
+
+export type JobPosting = {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  employment: string;
+  locations: string;
+  description: string;
+  requirements: string[];
+  clinicalRole: string;
+  status: string;
+  publishedAt?: string | null;
+  updatedAt: string;
 };
 
 type ListResponse<T> = {
@@ -145,6 +165,10 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       return withAuth<ListResponse<Candidate>>(`/recruiters/candidates${qs}`);
     },
     getCandidate: (id: string) => withAuth<Candidate>(`/recruiters/candidates/${id}`),
+    getCandidateResume: (id: string) =>
+      withAuth<{ url: string; fileName: string; storageKey: string }>(
+        `/recruiters/candidates/${id}/resume`
+      ),
     createCandidate: (body: {
       firstName: string;
       lastName: string;
@@ -208,5 +232,26 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       }),
     getMetrics: () => withAuth<RecruiterMetrics>("/recruiters/metrics"),
     getLeaderboard: () => withAuth<LeaderboardEntry[]>("/recruiters/leaderboard"),
+    getJobPostings: (params?: Record<string, string>) => {
+      const qs = params ? `?${new URLSearchParams(params)}` : "";
+      return withAuth<ListResponse<JobPosting>>(`/job-postings${qs}`);
+    },
+    updateJobPosting: (
+      id: string,
+      body: Partial<{
+        title: string;
+        category: string;
+        employment: string;
+        locations: string;
+        description: string;
+        requirements: string[];
+        clinicalRole: string;
+        status: string;
+      }>
+    ) =>
+      withAuth<JobPosting>(`/job-postings/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
   };
 }

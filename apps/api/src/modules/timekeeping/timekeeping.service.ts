@@ -14,6 +14,7 @@ import {
 import { calculateTimecardTotals, isWithinGeofence } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { PrismaService } from "../../common/prisma/prisma.module";
+import { ReferralsService } from "../referrals/referrals.service";
 import { ClockLocationDto } from "./dto/clock.dto";
 
 const CLOCK_WINDOW_MS = 30 * 60 * 1000; // 30 min before shift start
@@ -23,7 +24,8 @@ export class TimekeepingService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
-    private config: ConfigService
+    private config: ConfigService,
+    private referrals: ReferralsService
   ) {}
 
   private async getAssignmentForWorker(id: string, workerId: string) {
@@ -256,6 +258,8 @@ export class TimekeepingService {
         billAmount: totals.billAmount,
       },
     });
+
+    void this.referrals.qualifyOnFirstShift(workerId);
 
     return result;
   }

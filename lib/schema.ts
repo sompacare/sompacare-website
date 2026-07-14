@@ -293,7 +293,9 @@ export function contactPageSchema() {
   );
 }
 
-export function careersPageSchema() {
+export function careersPageSchema(
+  postings: Array<{ id: string; title: string; description: string }> = careerPositions
+) {
   return graph(
     webPageSchema({
       path: "/careers",
@@ -305,7 +307,7 @@ export function careersPageSchema() {
       { name: "Home", path: "/" },
       { name: "Careers", path: "/careers" },
     ]),
-    ...careerPositions.map((role) => ({
+    ...postings.map((role) => ({
       "@type": "JobPosting",
       title: role.title,
       description: role.description,

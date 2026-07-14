@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Kanban, Trophy } from "lucide-react";
+import { Home, Kanban, Briefcase, Trophy } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 import { UserButton } from "@clerk/nextjs";
@@ -10,6 +10,7 @@ import { UserButton } from "@clerk/nextjs";
 const navItems = [
   { href: "/home", label: "Home", icon: Home },
   { href: "/pipeline", label: "Pipeline", icon: Kanban },
+  { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/leaderboard", label: "Ranks", icon: Trophy },
 ];
 
@@ -28,7 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto max-w-lg px-4 py-5">{children}</main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md">
-        <div className="mx-auto grid max-w-lg grid-cols-3 gap-1 px-1 py-2">
+        <div className="mx-auto grid max-w-lg grid-cols-4 gap-1 px-1 py-2">
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (

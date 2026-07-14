@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ApplyNowButton } from "@/components/careers/ApplyNowButton";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { CareerApplicationSection } from "@/components/sections/CareerApplicationSection";
@@ -5,7 +6,8 @@ import { AnimatedItem, AnimatedStagger } from "@/components/ui/Animated";
 import { PageHero } from "@/components/ui/PageHero";
 import { Container, Section, SectionHeading } from "@/components/ui/Primitives";
 import { ArrowRightIcon, BriefcaseIcon, CheckCircleIcon } from "@/components/icons";
-import { careerBenefits, careerPositions } from "@/lib/data";
+import { careerBenefits } from "@/lib/data";
+import { getPublishedJobPostings } from "@/lib/job-postings";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/seo";
 import { careersPageSchema } from "@/lib/schema";
@@ -24,10 +26,12 @@ export const metadata = createMetadata({
   ],
 });
 
-export default function CareersPage() {
+export default async function CareersPage() {
+  const careerPositions = await getPublishedJobPostings();
+
   return (
     <SiteLayout>
-      <JsonLd data={careersPageSchema()} />
+      <JsonLd data={careersPageSchema(careerPositions)} />
       <main>
         <PageHero
           badge="Find Shifts"
@@ -161,7 +165,9 @@ export default function CareersPage() {
                   All fields marked required must be completed to submit your application.
                 </p>
                 <div className="mt-8">
-                  <CareerApplicationSection />
+                  <Suspense fallback={<p className="text-sm text-brand-slate">Loading application form…</p>}>
+                    <CareerApplicationSection />
+                  </Suspense>
                 </div>
               </div>
             </div>

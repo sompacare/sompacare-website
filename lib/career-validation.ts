@@ -31,6 +31,7 @@ export type CareerFormFields = {
   experience: CareerExperience;
   availability: CareerAvailability;
   additionalNotes: string;
+  referralCode: string;
 };
 
 export type CareerFormErrors = Partial<
@@ -118,6 +119,7 @@ export function validateCareerFields(input: FormData | Record<string, unknown>):
   const experience = get("experience");
   const availability = get("availability");
   const additionalNotes = get("additionalNotes");
+  const referralCode = get("referralCode").toUpperCase();
 
   if (!firstName) errors.firstName = "First name is required.";
   else if (firstName.length < 2) errors.firstName = "First name must be at least 2 characters.";
@@ -205,6 +207,7 @@ export function validateCareerFields(input: FormData | Record<string, unknown>):
       experience: experience as CareerExperience,
       availability: availability as CareerAvailability,
       additionalNotes,
+      referralCode,
     },
   };
 }

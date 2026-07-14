@@ -110,6 +110,13 @@ export class RecruitersController {
     return this.recruitersService.sendOnboarding(id, user.id);
   }
 
+  @Get("candidates/:id/resume")
+  @RequirePermissions("recruiter:pipeline")
+  @ApiOperation({ summary: "Get signed download URL for candidate resume" })
+  getResume(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.recruitersService.getResumeDownload(id, user.id);
+  }
+
   @Post("candidates/:id/parse-resume")
   @RequirePermissions("recruiter:pipeline")
   @ApiOperation({ summary: "Parse resume with AI (dev bypass)" })

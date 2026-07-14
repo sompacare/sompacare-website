@@ -23,6 +23,10 @@ import { WalletModule } from "./modules/wallet/wallet.module";
 import { InvoicesModule } from "./modules/invoices/invoices.module";
 import { PayrollModule } from "./modules/payroll/payroll.module";
 import { RecruitersModule } from "./modules/recruiters/recruiters.module";
+import { CareersModule } from "./modules/careers/careers.module";
+import { StorageModule } from "./common/storage/storage.module";
+import { ReferralsModule } from "./modules/referrals/referrals.module";
+import { JobPostingsModule } from "./modules/job-postings/job-postings.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { RealtimeModule } from "./modules/realtime/realtime.module";
 import { JobsModule } from "./modules/jobs/jobs.module";
@@ -71,6 +75,10 @@ import { ObservabilityModule } from "./modules/observability/observability.modul
     InvoicesModule,
     PayrollModule,
     RecruitersModule,
+    CareersModule,
+    StorageModule,
+    ReferralsModule,
+    JobPostingsModule,
     AiModule,
     RealtimeModule,
     JobsModule,

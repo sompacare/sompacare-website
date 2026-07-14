@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Calendar,
   CheckCircle2,
+  Download,
   FileText,
   Mail,
   Send,
@@ -54,6 +55,23 @@ export default function CandidateDetailPage() {
       cancelled = true;
     };
   }, [api, id]);
+
+  async function downloadResume() {
+    setBusy("resume");
+    try {
+      const { url, fileName } = await api.getCandidateResume(id);
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.download = fileName;
+      link.click();
+    } catch {
+      // no resume available
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function run(action: string, fn: () => Promise<unknown>) {
     setBusy(action);
@@ -113,6 +131,19 @@ export default function CandidateDetailPage() {
             {candidate.email}
           </p>
           {candidate.phone && <p>{candidate.phone}</p>}
+          {candidate.source && (
+            <p>
+              Source: <span className="font-medium text-navy">{candidate.source}</span>
+              {candidate.sourceApplicationId && (
+                <span className="text-xs"> · ref {candidate.sourceApplicationId.slice(0, 8)}</span>
+              )}
+            </p>
+          )}
+          {candidate.worker && (
+            <p className="font-medium text-emerald-700">
+              Worker linked: {candidate.worker.firstName} {candidate.worker.lastName}
+            </p>
+          )}
           {candidate.facility?.name && <p>Facility: {candidate.facility.name}</p>}
           {candidate.matchScore != null && (
             <p className="font-semibold text-primary">Match score: {candidate.matchScore}%</p>
@@ -175,6 +206,22 @@ export default function CandidateDetailPage() {
       <Card>
         <CardContent className="space-y-3 p-4">
           <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Resume</h2>
+          {(candidate.resumeStorageKey || candidate.resumeFileName) && (
+            <p className="text-sm text-muted">
+              {candidate.resumeFileName ?? "Resume on file"}
+            </p>
+          )}
+          {(candidate.resumeStorageKey || candidate.resumeUrl) && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy === "resume"}
+              onClick={() => void downloadResume()}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {busy === "resume" ? "Loading…" : "Download resume"}
+            </Button>
+          )}
           {!candidate.resumeParsedAt && (
             <p className="text-sm text-muted">Not parsed yet — run AI parse to build a profile.</p>
           )}

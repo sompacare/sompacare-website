@@ -14,6 +14,7 @@ import {
   updateApplicationFiles,
   uploadApplicationFile,
 } from "@/lib/supabase/admin";
+import { ingestCareerApplicationToPlatform } from "@/lib/career-funnel";
 
 export const runtime = "nodejs";
 
@@ -156,6 +157,23 @@ export async function POST(request: Request) {
   if (!delivery.allOk) {
     console.error("Email delivery error:", delivery.staff.error ?? delivery.recipient.error);
   }
+
+  void ingestCareerApplicationToPlatform({
+    applicationId,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+    position: data.position,
+    positionLabel: getPositionLabel(data.position),
+    resumeUrl: resumePath,
+    resumeFileName: resumeFileName ?? resume.name,
+    licenseNumber: data.licenseNumber,
+    licenseState: data.licenseState,
+    experience: data.experience,
+    availability: data.availability,
+    referralCode: data.referralCode || undefined,
+  });
 
   return NextResponse.json({
     success: true,

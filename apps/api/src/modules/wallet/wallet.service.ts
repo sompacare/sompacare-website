@@ -231,4 +231,43 @@ export class WalletService {
       return { transaction, newBalance };
     });
   }
+
+  async creditReferralBonus(referrerId: string, referralId: string, amount: number) {
+    if (amount <= 0) {
+      throw new BadRequestException("Referral bonus must be positive");
+    }
+
+    const existing = await this.prisma.walletTransaction.findFirst({
+      where: { referenceId: referralId, type: TransactionType.REFERRAL },
+    });
+    if (existing) return { alreadyCredited: true, transaction: existing };
+
+    return this.prisma.$transaction(async (tx) => {
+      const wallet = await tx.wallet.upsert({
+        where: { userId: referrerId },
+        update: {},
+        create: { userId: referrerId, balance: 0 },
+      });
+
+      const newBalance = Number(wallet.balance) + amount;
+
+      const transaction = await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: TransactionType.REFERRAL,
+          amount,
+          balanceAfter: newBalance,
+          description: "Referral bonus",
+          referenceId: referralId,
+        },
+      });
+
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: newBalance },
+      });
+
+      return { alreadyCredited: false, transaction, newBalance };
+    });
+  }
 }

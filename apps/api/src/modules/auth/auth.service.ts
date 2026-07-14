@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Inject, forwardRef } from "@nestjs/common";
 
 import { ConfigService } from "@nestjs/config";
 
@@ -11,6 +11,7 @@ import { PrismaService } from "../../common/prisma/prisma.module";
 import { AuthenticatedUser } from "../../common/decorators";
 
 import { AuditService } from "../../common/audit/audit.service";
+import { CareersFunnelService } from "../careers/careers-funnel.service";
 
 
 
@@ -52,7 +53,10 @@ export class AuthService {
 
     private config: ConfigService,
 
-    private audit: AuditService
+    private audit: AuditService,
+
+    @Inject(forwardRef(() => CareersFunnelService))
+    private careerFunnel: CareersFunnelService
 
   ) {}
 
@@ -211,6 +215,10 @@ export class AuthService {
       entityId: created.id,
 
     });
+
+
+
+    void this.careerFunnel.linkWorkerFromClerkSignup(email, created.id);
 
 
 
@@ -397,6 +405,10 @@ export class AuthService {
       entityId: user.id,
 
     });
+
+
+
+    void this.careerFunnel.linkWorkerFromClerkSignup(email, user.id);
 
 
 

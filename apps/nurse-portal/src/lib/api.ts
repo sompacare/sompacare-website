@@ -268,5 +268,25 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       withAuth(`/notifications/${id}/read`, { method: "PATCH" }),
     markAllNotificationsRead: () =>
       withAuth("/notifications/read-all", { method: "POST" }),
+    getReferrals: () =>
+      withAuth<{
+        code: string;
+        referrerName: string;
+        careersUrl: string | null;
+        bonusAmount: number;
+        referrals: Array<{
+          id: string;
+          refereeEmail: string;
+          status: string;
+          bonusAmount?: string | number | null;
+          createdAt: string;
+          referee?: { firstName: string; lastName: string; email: string } | null;
+        }>;
+      }>("/referrals/me"),
+    inviteReferral: (email: string) =>
+      withAuth("/referrals/me/invite", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
   };
 }

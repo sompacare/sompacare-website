@@ -34,6 +34,9 @@
     "loadtest:shifts": "k6 run loadtests/shift-search.k6.js",
     "test:launch": "node scripts/test-m14-launch.mjs",
     "test:invoice-checkout": "node scripts/test-invoice-checkout.mjs",
+    "test:career-funnel": "node scripts/test-career-funnel.mjs",
+    "test:referrals-jobs": "node scripts/test-referrals-jobs.mjs",
+    "test:resume-sync": "node scripts/test-resume-sync.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"
   },

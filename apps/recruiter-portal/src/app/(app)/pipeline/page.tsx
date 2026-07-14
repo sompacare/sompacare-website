@@ -167,6 +167,9 @@ export default function PipelinePage() {
                             {c.firstName} {c.lastName}
                           </p>
                           <p className="text-xs text-muted">{c.clinicalRole}</p>
+                          {c.source === "careers" && (
+                            <p className="text-[10px] font-semibold uppercase text-primary">Careers</p>
+                          )}
                           {c.matchScore != null && (
                             <p className="text-xs text-primary">Match {c.matchScore}%</p>
                           )}
