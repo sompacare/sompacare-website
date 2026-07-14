@@ -32,7 +32,8 @@ COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/apps/api/docker-entrypoint.sh ./apps/api/docker-entrypoint.sh
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/package.json ./package.json
-RUN chmod +x /app/apps/api/docker-entrypoint.sh
+RUN chmod +x /app/apps/api/docker-entrypoint.sh \
+  && sed -i 's/\r$//' /app/apps/api/docker-entrypoint.sh
 WORKDIR /app/apps/api
 EXPOSE 4000
-ENTRYPOINT ["/app/apps/api/docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "/app/apps/api/docker-entrypoint.sh"]
