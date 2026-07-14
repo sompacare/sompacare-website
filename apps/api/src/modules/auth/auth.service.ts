@@ -1,3 +1,4 @@
+import { createClerkClient } from "@clerk/backend";
 import { Injectable, Logger, Inject, forwardRef } from "@nestjs/common";
 
 import { ConfigService } from "@nestjs/config";
@@ -162,71 +163,64 @@ export class AuthService {
 
 
   private async provisionUserFromClerkClaims(
-
     clerkId: string,
-
     payload: Record<string, unknown>
-
   ) {
+    const secretKey = this.config.get<string>("CLERK_SECRET_KEY");
+    if (!secretKey) return null;
 
-    const email =
-
+    let email =
       (payload.email as string | undefined) ??
-
       (payload.primary_email_address as string | undefined);
+    let firstName = (payload.first_name as string) ?? "New";
+    let lastName = (payload.last_name as string) ?? "User";
+    let avatarUrl = (payload.image_url as string) ?? undefined;
 
-
+    // Clerk session JWTs usually omit email — fetch the user profile from Clerk API.
+    if (!email) {
+      try {
+        const clerk = createClerkClient({ secretKey });
+        const clerkUser = await clerk.users.getUser(clerkId);
+        email =
+          clerkUser.emailAddresses.find(
+            (entry) => entry.id === clerkUser.primaryEmailAddressId
+          )?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress;
+        firstName = clerkUser.firstName ?? firstName;
+        lastName = clerkUser.lastName ?? lastName;
+        avatarUrl = clerkUser.imageUrl ?? avatarUrl;
+      } catch (error) {
+        this.logger.warn(
+          `Clerk user fetch failed for ${clerkId}: ${(error as Error).message}`
+        );
+        return null;
+      }
+    }
 
     if (!email) return null;
 
-
-
     const created = await this.prisma.user.create({
-
       data: {
-
         clerkId,
-
         email,
-
-        firstName: (payload.first_name as string) ?? "New",
-
-        lastName: (payload.last_name as string) ?? "User",
-
-        avatarUrl: (payload.image_url as string) ?? undefined,
-
+        firstName,
+        lastName,
+        avatarUrl,
         status: UserStatus.ACTIVE,
-
         emailVerified: true,
-
       },
-
       include: { roles: { include: { role: true } } },
-
     });
-
-
 
     await this.audit.log({
-
       userId: created.id,
-
       action: "user.provisioned_from_clerk",
-
       entityType: "User",
-
       entityId: created.id,
-
     });
-
-
 
     void this.careerFunnel.linkWorkerFromClerkSignup(email, created.id);
 
-
-
     return created;
-
   }
 
 

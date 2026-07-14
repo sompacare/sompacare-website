@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export function PortalConsentGate({ children }: Props) {
+  const { isLoaded, isSignedIn } = useAuth();
   const api = useApi();
   const [ready, setReady] = useState<boolean | null>(null);
   const [marketingUrl, setMarketingUrl] = useState("https://www.sompacare.com");
@@ -15,6 +17,8 @@ export function PortalConsentGate({ children }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
     let cancelled = false;
 
     async function load() {
@@ -33,9 +37,14 @@ export function PortalConsentGate({ children }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [api]);
+  }, [api, isLoaded, isSignedIn]);
 
   async function accept() {
+    if (!isLoaded || !isSignedIn) {
+      setError("Still signing you in. Please try again in a moment.");
+      return;
+    }
+
     setBusy(true);
     setError(null);
     try {
@@ -51,7 +60,7 @@ export function PortalConsentGate({ children }: Props) {
     }
   }
 
-  if (ready === null) {
+  if (!isLoaded || ready === null) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted">
         Loading…
