@@ -38,7 +38,7 @@ export default async function AdminApplicationsPage() {
       <AdminPageHeader
         badge="Talent Acquisition"
         title="Applications & Hiring Pipeline"
-        description="Review candidates, manage interview stages, and launch orientation packages for new hires."
+        description="Review careers applicants, mark placed (offer + onboarding), then hired (portal employee number)."
       />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -100,9 +100,23 @@ export default async function AdminApplicationsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    {app.status === "hired" ? (
-                      <span className={`text-xs font-semibold ${app.orientation_package_sent_at || app.onboarding_sent_at ? "text-brand-green" : "text-amber-700"}`}>
-                        {app.orientation_package_sent_at ? "Package sent" : app.onboarding_sent_at ? "Welcome sent" : "Pending"}
+                    {app.status === "placed" || app.status === "hired" ? (
+                      <span
+                        className={`text-xs font-semibold ${
+                          app.orientation_package_sent_at || app.onboarding_sent_at
+                            ? "text-brand-green"
+                            : "text-amber-700"
+                        }`}
+                      >
+                        {app.status === "hired"
+                          ? app.orientation_package_sent_at
+                            ? "Portal + package"
+                            : app.onboarding_sent_at
+                              ? "Portal invite sent"
+                              : "Pending portal"
+                          : app.onboarding_sent_at
+                            ? "Offer + onboarding sent"
+                            : "Pending onboarding"}
                       </span>
                     ) : (
                       <span className="text-xs text-brand-slate">—</span>

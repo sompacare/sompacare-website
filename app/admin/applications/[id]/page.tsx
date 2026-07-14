@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ApplicationStatusSelect } from "@/components/admin/ApplicationStatusSelect";
+import { HiringWorkflowPanel } from "@/components/admin/HiringWorkflowPanel";
 import { HireOrientationPanel } from "@/components/admin/HireOrientationPanel";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { normalizeHireDetails } from "@/lib/hire-orientation";
@@ -47,7 +47,7 @@ export default async function AdminApplicationDetailPage({
               Applied {new Date(application.created_at).toLocaleString("en-US")}
             </p>
           </div>
-          <ApplicationStatusSelect
+          <HiringWorkflowPanel
             applicationId={application.id}
             currentStatus={application.status}
             onboardingSentAt={application.onboarding_sent_at ?? null}
