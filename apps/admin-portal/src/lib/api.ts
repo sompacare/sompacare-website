@@ -214,8 +214,8 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         city: string;
         state: string;
         zipCode: string;
-        latitude: number;
-        longitude: number;
+        latitude?: number;
+        longitude?: number;
       };
     }) =>
       withAuth<{

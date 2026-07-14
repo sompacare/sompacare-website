@@ -10,11 +10,13 @@ import { ConfigService } from "@nestjs/config";
 import { FacilityInviteStatus, PlatformRole as DbPlatformRole } from "@sompacare/database";
 import { ADMIN_ROLES, PlatformRole } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
+import { GeocodingService } from "../../common/geocoding/geocoding.service";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { NotificationsService } from "../notifications/notifications.service";
 import type {
   AdminInviteFacilityManagerDto,
   FacilityLocationInputDto,
+  GeocodeAddressDto,
   SelfServiceFacilityOnboardingDto,
 } from "./dto/facility-onboarding.dto";
 
@@ -60,7 +62,8 @@ export class FacilityOnboardingService {
     private prisma: PrismaService,
     private config: ConfigService,
     private audit: AuditService,
-    private notifications: NotificationsService
+    private notifications: NotificationsService,
+    private geocoding: GeocodingService
   ) {}
 
   async getStatus(userId: string, email: string, roles: PlatformRole[]) {
@@ -102,6 +105,11 @@ export class FacilityOnboardingService {
       pendingInvite: null,
       isPlatformAdmin,
     };
+  }
+
+  async geocodeAddress(dto: GeocodeAddressDto) {
+    const result = await this.geocoding.geocode(dto);
+    return { data: result };
   }
 
   async selfService(userId: string, email: string, dto: SelfServiceFacilityOnboardingDto) {
@@ -368,6 +376,8 @@ export class FacilityOnboardingService {
   }
 
   private async createOrganizationAndFacility(dto: TenantSetupInput, contactEmail: string) {
+    const coords = await this.resolveLocationCoordinates(dto.location);
+
     return this.prisma.$transaction(async (tx) => {
       const orgSlug = await uniqueSlug(dto.organizationName, async (slug) =>
         Boolean(await tx.organization.findUnique({ where: { slug } }))
@@ -405,14 +415,35 @@ export class FacilityOnboardingService {
           city: dto.location.city.trim(),
           state: dto.location.state.trim().toUpperCase(),
           zipCode: dto.location.zipCode.trim(),
-          latitude: dto.location.latitude,
-          longitude: dto.location.longitude,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
           isPrimary: true,
         },
       });
 
       return { organization, facility, location };
     });
+  }
+
+  private async resolveLocationCoordinates(location: FacilityLocationInputDto) {
+    if (
+      location.latitude != null &&
+      location.longitude != null &&
+      Number.isFinite(location.latitude) &&
+      Number.isFinite(location.longitude)
+    ) {
+      return { latitude: location.latitude, longitude: location.longitude };
+    }
+
+    const result = await this.geocoding.geocode({
+      addressLine1: location.addressLine1,
+      addressLine2: location.addressLine2,
+      city: location.city,
+      state: location.state,
+      zipCode: location.zipCode,
+    });
+
+    return { latitude: result.latitude, longitude: result.longitude };
   }
 
   private async linkUserToOrganization(userId: string, organizationId: string) {

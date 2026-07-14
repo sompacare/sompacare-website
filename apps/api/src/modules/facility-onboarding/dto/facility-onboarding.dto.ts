@@ -57,15 +57,49 @@ export class FacilityLocationInputDto {
   @MaxLength(10)
   zipCode!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: "Optional — geocoded from address when omitted" })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  latitude!: number;
+  latitude?: number;
+
+  @ApiPropertyOptional({ description: "Optional — geocoded from address when omitted" })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
+}
+
+export class GeocodeAddressDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  addressLine1!: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  addressLine2?: string;
 
   @ApiProperty()
-  @Type(() => Number)
-  @IsNumber()
-  longitude!: number;
+  @IsString()
+  @MinLength(1)
+  @MaxLength(80)
+  city!: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(2)
+  state!: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(10)
+  zipCode!: string;
 }
 
 export class SelfServiceFacilityOnboardingDto {

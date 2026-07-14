@@ -208,14 +208,32 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         city: string;
         state: string;
         zipCode: string;
-        latitude: number;
-        longitude: number;
+        latitude?: number;
+        longitude?: number;
       };
     }) =>
       withAuth("/facility-onboarding/self-service", {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    geocodeFacilityAddress: (body: {
+      addressLine1: string;
+      addressLine2?: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    }) =>
+      withAuth<{
+        data: {
+          latitude: number;
+          longitude: number;
+          formattedAddress: string;
+          source: string;
+        };
+      }>("/facility-onboarding/geocode-address", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }).then((res) => res.data),
     acceptFacilityInvite: (token: string) =>
       withAuth<{ data: { facilityId: string; facilityName: string } }>(
         "/facility-onboarding/accept-invite",

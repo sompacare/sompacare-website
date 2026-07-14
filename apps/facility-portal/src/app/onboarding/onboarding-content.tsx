@@ -33,6 +33,12 @@ type InvitePreview = {
   } | null;
 };
 
+type GeocodedLocation = {
+  latitude: number;
+  longitude: number;
+  formattedAddress: string;
+};
+
 const emptyForm = {
   organizationName: "",
   facilityName: "",
@@ -45,8 +51,6 @@ const emptyForm = {
   city: "",
   state: "",
   zipCode: "",
-  latitude: "",
-  longitude: "",
 };
 
 export default function FacilityOnboardingPage() {
@@ -60,6 +64,7 @@ export default function FacilityOnboardingPage() {
   const [mode, setMode] = useState<"loading" | "invite" | "self_service">("loading");
   const [invitePreview, setInvitePreview] = useState<InvitePreview | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [geocoded, setGeocoded] = useState<GeocodedLocation | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -117,6 +122,15 @@ export default function FacilityOnboardingPage() {
 
   function updateField(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    if (
+      key === "addressLine1" ||
+      key === "addressLine2" ||
+      key === "city" ||
+      key === "state" ||
+      key === "zipCode"
+    ) {
+      setGeocoded(null);
+    }
   }
 
   async function handleAcceptInvite() {
@@ -138,23 +152,48 @@ export default function FacilityOnboardingPage() {
     }
   }
 
+  async function geocodeCurrentAddress() {
+    return api.geocodeFacilityAddress({
+      addressLine1: form.addressLine1.trim(),
+      addressLine2: form.addressLine2.trim() || undefined,
+      city: form.city.trim(),
+      state: form.state.trim().toUpperCase(),
+      zipCode: form.zipCode.trim(),
+    });
+  }
+
   async function handleSelfServiceSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (step < 3) {
-      setStep(step + 1);
+
+    if (step === 2) {
+      setBusy(true);
+      setError(null);
+      try {
+        const result = await geocodeCurrentAddress();
+        setGeocoded(result);
+        setStep(3);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setBusy(false);
+      }
       return;
     }
 
-    const lat = Number(form.latitude);
-    const lng = Number(form.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      setError("Enter valid latitude and longitude for clock-in geofencing.");
+    if (step < 3) {
+      setStep(step + 1);
       return;
     }
 
     setBusy(true);
     setError(null);
     try {
+      let coords = geocoded;
+      if (!coords) {
+        coords = await geocodeCurrentAddress();
+        setGeocoded(coords);
+      }
+
       await api.completeFacilitySelfServiceOnboarding({
         organizationName: form.organizationName.trim(),
         facilityName: form.facilityName.trim(),
@@ -168,8 +207,8 @@ export default function FacilityOnboardingPage() {
           city: form.city.trim(),
           state: form.state.trim().toUpperCase(),
           zipCode: form.zipCode.trim(),
-          latitude: lat,
-          longitude: lng,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
         },
       });
       router.replace("/home");
@@ -355,37 +394,15 @@ export default function FacilityOnboardingPage() {
                       onChange={(e) => updateField("zipCode", e.target.value)}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="latitude">Latitude</Label>
-                      <Input
-                        id="latitude"
-                        required
-                        value={form.latitude}
-                        onChange={(e) => updateField("latitude", e.target.value)}
-                        placeholder="39.2904"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="longitude">Longitude</Label>
-                      <Input
-                        id="longitude"
-                        required
-                        value={form.longitude}
-                        onChange={(e) => updateField("longitude", e.target.value)}
-                        placeholder="-76.6122"
-                      />
-                    </div>
-                  </div>
                   <p className="text-xs text-muted">
-                    Coordinates power nurse clock-in geofencing. Use Google Maps → right-click your
-                    building → copy coordinates.
+                    We use your address to set up nurse clock-in geofencing automatically — no
+                    coordinates needed.
                   </p>
                 </>
               )}
 
               {step === 3 && (
-                <div className="space-y-2 text-sm text-navy">
+                <div className="space-y-3 text-sm text-navy">
                   <p>
                     <span className="font-semibold">Organization:</span> {form.organizationName}
                   </p>
@@ -396,6 +413,15 @@ export default function FacilityOnboardingPage() {
                     <span className="font-semibold">Address:</span> {form.addressLine1},{" "}
                     {form.city}, {form.state} {form.zipCode}
                   </p>
+                  {geocoded && (
+                    <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 text-emerald-900">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                      <div>
+                        <p className="font-semibold">Geofence location verified</p>
+                        <p className="text-xs text-emerald-800">{geocoded.formattedAddress}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -403,12 +429,23 @@ export default function FacilityOnboardingPage() {
 
               <div className="flex gap-2 pt-2">
                 {step > 1 && (
-                  <Button type="button" variant="secondary" onClick={() => setStep(step - 1)}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setStep(step - 1)}
+                    disabled={busy}
+                  >
                     Back
                   </Button>
                 )}
                 <Button type="submit" className="flex-1" disabled={busy}>
-                  {busy ? "Saving…" : step === 3 ? "Create facility & continue" : "Continue"}
+                  {busy
+                    ? step === 2
+                      ? "Verifying address…"
+                      : "Saving…"
+                    : step === 3
+                      ? "Create facility & continue"
+                      : "Continue"}
                 </Button>
               </div>
             </CardContent>

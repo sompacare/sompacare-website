@@ -27,8 +27,6 @@ const emptyForm = {
   city: "",
   state: "",
   zipCode: "",
-  latitude: "",
-  longitude: "",
 };
 
 export default function InviteFacilityManagerPage() {
@@ -46,12 +44,6 @@ export default function InviteFacilityManagerPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const lat = Number(form.latitude);
-    const lng = Number(form.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      setError("Enter valid latitude and longitude.");
-      return;
-    }
 
     setBusy(true);
     setError(null);
@@ -68,8 +60,6 @@ export default function InviteFacilityManagerPage() {
           city: form.city.trim(),
           state: form.state.trim().toUpperCase(),
           zipCode: form.zipCode.trim(),
-          latitude: lat,
-          longitude: lng,
         },
       });
       setResult({
@@ -90,7 +80,7 @@ export default function InviteFacilityManagerPage() {
         <h1 className="text-2xl font-bold text-navy">Invite facility manager</h1>
         <p className="mt-1 text-sm text-muted">
           Creates the organization, facility, and location, then emails an onboarding link to the
-          manager.
+          manager. Geofence coordinates are resolved from the address automatically.
         </p>
       </section>
 
@@ -199,26 +189,6 @@ export default function InviteFacilityManagerPage() {
                   required
                   value={form.zipCode}
                   onChange={(e) => updateField("zipCode", e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <Label htmlFor="latitude">Latitude</Label>
-                <Input
-                  id="latitude"
-                  required
-                  value={form.latitude}
-                  onChange={(e) => updateField("latitude", e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="longitude">Longitude</Label>
-                <Input
-                  id="longitude"
-                  required
-                  value={form.longitude}
-                  onChange={(e) => updateField("longitude", e.target.value)}
                 />
               </div>
             </div>

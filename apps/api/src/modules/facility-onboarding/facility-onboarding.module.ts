@@ -9,10 +9,12 @@ import {
 import {
   AcceptFacilityInviteDto,
   AdminInviteFacilityManagerDto,
+  GeocodeAddressDto,
   SelfServiceFacilityOnboardingDto,
 } from "./dto/facility-onboarding.dto";
 import { FacilityOnboardingService } from "./facility-onboarding.service";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { GeocodingModule } from "../../common/geocoding/geocoding.module";
 
 @ApiTags("facility-onboarding")
 @Controller({ path: "facility-onboarding", version: "1" })
@@ -34,6 +36,13 @@ export class FacilityOnboardingController {
     @Body() dto: SelfServiceFacilityOnboardingDto
   ) {
     return this.onboarding.selfService(user.id, user.email, dto);
+  }
+
+  @Post("geocode-address")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Resolve geofence coordinates from a US address" })
+  geocodeAddress(@Body() dto: GeocodeAddressDto) {
+    return this.onboarding.geocodeAddress(dto);
   }
 
   @Get("invite")
@@ -74,7 +83,7 @@ export class FacilityOnboardingController {
 }
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, GeocodingModule],
   controllers: [FacilityOnboardingController],
   providers: [FacilityOnboardingService],
   exports: [FacilityOnboardingService],
