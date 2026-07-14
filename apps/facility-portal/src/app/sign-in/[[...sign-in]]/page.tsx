@@ -8,7 +8,7 @@ export default function SignInPage() {
         <Logo height={56} subtitle="Facility" />
         <p className="mt-4 text-sm text-muted">Sign in to manage shifts and staff</p>
       </div>
-      <SignIn />
+      <SignIn forceRedirectUrl="/home" signUpUrl="/sign-up" />
     </div>
   );
 }

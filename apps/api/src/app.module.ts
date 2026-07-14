@@ -35,6 +35,7 @@ import { MobileModule } from "./modules/mobile/mobile.module";
 import { ObservabilityModule } from "./modules/observability/observability.module";
 import { TenantModule } from "./common/tenant/tenant.module";
 import { LegalModule } from "./modules/legal/legal.module";
+import { FacilityOnboardingModule } from "./modules/facility-onboarding/facility-onboarding.module";
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { LegalModule } from "./modules/legal/legal.module";
     FacilitiesModule,
     ComplianceModule,
     LegalModule,
+    FacilityOnboardingModule,
     ShiftsModule,
     ApplicationsModule,
     AssignmentsModule,

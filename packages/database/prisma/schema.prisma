@@ -38,6 +38,13 @@ enum PlatformRole {
   FINANCE
 }
 
+enum FacilityInviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
 enum ShiftStatus {
   DRAFT
   PUBLISHED
@@ -272,6 +279,8 @@ model User {
   linkedCandidates    Candidate[]            @relation("CandidateWorker")
   jobPostingsCreated  JobPosting[]           @relation("JobPostingsCreated")
   consents            UserConsent[]
+  facilityInvitesSent     FacilityManagerInvite[] @relation("FacilityInviteInvitedBy")
+  facilityInvitesAccepted FacilityManagerInvite[] @relation("FacilityInviteAcceptedBy")
 
   @@index([email])
   @@index([status])
@@ -484,6 +493,7 @@ model Organization {
   teams      Team[]
   invoices   Invoice[]
   settings   OrganizationSetting[]
+  facilityManagerInvites FacilityManagerInvite[]
 
   @@map("organizations")
 }
@@ -541,9 +551,33 @@ model Facility {
   ratings         Rating[]
   invoices        Invoice[]
   candidates      Candidate[]
+  managerInvites  FacilityManagerInvite[]
 
   @@index([organizationId])
   @@map("facilities")
+}
+
+model FacilityManagerInvite {
+  id             String               @id @default(cuid())
+  token          String               @unique @default(cuid())
+  email          String
+  status         FacilityInviteStatus @default(PENDING)
+  organizationId String               @map("organization_id")
+  facilityId     String               @map("facility_id")
+  invitedById    String               @map("invited_by_id")
+  expiresAt      DateTime             @map("expires_at")
+  acceptedAt     DateTime?            @map("accepted_at")
+  acceptedById   String?              @map("accepted_by_id")
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  facility     Facility     @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation("FacilityInviteInvitedBy", fields: [invitedById], references: [id])
+  acceptedBy   User?        @relation("FacilityInviteAcceptedBy", fields: [acceptedById], references: [id])
+
+  @@index([email, status])
+  @@index([token])
+  @@map("facility_manager_invites")
 }
 
 model FacilityLocation {

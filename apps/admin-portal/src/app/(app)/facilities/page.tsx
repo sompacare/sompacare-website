@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,9 +37,17 @@ export default function FacilitiesPage() {
 
   return (
     <div className="space-y-6">
-      <section>
-        <h1 className="text-2xl font-bold text-navy">Facilities</h1>
-        <p className="mt-1 text-sm text-muted">Healthcare facilities on the platform</p>
+      <section className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">Facilities</h1>
+          <p className="mt-1 text-sm text-muted">Healthcare facilities on the platform</p>
+        </div>
+        <Link
+          href="/facilities/invite"
+          className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-white"
+        >
+          Invite manager
+        </Link>
       </section>
 
       {loading ? (

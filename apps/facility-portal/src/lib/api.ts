@@ -166,6 +166,64 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    getFacilityOnboardingStatus: () =>
+      withAuth<{
+        complete: boolean;
+        mode: "linked" | "invite" | "self_service";
+        pendingInvite: {
+          id: string;
+          token: string;
+          email: string;
+          facilityId: string;
+          organizationId: string;
+        } | null;
+      }>("/facility-onboarding/status"),
+    getFacilityInvitePreview: async (token: string) => {
+      const res = await apiFetch<{
+        data: {
+          organizationName: string;
+          facilityName: string;
+          facilityType: string;
+          location: {
+            name: string;
+            addressLine1: string;
+            city: string;
+            state: string;
+            zipCode: string;
+          } | null;
+        };
+      }>(`/facility-onboarding/invite?token=${encodeURIComponent(token)}`);
+      return res.data;
+    },
+    completeFacilitySelfServiceOnboarding: (body: {
+      organizationName: string;
+      facilityName: string;
+      facilityType: string;
+      facilityEmail?: string;
+      facilityPhone?: string;
+      location: {
+        name: string;
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        latitude: number;
+        longitude: number;
+      };
+    }) =>
+      withAuth("/facility-onboarding/self-service", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    acceptFacilityInvite: (token: string) =>
+      withAuth<{ data: { facilityId: string; facilityName: string } }>(
+        "/facility-onboarding/accept-invite",
+        {
+          method: "POST",
+          body: JSON.stringify({ token }),
+        }
+      ),
     getFacility: (id: string) => withAuth<{ data: Facility }>(`/facilities/${id}`),
     getShifts: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";

@@ -65,13 +65,15 @@ export default function HomePage() {
         <div className="space-y-3">
           <EmptyState
             icon={Building2}
-            title="Facility not linked"
-            description="Link your Clerk account as a facility manager to manage shifts and applicants."
+            title="Finish facility setup"
+            description="Complete onboarding to link your organization and start posting shifts."
           />
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            {facilityError} Run{" "}
-            <code className="rounded bg-amber-100 px-1">node scripts/link-facility-user.mjs --email YOUR_EMAIL</code>
-          </div>
+          <Link
+            href="/onboarding"
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-white"
+          >
+            Continue setup
+          </Link>
         </div>
       )}
 

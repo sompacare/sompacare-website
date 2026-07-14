@@ -203,5 +203,41 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    inviteFacilityManager: (body: {
+      email: string;
+      organizationName: string;
+      facilityName: string;
+      facilityType: string;
+      location: {
+        name: string;
+        addressLine1: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        latitude: number;
+        longitude: number;
+      };
+    }) =>
+      withAuth<{
+        data: {
+          onboardingUrl: string;
+          clerkInvited: boolean;
+        };
+      }>("/facility-onboarding/admin/invite", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }).then((res) => res.data),
+    listFacilityInvites: (params?: Record<string, string>) => {
+      const qs = params ? `?${new URLSearchParams(params)}` : "";
+      return withAuth<{
+        data: Array<{
+          id: string;
+          email: string;
+          status: string;
+          facility: { name: string };
+          organization: { name: string };
+        }>;
+      }>(`/facility-onboarding/admin/invites${qs}`);
+    },
   };
 }

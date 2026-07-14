@@ -14,6 +14,7 @@ import { AuthenticatedUser } from "../../common/decorators";
 import { AuditService } from "../../common/audit/audit.service";
 import { TenantService } from "../../common/tenant/tenant.service";
 import { CareersFunnelService } from "../careers/careers-funnel.service";
+import { FacilityOnboardingService } from "../facility-onboarding/facility-onboarding.service";
 
 
 
@@ -59,6 +60,9 @@ export class AuthService {
 
     @Inject(forwardRef(() => CareersFunnelService))
     private careerFunnel: CareersFunnelService,
+
+    @Inject(forwardRef(() => FacilityOnboardingService))
+    private facilityOnboarding: FacilityOnboardingService,
 
     private tenant: TenantService
 
@@ -219,6 +223,7 @@ export class AuthService {
     });
 
     void this.careerFunnel.linkWorkerFromClerkSignup(email, created.id);
+    void this.facilityOnboarding.linkPendingInviteFromSignup(email, created.id);
 
     return created;
   }
@@ -413,7 +418,7 @@ export class AuthService {
 
     void this.careerFunnel.linkWorkerFromClerkSignup(email, user.id);
 
-
+    void this.facilityOnboarding.linkPendingInviteFromSignup(email, user.id);
 
     return { synced: true, userId: user.id };
 
