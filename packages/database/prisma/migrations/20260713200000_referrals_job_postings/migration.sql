@@ -1,23 +1,31 @@
 -- Referral codes on workers + referral tracking fields
-ALTER TABLE "users" ADD COLUMN "referral_code" TEXT;
-CREATE UNIQUE INDEX "users_referral_code_key" ON "users"("referral_code");
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "referral_code" TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS "users_referral_code_key" ON "users"("referral_code");
 
-ALTER TABLE "candidates" ADD COLUMN "referral_code" TEXT;
+ALTER TABLE "candidates" ADD COLUMN IF NOT EXISTS "referral_code" TEXT;
 
-ALTER TABLE "referrals" ADD COLUMN "referral_code" TEXT;
-ALTER TABLE "referrals" ADD COLUMN "candidate_id" TEXT;
-ALTER TABLE "referrals" ADD COLUMN "qualified_at" TIMESTAMP(3);
+ALTER TABLE "referrals" ADD COLUMN IF NOT EXISTS "referral_code" TEXT;
+ALTER TABLE "referrals" ADD COLUMN IF NOT EXISTS "candidate_id" TEXT;
+ALTER TABLE "referrals" ADD COLUMN IF NOT EXISTS "qualified_at" TIMESTAMP(3);
 
-CREATE INDEX "referrals_referral_code_idx" ON "referrals"("referral_code");
-CREATE INDEX "referrals_referee_email_idx" ON "referrals"("referee_email");
+CREATE INDEX IF NOT EXISTS "referrals_referral_code_idx" ON "referrals"("referral_code");
+CREATE INDEX IF NOT EXISTS "referrals_referee_email_idx" ON "referrals"("referee_email");
 
-ALTER TABLE "referrals" ADD CONSTRAINT "referrals_candidate_id_fkey"
-  FOREIGN KEY ("candidate_id") REFERENCES "candidates"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "referrals" ADD CONSTRAINT "referrals_candidate_id_fkey"
+    FOREIGN KEY ("candidate_id") REFERENCES "candidates"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Job postings for dynamic careers page
-CREATE TYPE "JobPostingStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CLOSED');
+DO $$ BEGIN
+  CREATE TYPE "JobPostingStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'CLOSED');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE TABLE "job_postings" (
+CREATE TABLE IF NOT EXISTS "job_postings" (
   "id" TEXT NOT NULL,
   "slug" TEXT NOT NULL,
   "title" TEXT NOT NULL,
@@ -36,8 +44,12 @@ CREATE TABLE "job_postings" (
   CONSTRAINT "job_postings_pkey" PRIMARY KEY ("id")
 );
 
-CREATE UNIQUE INDEX "job_postings_slug_key" ON "job_postings"("slug");
-CREATE INDEX "job_postings_status_published_at_idx" ON "job_postings"("status", "published_at");
+CREATE UNIQUE INDEX IF NOT EXISTS "job_postings_slug_key" ON "job_postings"("slug");
+CREATE INDEX IF NOT EXISTS "job_postings_status_published_at_idx" ON "job_postings"("status", "published_at");
 
-ALTER TABLE "job_postings" ADD CONSTRAINT "job_postings_created_by_id_fkey"
-  FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "job_postings" ADD CONSTRAINT "job_postings_created_by_id_fkey"
+    FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
