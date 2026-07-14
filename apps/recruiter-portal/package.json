@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3003",
-    "build": "next build",
+    "build": "npm run build --workspace=@sompacare/shared && next build",
     "start": "next start",
     "lint": "next lint"
   },
