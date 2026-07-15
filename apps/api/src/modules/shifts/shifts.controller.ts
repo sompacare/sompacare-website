@@ -39,9 +39,9 @@ export class ShiftsController {
   findAll(@Query() query: ShiftQueryDto, @CurrentUser() user: AuthenticatedUser) {
     const isWorker = user.roles.some((r) => WORKER_ROLES.includes(r));
     if (isWorker && !query.facilityId) {
-      return this.shiftsService.findPublished(query);
+      return this.shiftsService.findPublished(query, user);
     }
-    return this.shiftsService.findAll(query);
+    return this.shiftsService.findAll(query, user);
   }
 
   @Get(":id/matches")
@@ -54,8 +54,8 @@ export class ShiftsController {
   @Get(":id")
   @RequirePermissions("shifts:read")
   @ApiOperation({ summary: "Get shift by ID" })
-  findOne(@Param("id") id: string) {
-    return this.shiftsService.findOne(id);
+  findOne(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.shiftsService.findOne(id, user);
   }
 
   @Post()
@@ -68,22 +68,30 @@ export class ShiftsController {
   @Patch(":id")
   @RequirePermissions("shifts:write")
   @ApiOperation({ summary: "Update a shift" })
-  update(@Param("id") id: string, @Body() dto: UpdateShiftDto) {
-    return this.shiftsService.update(id, dto);
+  update(
+    @Param("id") id: string,
+    @Body() dto: UpdateShiftDto,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.shiftsService.update(id, dto, user);
   }
 
   @Post(":id/publish")
   @RequirePermissions("shifts:publish")
   @ApiOperation({ summary: "Publish a draft shift" })
-  publish(@Param("id") id: string) {
-    return this.shiftsService.publish(id);
+  publish(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.shiftsService.publish(id, user);
   }
 
   @Delete(":id")
   @RequirePermissions("shifts:delete")
   @ApiOperation({ summary: "Cancel a shift" })
-  cancel(@Param("id") id: string, @Body("reason") reason?: string) {
-    return this.shiftsService.cancel(id, reason);
+  cancel(
+    @Param("id") id: string,
+    @Body("reason") reason: string | undefined,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.shiftsService.cancel(id, reason, user);
   }
 
   @Post(":id/applications")

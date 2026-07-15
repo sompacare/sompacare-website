@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getDefaultBillRateForRole } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
 import { useFacility } from "@/hooks/use-facility";
 import { Button } from "@/components/ui/button";
@@ -11,20 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const ROLES = ["RN", "LPN", "CNA", "GNA", "CMA", "MED_TECH"] as const;
 const SHIFT_TYPES = ["PER_DIEM", "CONTRACT", "TRAVEL", "EMERGENCY", "PERMANENT"] as const;
-
-const ROLE_MARKUP: Record<string, number> = {
-  RN: 0.25,
-  LPN: 0.27,
-  CNA: 0.3,
-  GNA: 0.3,
-  CMA: 0.28,
-  MED_TECH: 0.3,
-};
-
-function estimatedBillRate(payRate: number, role: string) {
-  const markup = ROLE_MARKUP[role] ?? 0.27;
-  return Math.round(Math.max(payRate * (1 + markup), payRate + 4) * 100) / 100;
-}
 
 function defaultStartTime() {
   const d = new Date();
@@ -55,11 +42,19 @@ export default function NewShiftPage() {
     description: "Experienced clinician needed. BLS required.",
     role: "RN",
     shiftType: "PER_DIEM",
-    payRate: "45",
+    billRate: String(getDefaultBillRateForRole("RN")),
     startTime: defaultStartTime(),
     endTime: defaultEndTime(),
     slotsTotal: "1",
   });
+
+  function updateRole(role: string) {
+    setForm((current) => ({
+      ...current,
+      role,
+      billRate: String(getDefaultBillRateForRole(role)),
+    }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +73,7 @@ export default function NewShiftPage() {
         description: form.description,
         role: form.role,
         shiftType: form.shiftType,
-        payRate: Number(form.payRate),
+        billRate: Number(form.billRate),
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
         slotsTotal: Number(form.slotsTotal),
@@ -162,7 +157,7 @@ export default function NewShiftPage() {
                 <Select
                   id="role"
                   value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
+                  onChange={(e) => updateRole(e.target.value)}
                 >
                   {ROLES.map((r) => (
                     <option key={r} value={r}>
@@ -185,31 +180,20 @@ export default function NewShiftPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="payRate">Clinician pay rate ($/hr)</Label>
-                <Input
-                  id="payRate"
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={form.payRate}
-                  onChange={(e) => setForm({ ...form, payRate: e.target.value })}
-                  required
-                />
-                <p className="mt-1 text-xs text-muted">
-                  Nurses see this rate in the marketplace.
-                </p>
-              </div>
-              <div>
-                <Label>Your bill rate ($/hr)</Label>
-                <p className="mt-2 text-2xl font-bold text-navy">
-                  ${estimatedBillRate(Number(form.payRate) || 0, form.role).toFixed(2)}
-                </p>
-                <p className="mt-1 text-xs text-muted">
-                  Includes Sompacare platform margin for {form.role}.
-                </p>
-              </div>
+            <div>
+              <Label htmlFor="billRate">Your bill rate ($/hr)</Label>
+              <Input
+                id="billRate"
+                type="number"
+                min="0"
+                step="0.5"
+                value={form.billRate}
+                onChange={(e) => setForm({ ...form, billRate: e.target.value })}
+                required
+              />
+              <p className="mt-1 text-xs text-muted">
+                This is the hourly rate your facility pays Sompacare for this {form.role} shift.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

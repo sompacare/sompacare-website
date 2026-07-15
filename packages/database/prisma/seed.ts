@@ -302,7 +302,7 @@ async function seedDemoData() {
         shiftType: ShiftType.PER_DIEM,
         status: "PUBLISHED",
         payRate: 45,
-        billRate: 56.25,
+        billRate: 55,
         hourlyRate: 45,
         startTime: new Date(Date.now() + 86400000 * 2),
         endTime: new Date(Date.now() + 86400000 * 2 + 43200000),

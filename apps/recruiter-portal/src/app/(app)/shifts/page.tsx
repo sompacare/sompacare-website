@@ -89,7 +89,7 @@ export default function RecruiterShiftsPage() {
                     <h3 className="mt-2 font-bold text-navy">{shift.title}</h3>
                   </div>
                   <p className="text-sm font-bold text-navy">
-                    ${Number(shift.payRate ?? shift.hourlyRate).toFixed(0)}/hr
+                    ${Number(shift.billRate ?? shift.hourlyRate).toFixed(0)}/hr bill
                   </p>
                 </div>
                 <div className="mt-3 space-y-1 text-sm text-muted">

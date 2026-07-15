@@ -121,9 +121,6 @@ export default function ShiftDetailPage() {
             {formatCurrency(Number(shift.billRate ?? shift.hourlyRate))}
             <span className="text-sm font-medium text-muted">/hr bill</span>
           </p>
-          <p className="text-sm text-muted">
-            Clinician pay {formatCurrency(Number(shift.payRate ?? shift.hourlyRate))}/hr
-          </p>
           <div className="mt-4 space-y-2 text-sm text-muted">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />

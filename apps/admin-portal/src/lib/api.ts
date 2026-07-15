@@ -302,7 +302,7 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       description?: string;
       role: string;
       shiftType: string;
-      payRate: number;
+      billRate: number;
       startTime: string;
       endTime: string;
       slotsTotal?: number;

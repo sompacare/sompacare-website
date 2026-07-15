@@ -111,7 +111,7 @@ export default function AdminShiftsPage() {
                     </div>
                     <div className="text-right text-sm">
                       <p className="font-bold text-navy">
-                        ${Number(shift.payRate ?? shift.hourlyRate).toFixed(2)}/hr pay
+                        ${Number(shift.billRate ?? shift.hourlyRate).toFixed(2)}/hr bill
                       </p>
                       <p className="text-muted">
                         {shift.slotsFilled}/{shift.slotsTotal} filled ·{" "}

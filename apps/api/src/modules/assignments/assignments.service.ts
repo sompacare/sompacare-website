@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { AssignmentStatus, Prisma, ShiftStatus } from "@sompacare/database";
+import { sanitizeShiftRatesForRoles, type PlatformRole, type ShiftRateFields } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { paginate, paginationMeta } from "../../common/decorators";
 import { PrismaService } from "../../common/prisma/prisma.module";
@@ -55,7 +56,7 @@ export class AssignmentsService {
     private audit: AuditService
   ) {}
 
-  async findAll(query: AssignmentQueryDto) {
+  async findAll(query: AssignmentQueryDto, viewerRoles?: PlatformRole[]) {
     const { take, skip } = paginate(query.page, query.limit);
     const where: Prisma.ShiftAssignmentWhereInput = {};
 
@@ -78,12 +79,17 @@ export class AssignmentsService {
     ]);
 
     return {
-      data,
+      data: data.map((row) => this.sanitizeAssignment(row, viewerRoles)),
       meta: paginationMeta(total, query.page ?? 1, take),
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, viewerRoles?: PlatformRole[]) {
+    const assignment = await this.getById(id);
+    return this.sanitizeAssignment(assignment, viewerRoles);
+  }
+
+  private async getById(id: string) {
     const assignment = await this.prisma.shiftAssignment.findUnique({
       where: { id },
       include: assignmentInclude,
@@ -92,8 +98,8 @@ export class AssignmentsService {
     return assignment;
   }
 
-  async confirm(id: string, workerId: string) {
-    const assignment = await this.findOne(id);
+  async confirm(id: string, workerId: string, viewerRoles?: PlatformRole[]) {
+    const assignment = await this.getById(id);
 
     if (assignment.workerId !== workerId) {
       throw new ForbiddenException("Only the assigned worker can confirm this shift");
@@ -142,11 +148,11 @@ export class AssignmentsService {
       entityId: id,
     });
 
-    return result;
+    return this.sanitizeAssignment(result, viewerRoles);
   }
 
-  async cancel(id: string, actorId: string, reason?: string) {
-    const assignment = await this.findOne(id);
+  async cancel(id: string, actorId: string, reason?: string, viewerRoles?: PlatformRole[]) {
+    const assignment = await this.getById(id);
 
     if (
       assignment.status === AssignmentStatus.CANCELLED ||
@@ -200,6 +206,17 @@ export class AssignmentsService {
       changes: { reason },
     });
 
-    return result;
+    return this.sanitizeAssignment(result, viewerRoles);
+  }
+
+  private sanitizeAssignment<T extends { shift: ShiftRateFields }>(
+    assignment: T,
+    viewerRoles?: PlatformRole[]
+  ): T {
+    if (!viewerRoles?.length) return assignment;
+    return {
+      ...assignment,
+      shift: sanitizeShiftRatesForRoles(assignment.shift, viewerRoles),
+    };
   }
 }

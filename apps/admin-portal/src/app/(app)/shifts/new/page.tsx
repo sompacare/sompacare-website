@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { getDefaultBillRateForRole } from "@sompacare/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
@@ -59,7 +59,7 @@ export default function AdminNewShiftPage() {
     description: "Assist with ADLs, vitals, and companionship per care plan.",
     role: "CNA",
     shiftType: "PER_DIEM",
-    payRate: "28",
+    billRate: String(getDefaultBillRateForRole("CNA")),
     startTime: defaultStartTime(),
     endTime: defaultEndTime(),
     slotsTotal: "1",
@@ -111,7 +111,7 @@ export default function AdminNewShiftPage() {
         description: shift.description,
         role: shift.role,
         shiftType: shift.shiftType,
-        payRate: Number(shift.payRate),
+        billRate: Number(shift.billRate),
         startTime: new Date(shift.startTime).toISOString(),
         endTime: new Date(shift.endTime).toISOString(),
         slotsTotal: Number(shift.slotsTotal),
@@ -368,7 +368,14 @@ export default function AdminNewShiftPage() {
                 <Select
                   id="role"
                   value={shift.role}
-                  onChange={(e) => setShift({ ...shift, role: e.target.value })}
+                  onChange={(e) => {
+                    const role = e.target.value;
+                    setShift({
+                      ...shift,
+                      role,
+                      billRate: String(getDefaultBillRateForRole(role)),
+                    });
+                  }}
                 >
                   {ROLES.map((r) => (
                     <option key={r} value={r}>
@@ -395,14 +402,14 @@ export default function AdminNewShiftPage() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label htmlFor="payRate">Pay rate ($/hr)</Label>
+                <Label htmlFor="billRate">Bill rate ($/hr)</Label>
                 <Input
-                  id="payRate"
+                  id="billRate"
                   type="number"
                   min="0"
                   step="0.5"
-                  value={shift.payRate}
-                  onChange={(e) => setShift({ ...shift, payRate: e.target.value })}
+                  value={shift.billRate}
+                  onChange={(e) => setShift({ ...shift, billRate: e.target.value })}
                   required
                 />
               </div>

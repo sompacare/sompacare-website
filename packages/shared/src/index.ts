@@ -5,6 +5,8 @@ export * from "./careers/funnel";
 export * from "./referrals/referral";
 export * from "./legal";
 export * from "./billing/margin";
+export * from "./billing/role-rates";
+export * from "./billing/shift-visibility";
 export * from "./compliance/evaluate-compliance";
 export * from "./compliance/expiry";
 export * from "./geofence/distance";

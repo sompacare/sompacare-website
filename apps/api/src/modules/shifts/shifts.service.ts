@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { resolveShiftRates } from "@sompacare/shared";
+import { FACILITY_ROLES, resolveShiftRates, sanitizeShiftRatesForRoles } from "@sompacare/shared";
 import { Prisma, ShiftStatus } from "@sompacare/database";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { paginate, paginationMeta, type AuthenticatedUser } from "../../common/decorators";
@@ -35,18 +35,14 @@ export class ShiftsService {
     this.tenant.assertFacilityAccess(user.tenant, dto.facilityId);
     const locationId = await this.resolveLocationId(dto.facilityId, dto.locationId, dto.location);
 
-    const payRateInput = dto.payRate ?? dto.hourlyRate;
-    if (payRateInput == null || payRateInput < 0) {
-      throw new BadRequestException("payRate (or hourlyRate) is required");
-    }
-
+    const isFacilityPoster = user.roles.some((r) => FACILITY_ROLES.includes(r));
     const rates = resolveShiftRates({
-      payRate: payRateInput,
       role: dto.role,
       billRate: dto.billRate,
+      payRate: isFacilityPoster ? undefined : (dto.payRate ?? dto.hourlyRate),
     });
 
-    return this.prisma.shift.create({
+    const created = await this.prisma.shift.create({
       data: {
         facilityId: dto.facilityId,
         locationId,
@@ -69,9 +65,11 @@ export class ShiftsService {
       },
       include: { facility: true, location: true },
     });
+
+    return this.sanitizeShift(created, user);
   }
 
-  async findAll(query: ShiftQueryDto) {
+  async findAll(query: ShiftQueryDto, user?: AuthenticatedUser) {
     const { take, skip } = paginate(query.page, query.limit);
     const where: Prisma.ShiftWhereInput = {};
 
@@ -95,16 +93,16 @@ export class ShiftsService {
     ]);
 
     return {
-      data,
+      data: data.map((shift) => this.sanitizeShift(shift, user)),
       meta: paginationMeta(total, query.page ?? 1, take),
     };
   }
 
-  async findPublished(query: ShiftQueryDto) {
-    return this.findAll({ ...query, status: ShiftStatus.PUBLISHED });
+  async findPublished(query: ShiftQueryDto, user?: AuthenticatedUser) {
+    return this.findAll({ ...query, status: ShiftStatus.PUBLISHED }, user);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: AuthenticatedUser) {
     const shift = await this.prisma.shift.findUnique({
       where: { id },
       include: {
@@ -118,22 +116,22 @@ export class ShiftsService {
       },
     });
     if (!shift) throw new NotFoundException("Shift not found");
-    return shift;
+    return this.sanitizeShift(shift, user);
   }
 
-  async update(id: string, dto: UpdateShiftDto) {
+  async update(id: string, dto: UpdateShiftDto, user?: AuthenticatedUser) {
     const existing = await this.findOne(id);
-    const payRateInput = dto.payRate ?? dto.hourlyRate;
+    const isFacilityEditor = user?.roles.some((r) => FACILITY_ROLES.includes(r));
     const rateUpdate =
-      payRateInput != null
+      dto.billRate != null || dto.payRate != null || dto.hourlyRate != null
         ? resolveShiftRates({
-            payRate: payRateInput,
             role: existing.role,
             billRate: dto.billRate,
+            payRate: isFacilityEditor ? undefined : (dto.payRate ?? dto.hourlyRate),
           })
         : null;
 
-    return this.prisma.shift.update({
+    const updated = await this.prisma.shift.update({
       where: { id },
       data: {
         title: dto.title,
@@ -146,10 +144,16 @@ export class ShiftsService {
       },
       include: { facility: true, location: true },
     });
+
+    return this.sanitizeShift(updated, user);
   }
 
-  async publish(id: string) {
-    const shift = await this.findOne(id);
+  async publish(id: string, user?: AuthenticatedUser) {
+    const shift = await this.prisma.shift.findUnique({
+      where: { id },
+      include: { facility: true, location: true },
+    });
+    if (!shift) throw new NotFoundException("Shift not found");
     if (shift.status !== ShiftStatus.DRAFT) {
       throw new BadRequestException("Only draft shifts can be published");
     }
@@ -203,26 +207,47 @@ export class ShiftsService {
       });
     }
 
-    return updated;
+    return this.sanitizeShift(updated, user);
   }
 
-  async cancel(id: string, reason?: string) {
-    const shift = await this.findOne(id);
+  async cancel(id: string, reason?: string, user?: AuthenticatedUser) {
+    const shift = await this.prisma.shift.findUnique({
+      where: { id },
+      include: { facility: true, location: true },
+    });
+    if (!shift) throw new NotFoundException("Shift not found");
     if (shift.status === ShiftStatus.CANCELLED) {
       throw new BadRequestException("Shift is already cancelled");
     }
-    return this.prisma.shift.update({
+    return this.sanitizeShift(
+      await this.prisma.shift.update({
       where: { id },
       data: {
         status: ShiftStatus.CANCELLED,
         cancelledAt: new Date(),
         cancelReason: reason,
       },
-    });
+      include: { facility: true, location: true },
+    }),
+      user
+    );
   }
 
   async apply(shiftId: string, applicantId: string, dto: ApplyShiftDto) {
-    const shift = await this.findOne(shiftId);
+    const shiftRecord = await this.prisma.shift.findUnique({
+      where: { id: shiftId },
+      include: {
+        facility: true,
+        location: true,
+        applications: {
+          include: {
+            applicant: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
+          },
+        },
+      },
+    });
+    if (!shiftRecord) throw new NotFoundException("Shift not found");
+    const shift = shiftRecord;
     if (shift.status !== ShiftStatus.PUBLISHED) {
       throw new BadRequestException("Shift is not open for applications");
     }
@@ -326,5 +351,13 @@ export class ShiftsService {
     });
 
     return created.id;
+  }
+
+  private sanitizeShift<T extends { payRate?: unknown; billRate?: unknown; hourlyRate?: unknown }>(
+    shift: T,
+    user?: AuthenticatedUser
+  ): T {
+    if (!user) return shift;
+    return sanitizeShiftRatesForRoles(shift, user.roles);
   }
 }

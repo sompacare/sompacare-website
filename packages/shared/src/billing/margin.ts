@@ -1,4 +1,5 @@
 import { calculateTimecardTotals } from "../payroll/calculate";
+import { getStandardRatesForRole } from "./role-rates";
 
 /**
  * Competitive per-shift markup for healthcare staffing (2025–2026 market).
@@ -20,7 +21,7 @@ export const ROLE_MARKUP_RATES: Record<string, number> = {
 export const MIN_HOURLY_SPREAD = 4;
 
 export type ShiftRateInput = {
-  payRate: number;
+  payRate?: number;
   role?: string;
   billRate?: number;
 };
@@ -45,12 +46,17 @@ export function calculateBillRate(payRate: number, role?: string): number {
 }
 
 export function resolveShiftRates(input: ShiftRateInput): ResolvedShiftRates {
-  const payRate = Math.round(Math.max(0, input.payRate) * 100) / 100;
-  const markupRate = getMarkupRateForRole(input.role);
+  const standard = getStandardRatesForRole(input.role);
+  const payRate =
+    input.payRate != null && input.payRate >= 0
+      ? Math.round(Math.max(0, input.payRate) * 100) / 100
+      : standard.payRate;
   const billRate =
     input.billRate != null && input.billRate >= payRate
       ? Math.round(input.billRate * 100) / 100
-      : calculateBillRate(payRate, input.role);
+      : standard.billRate;
+
+  const markupRate = getMarkupRateForRole(input.role);
 
   return {
     payRate,

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { WORKER_ROLES } from "@sompacare/shared";
+import { sanitizeShiftRatesForRoles, type PlatformRole, WORKER_ROLES } from "@sompacare/shared";
 import {
   AuthenticatedUser,
   CurrentUser,
@@ -23,21 +23,21 @@ export class ApplicationsController {
     if (isWorker) {
       query.applicantId = user.id;
     }
-    return this.applicationsService.findAll(query);
+    return this.applicationsService.findAll(query, user.roles);
   }
 
   @Get(":id")
   @RequirePermissions("applications:read")
   @ApiOperation({ summary: "Get application by ID" })
-  findOne(@Param("id") id: string) {
-    return this.applicationsService.findOne(id);
+  findOne(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.applicationsService.findOne(id, user.roles);
   }
 
   @Post(":id/approve")
   @RequirePermissions("applications:write")
   @ApiOperation({ summary: "Approve a shift application and create assignment" })
   approve(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.applicationsService.approve(id, user.id);
+    return this.applicationsService.approve(id, user.id, user.roles);
   }
 
   @Post(":id/reject")
@@ -48,13 +48,13 @@ export class ApplicationsController {
     @Body() dto: RejectApplicationDto,
     @CurrentUser() user: AuthenticatedUser
   ) {
-    return this.applicationsService.reject(id, user.id, dto.reason);
+    return this.applicationsService.reject(id, user.id, dto.reason, user.roles);
   }
 
   @Post(":id/withdraw")
   @RequirePermissions("applications:write")
   @ApiOperation({ summary: "Withdraw own pending application" })
   withdraw(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.applicationsService.withdraw(id, user.id);
+    return this.applicationsService.withdraw(id, user.id, user.roles);
   }
 }

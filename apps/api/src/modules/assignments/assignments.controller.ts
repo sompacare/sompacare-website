@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { WORKER_ROLES } from "@sompacare/shared";
+import { sanitizeShiftRatesForRoles, WORKER_ROLES } from "@sompacare/shared";
 import {
   AuthenticatedUser,
   CurrentUser,
@@ -23,21 +23,21 @@ export class AssignmentsController {
     if (isWorker) {
       query.workerId = user.id;
     }
-    return this.assignmentsService.findAll(query);
+    return this.assignmentsService.findAll(query, user.roles);
   }
 
   @Get(":id")
   @RequirePermissions("assignments:read")
   @ApiOperation({ summary: "Get assignment by ID" })
-  findOne(@Param("id") id: string) {
-    return this.assignmentsService.findOne(id);
+  findOne(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.assignmentsService.findOne(id, user.roles);
   }
 
   @Post(":id/confirm")
   @RequirePermissions("assignments:confirm")
   @ApiOperation({ summary: "Worker confirms an approved assignment" })
   confirm(@Param("id") id: string, @CurrentUser() user: AuthenticatedUser) {
-    return this.assignmentsService.confirm(id, user.id);
+    return this.assignmentsService.confirm(id, user.id, user.roles);
   }
 
   @Patch(":id/cancel")
@@ -48,6 +48,6 @@ export class AssignmentsController {
     @Body() dto: CancelAssignmentDto,
     @CurrentUser() user: AuthenticatedUser
   ) {
-    return this.assignmentsService.cancel(id, user.id, dto.reason);
+    return this.assignmentsService.cancel(id, user.id, dto.reason, user.roles);
   }
 }

@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ApplicationStatus, AssignmentStatus, Prisma, ShiftStatus } from "@sompacare/database";
+import { sanitizeShiftRatesForRoles, type PlatformRole, type ShiftRateFields } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { paginate, paginationMeta } from "../../common/decorators";
@@ -39,7 +40,7 @@ export class ApplicationsService {
     private notifications: NotificationsService
   ) {}
 
-  async findAll(query: ApplicationQueryDto) {
+  async findAll(query: ApplicationQueryDto, viewerRoles?: PlatformRole[]) {
     const { take, skip } = paginate(query.page, query.limit);
     const where: Prisma.ShiftApplicationWhereInput = {};
 
@@ -62,12 +63,17 @@ export class ApplicationsService {
     ]);
 
     return {
-      data,
+      data: data.map((row) => this.sanitizeApplication(row, viewerRoles)),
       meta: paginationMeta(total, query.page ?? 1, take),
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, viewerRoles?: PlatformRole[]) {
+    const application = await this.getById(id);
+    return this.sanitizeApplication(application, viewerRoles);
+  }
+
+  private async getById(id: string) {
     const application = await this.prisma.shiftApplication.findUnique({
       where: { id },
       include: applicationInclude,
@@ -76,8 +82,8 @@ export class ApplicationsService {
     return application;
   }
 
-  async approve(id: string, reviewerId: string) {
-    const application = await this.findOne(id);
+  async approve(id: string, reviewerId: string, viewerRoles?: PlatformRole[]) {
+    const application = await this.getById(id);
 
     if (application.status !== ApplicationStatus.PENDING) {
       throw new BadRequestException("Only pending applications can be approved");
@@ -142,11 +148,14 @@ export class ApplicationsService {
       result.assignment.id
     );
 
-    return result;
+    return {
+      application: this.sanitizeApplication(result.application, viewerRoles),
+      assignment: result.assignment,
+    };
   }
 
-  async reject(id: string, reviewerId: string, reason: string) {
-    const application = await this.findOne(id);
+  async reject(id: string, reviewerId: string, reason: string, viewerRoles?: PlatformRole[]) {
+    const application = await this.getById(id);
 
     if (application.status !== ApplicationStatus.PENDING) {
       throw new BadRequestException("Only pending applications can be rejected");
@@ -171,11 +180,11 @@ export class ApplicationsService {
       changes: { reason },
     });
 
-    return updated;
+    return this.sanitizeApplication(updated, viewerRoles);
   }
 
-  async withdraw(id: string, applicantId: string) {
-    const application = await this.findOne(id);
+  async withdraw(id: string, applicantId: string, viewerRoles?: PlatformRole[]) {
+    const application = await this.getById(id);
 
     if (application.applicantId !== applicantId) {
       throw new ForbiddenException("You can only withdraw your own application");
@@ -198,6 +207,17 @@ export class ApplicationsService {
       entityId: id,
     });
 
-    return updated;
+    return this.sanitizeApplication(updated, viewerRoles);
+  }
+
+  private sanitizeApplication<T extends { shift: ShiftRateFields }>(
+    application: T,
+    viewerRoles?: PlatformRole[]
+  ): T {
+    if (!viewerRoles?.length) return application;
+    return {
+      ...application,
+      shift: sanitizeShiftRatesForRoles(application.shift, viewerRoles),
+    };
   }
 }

@@ -82,7 +82,6 @@ export default function ShiftsPage() {
           {shifts.map((shift) => {
             const { date, time } = formatShiftTime(shift.startTime, shift.endTime);
             const billRate = Number(shift.billRate ?? shift.hourlyRate);
-            const payRate = Number(shift.payRate ?? shift.hourlyRate);
             return (
               <Link key={shift.id} href={`/shifts/${shift.id}`}>
                 <Card className="transition-shadow hover:shadow-md">
@@ -100,7 +99,6 @@ export default function ShiftsPage() {
                         {formatCurrency(billRate)}
                         <span className="text-xs font-medium text-muted">/hr bill</span>
                       </p>
-                      <p className="text-xs text-muted">Pay {formatCurrency(payRate)}/hr</p>
                     </div>
                   </div>
                   <div className="mt-3 space-y-1 text-sm text-muted">

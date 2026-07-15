@@ -52,19 +52,19 @@ export class CreateShiftDto {
   @IsEnum(ShiftType)
   shiftType!: ShiftType;
 
-  @ApiPropertyOptional({ description: "Clinician pay rate (alias: hourlyRate)" })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  payRate?: number;
-
-  @ApiPropertyOptional({ description: "Facility bill rate (auto-calculated from payRate if omitted)" })
+  @ApiPropertyOptional({ description: "Facility bill rate (defaults by role when omitted)" })
   @IsOptional()
   @IsNumber()
   @Min(0)
   billRate?: number;
 
-  @ApiProperty({ description: "Clinician pay rate (legacy alias for payRate)" })
+  @ApiPropertyOptional({ description: "Clinician pay rate — internal/admin only; facilities use billRate" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  payRate?: number;
+
+  @ApiPropertyOptional({ description: "Legacy alias for payRate" })
   @IsOptional()
   @IsNumber()
   @Min(0)
