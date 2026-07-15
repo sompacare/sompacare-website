@@ -11,7 +11,7 @@ services:
   - type: web
     name: sompacare-api
     runtime: docker
-    plan: starter
+    plan: pro
     branch: platform
     dockerfilePath: ./apps/api/Dockerfile
     healthCheckPath: /api/v1/health
@@ -88,7 +88,7 @@ services:
   - type: web
     name: sompacare-nurse
     runtime: node
-    plan: starter
+    plan: pro
     branch: platform
     buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/nurse-portal
     startCommand: npm run start --workspace=@sompacare/nurse-portal
@@ -104,7 +104,7 @@ services:
   - type: web
     name: sompacare-facility
     runtime: node
-    plan: starter
+    plan: pro
     branch: platform
     buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
@@ -120,7 +120,7 @@ services:
   - type: web
     name: sompacare-recruiter
     runtime: node
-    plan: starter
+    plan: pro
     branch: platform
     buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/recruiter-portal
     startCommand: npm run start --workspace=@sompacare/recruiter-portal
@@ -134,7 +134,7 @@ services:
   - type: web
     name: sompacare-admin
     runtime: node
-    plan: starter
+    plan: pro
     branch: platform
     buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/admin-portal
     startCommand: npm run start --workspace=@sompacare/admin-portal
@@ -147,5 +147,5 @@ services:
 
 databases:
   - name: sompacare-db
-    plan: starter
+    plan: pro
     databaseName: sompacare_platform
