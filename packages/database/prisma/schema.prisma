@@ -541,6 +541,7 @@ model Facility {
   rating           Decimal  @default(0) @db.Decimal(3, 2)
   ratingCount      Int      @default(0) @map("rating_count")
   stripeCustomerId String?  @map("stripe_customer_id")
+  isInternal       Boolean  @default(false) @map("is_internal")
   isActive         Boolean  @default(true) @map("is_active")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")

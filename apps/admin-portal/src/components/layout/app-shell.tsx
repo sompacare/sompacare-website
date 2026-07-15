@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  CalendarClock,
   Flag,
   LayoutDashboard,
   Lightbulb,
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/home", label: "Dashboard", icon: LayoutDashboard },
   { href: "/users", label: "Users", icon: Users },
   { href: "/facilities", label: "Facilities", icon: Building2 },
+  { href: "/shifts", label: "Shifts", icon: CalendarClock },
   { href: "/support", label: "Support", icon: LifeBuoy },
   { href: "/audit", label: "Audit", icon: ScrollText },
   { href: "/flags", label: "Flags", icon: Flag },

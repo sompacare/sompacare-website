@@ -60,7 +60,42 @@ export type FacilityRecord = {
   rating: number | null;
   ratingCount: number;
   isActive: boolean;
-  locations?: Array<{ id: string; name: string; city: string; state: string }>;
+  isInternal?: boolean;
+  locations?: Array<{
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+    addressLine1?: string;
+    zipCode?: string;
+    isPrimary?: boolean;
+  }>;
+};
+
+export type ShiftRecord = {
+  id: string;
+  title: string;
+  description?: string | null;
+  role: string;
+  shiftType: string;
+  status: string;
+  payRate?: string | number;
+  billRate?: string | number;
+  hourlyRate?: string | number;
+  startTime: string;
+  endTime: string;
+  slotsTotal: number;
+  slotsFilled: number;
+  isEmergency?: boolean;
+  facility: { id: string; name: string };
+  location: {
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+    addressLine1?: string;
+  };
+  _count?: { applications: number };
 };
 
 export type SupportTicket = {
@@ -244,5 +279,48 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         }>;
       }>(`/facility-onboarding/admin/invites${qs}`);
     },
+    getInternalHomecareFacility: () =>
+      withAuth<{ data: FacilityRecord }>("/facilities/internal/homecare"),
+    getShifts: (params?: Record<string, string>) => {
+      const qs = params ? `?${new URLSearchParams(params)}` : "";
+      return withAuth<ListResponse<ShiftRecord>>(`/shifts${qs}`);
+    },
+    createShift: (body: {
+      facilityId: string;
+      locationId?: string;
+      location?: {
+        name: string;
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        latitude?: number;
+        longitude?: number;
+      };
+      title: string;
+      description?: string;
+      role: string;
+      shiftType: string;
+      payRate: number;
+      startTime: string;
+      endTime: string;
+      slotsTotal?: number;
+      requirements?: string[];
+      isEmergency?: boolean;
+    }) => withAuth<ShiftRecord>("/shifts", { method: "POST", body: JSON.stringify(body) }),
+    publishShift: (id: string) =>
+      withAuth<ShiftRecord>(`/shifts/${id}/publish`, { method: "POST" }),
+    geocodeAddress: (body: {
+      addressLine1: string;
+      addressLine2?: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    }) =>
+      withAuth<{ latitude: number; longitude: number; formattedAddress: string }>(
+        "/facility-onboarding/geocode-address",
+        { method: "POST", body: JSON.stringify(body) }
+      ),
   };
 }

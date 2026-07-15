@@ -10,7 +10,7 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ROLES = ["RN", "LPN", "CNA", "GNA", "CMA", "MED_TECH"] as const;
-const SHIFT_TYPES = ["PER_DIEM", "CONTRACT", "TRAVEL", "BLOCK"] as const;
+const SHIFT_TYPES = ["PER_DIEM", "CONTRACT", "TRAVEL", "EMERGENCY", "PERMANENT"] as const;
 
 const ROLE_MARKUP: Record<string, number> = {
   RN: 0.25,
@@ -44,9 +44,11 @@ export default function NewShiftPage() {
   const router = useRouter();
   const api = useApi();
   const { facility, primaryLocation, loading: facilityLoading } = useFacility();
+  const [selectedLocationId, setSelectedLocationId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [publishNow, setPublishNow] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const activeLocationId = selectedLocationId || primaryLocation?.id || "";
 
   const [form, setForm] = useState({
     title: "RN — Med-Surg Per Diem",
@@ -61,7 +63,7 @@ export default function NewShiftPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!facility?.id || !primaryLocation?.id) {
+    if (!facility?.id || !activeLocationId) {
       setError("Facility or location not loaded.");
       return;
     }
@@ -71,7 +73,7 @@ export default function NewShiftPage() {
     try {
       const created = await api.createShift({
         facilityId: facility.id,
-        locationId: primaryLocation.id,
+        locationId: activeLocationId,
         title: form.title,
         description: form.description,
         role: form.role,
@@ -111,13 +113,30 @@ export default function NewShiftPage() {
       <div>
         <h1 className="text-2xl font-bold text-navy">Post a shift</h1>
         <p className="mt-1 text-sm text-muted">
-          {facility?.name ?? "Your facility"} · {primaryLocation?.name ?? "Main location"}
+          {facility?.name ?? "Your facility"}
         </p>
       </div>
 
       <Card className="mb-8">
         <CardContent className="p-5">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {(facility?.locations?.length ?? 0) > 1 && (
+              <div>
+                <Label htmlFor="location">Shift location</Label>
+                <Select
+                  id="location"
+                  value={activeLocationId}
+                  onChange={(e) => setSelectedLocationId(e.target.value)}
+                >
+                  {(facility?.locations ?? []).map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name} — {loc.city}, {loc.state}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+
             <div>
               <Label htmlFor="title">Shift title</Label>
               <Input

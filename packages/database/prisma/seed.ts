@@ -225,6 +225,50 @@ async function seedDemoData() {
     },
   });
 
+  const sompacareOrg = await prisma.organization.upsert({
+    where: { slug: "sompacare-internal" },
+    update: {},
+    create: {
+      name: "Sompacare Home Care",
+      slug: "sompacare-internal",
+      type: "home_health",
+      email: "ops@sompacare.com",
+      phone: "(240) 676-1208",
+    },
+  });
+
+  const sompacareFacility = await prisma.facility.upsert({
+    where: { slug: "sompacare-homecare" },
+    update: { isInternal: true },
+    create: {
+      organizationId: sompacareOrg.id,
+      name: "Sompacare Home Care",
+      slug: "sompacare-homecare",
+      type: "home_health",
+      isInternal: true,
+      rating: 5,
+      ratingCount: 0,
+    },
+  });
+
+  await prisma.facilityLocation.upsert({
+    where: { id: "seed-location-sompacare-hq" },
+    update: {},
+    create: {
+      id: "seed-location-sompacare-hq",
+      facilityId: sompacareFacility.id,
+      name: "Sompacare Operations",
+      addressLine1: "15604 Marathon Circle",
+      addressLine2: "Suite 401",
+      city: "Gaithersburg",
+      state: "MD",
+      zipCode: "20870",
+      latitude: 39.1434,
+      longitude: -77.2014,
+      isPrimary: true,
+    },
+  });
+
   const location = await prisma.facilityLocation.upsert({
     where: { id: "seed-location-fox-chase" },
     update: {},

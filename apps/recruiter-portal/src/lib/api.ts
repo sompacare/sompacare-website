@@ -97,6 +97,36 @@ export type JobPosting = {
   updatedAt: string;
 };
 
+export type ShiftRecord = {
+  id: string;
+  title: string;
+  description?: string | null;
+  role: string;
+  shiftType: string;
+  status: string;
+  payRate?: string | number;
+  hourlyRate?: string | number;
+  startTime: string;
+  endTime: string;
+  slotsTotal: number;
+  slotsFilled: number;
+  facility: { id: string; name: string };
+  location: {
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+    addressLine1?: string;
+  };
+  _count?: { applications: number };
+};
+
+export type HomecareFacility = {
+  id: string;
+  name: string;
+  isInternal?: boolean;
+};
+
 type ListResponse<T> = {
   data: T[];
   meta?: { page: number; limit: number; total: number; totalPages: number };
@@ -265,5 +295,34 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         method: "PATCH",
         body: JSON.stringify(body),
       }),
+    getInternalHomecareFacility: () =>
+      withAuth<{ data: HomecareFacility }>("/facilities/internal/homecare"),
+    getShifts: (params?: Record<string, string>) => {
+      const qs = params ? `?${new URLSearchParams(params)}` : "";
+      return withAuth<ListResponse<ShiftRecord>>(`/shifts${qs}`);
+    },
+    createShift: (body: {
+      facilityId: string;
+      location?: {
+        name: string;
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        state: string;
+        zipCode: string;
+      };
+      title: string;
+      description?: string;
+      role: string;
+      shiftType: string;
+      payRate: number;
+      startTime: string;
+      endTime: string;
+      slotsTotal?: number;
+      requirements?: string[];
+      isEmergency?: boolean;
+    }) => withAuth<ShiftRecord>("/shifts", { method: "POST", body: JSON.stringify(body) }),
+    publishShift: (id: string) =>
+      withAuth<ShiftRecord>(`/shifts/${id}/publish`, { method: "POST" }),
   };
 }

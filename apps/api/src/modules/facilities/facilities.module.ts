@@ -2,6 +2,7 @@ import { Body, Controller, Get, Module, Param, Post, Query } from "@nestjs/commo
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { IsNumber, IsOptional, IsString } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { GeocodingModule } from "../../common/geocoding/geocoding.module";
 import {
   AuthenticatedUser,
   CurrentUser,
@@ -53,13 +54,15 @@ class CreateLocationDto {
   @IsString()
   zipCode!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: "Optional — geocoded from address when omitted" })
+  @IsOptional()
   @IsNumber()
-  latitude!: number;
+  latitude?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: "Optional — geocoded from address when omitted" })
+  @IsOptional()
   @IsNumber()
-  longitude!: number;
+  longitude?: number;
 }
 
 @ApiTags("facilities")
@@ -74,9 +77,22 @@ export class FacilitiesController {
   findAll(
     @CurrentUser() user: AuthenticatedUser,
     @Query("page") page = 1,
-    @Query("limit") limit = 20
+    @Query("limit") limit = 20,
+    @Query("internal") internal?: string
   ) {
-    return this.facilitiesService.findAll(user, Number(page), Number(limit));
+    return this.facilitiesService.findAll(
+      user,
+      Number(page),
+      Number(limit),
+      internal === "true"
+    );
+  }
+
+  @Get("internal/homecare")
+  @RequirePermissions("facilities:read")
+  @ApiOperation({ summary: "Sompacare-owned home care facility for internal shift posting" })
+  findInternalHomecare() {
+    return this.facilitiesService.findInternalHomecareFacility();
   }
 
   @Get(":id")
@@ -106,6 +122,7 @@ export class FacilitiesController {
 }
 
 @Module({
+  imports: [GeocodingModule],
   controllers: [FacilitiesController],
   providers: [FacilitiesService],
   exports: [FacilitiesService],

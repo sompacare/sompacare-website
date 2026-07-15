@@ -138,6 +138,8 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
 
   [PlatformRole.RECRUITER]: [
     "users:read", "users:write",
+    "facilities:read",
+    "shifts:read", "shifts:write", "shifts:publish",
     "applications:read", "applications:write",
     "compliance:read",
     "notifications:read", "notifications:write",

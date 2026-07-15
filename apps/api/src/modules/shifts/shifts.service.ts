@@ -8,7 +8,9 @@ import { resolveShiftRates } from "@sompacare/shared";
 import { Prisma, ShiftStatus } from "@sompacare/database";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { paginate, paginationMeta, type AuthenticatedUser } from "../../common/decorators";
+import { GeocodingService } from "../../common/geocoding/geocoding.service";
 import { TenantService } from "../../common/tenant/tenant.service";
+import { FacilityLocationInputDto } from "../facility-onboarding/dto/facility-onboarding.dto";
 import { ComplianceService } from "../compliance/compliance.service";
 import { MatchingService } from "../ai/matching.service";
 import { JobsService } from "../jobs/jobs.service";
@@ -25,17 +27,13 @@ export class ShiftsService {
     private notifications: NotificationsService,
     private jobs: JobsService,
     private realtime: RealtimeService,
-    private tenant: TenantService
+    private tenant: TenantService,
+    private geocoding: GeocodingService
   ) {}
 
   async create(dto: CreateShiftDto, user: AuthenticatedUser) {
     this.tenant.assertFacilityAccess(user.tenant, dto.facilityId);
-    const location = await this.prisma.facilityLocation.findFirst({
-      where: { id: dto.locationId, facilityId: dto.facilityId, isActive: true },
-    });
-    if (!location) {
-      throw new BadRequestException("Invalid facility location");
-    }
+    const locationId = await this.resolveLocationId(dto.facilityId, dto.locationId, dto.location);
 
     const payRateInput = dto.payRate ?? dto.hourlyRate;
     if (payRateInput == null || payRateInput < 0) {
@@ -51,7 +49,7 @@ export class ShiftsService {
     return this.prisma.shift.create({
       data: {
         facilityId: dto.facilityId,
-        locationId: dto.locationId,
+        locationId,
         createdById: user.id,
         title: dto.title,
         description: dto.description,
@@ -86,7 +84,7 @@ export class ShiftsService {
         where,
         include: {
           facility: { select: { id: true, name: true, rating: true } },
-          location: { select: { id: true, city: true, state: true, latitude: true, longitude: true } },
+          location: { select: { id: true, name: true, city: true, state: true, addressLine1: true } },
           _count: { select: { applications: true } },
         },
         orderBy: { startTime: "asc" },
@@ -274,5 +272,59 @@ export class ShiftsService {
     void this.notifications.notifyApplicationReceived(application);
 
     return application;
+  }
+
+  private async resolveLocationId(
+    facilityId: string,
+    locationId?: string,
+    location?: FacilityLocationInputDto
+  ) {
+    if (locationId && location) {
+      throw new BadRequestException("Provide either locationId or location, not both");
+    }
+    if (!locationId && !location) {
+      throw new BadRequestException("locationId or location is required");
+    }
+
+    if (locationId) {
+      const existing = await this.prisma.facilityLocation.findFirst({
+        where: { id: locationId, facilityId, isActive: true },
+      });
+      if (!existing) {
+        throw new BadRequestException("Invalid facility location");
+      }
+      return existing.id;
+    }
+
+    const coords =
+      location!.latitude != null &&
+      location!.longitude != null &&
+      Number.isFinite(location!.latitude) &&
+      Number.isFinite(location!.longitude)
+        ? { latitude: location!.latitude, longitude: location!.longitude }
+        : await this.geocoding.geocode({
+            addressLine1: location!.addressLine1,
+            addressLine2: location!.addressLine2,
+            city: location!.city,
+            state: location!.state,
+            zipCode: location!.zipCode,
+          });
+
+    const created = await this.prisma.facilityLocation.create({
+      data: {
+        facilityId,
+        name: location!.name,
+        addressLine1: location!.addressLine1,
+        addressLine2: location!.addressLine2,
+        city: location!.city,
+        state: location!.state.toUpperCase(),
+        zipCode: location!.zipCode,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        isPrimary: false,
+      },
+    });
+
+    return created.id;
   }
 }

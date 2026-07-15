@@ -8,19 +8,32 @@ import {
   IsOptional,
   IsString,
   Min,
+  ValidateNested,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import { ClinicalRole, ShiftType } from "@sompacare/database";
 import { PaginationQueryDto } from "../../../common/decorators";
+import { FacilityLocationInputDto } from "../../facility-onboarding/dto/facility-onboarding.dto";
 
 export class CreateShiftDto {
   @ApiProperty()
   @IsString()
   facilityId!: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: "Existing location ID — omit when providing location inline" })
+  @IsOptional()
   @IsString()
-  locationId!: string;
+  locationId?: string;
+
+  @ApiPropertyOptional({
+    description: "Create a one-off visit location at post time (homecare / ad-hoc sites)",
+    type: FacilityLocationInputDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => FacilityLocationInputDto)
+  location?: FacilityLocationInputDto;
 
   @ApiProperty()
   @IsString()
