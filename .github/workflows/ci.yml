@@ -73,6 +73,14 @@ jobs:
       - name: Build API
         run: npm run build --workspace=@sompacare/api
 
+      - name: Build portals
+        run: |
+          export NODE_OPTIONS=--max-old-space-size=4096
+          npm run build --workspace=@sompacare/nurse-portal
+          npm run build --workspace=@sompacare/facility-portal
+          npm run build --workspace=@sompacare/admin-portal
+          npm run build --workspace=@sompacare/recruiter-portal
+
       - name: Lint API
         run: npm run lint --workspace=@sompacare/api --if-present
 

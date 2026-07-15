@@ -90,7 +90,7 @@ services:
     runtime: node
     plan: starter
     branch: platform
-    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/nurse-portal
+    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/nurse-portal
     startCommand: npm run start --workspace=@sompacare/nurse-portal
     envVars:
       - fromGroup: sompacare-portal-auth
@@ -106,7 +106,7 @@ services:
     runtime: node
     plan: starter
     branch: platform
-    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/facility-portal
+    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
     envVars:
       - fromGroup: sompacare-portal-auth
@@ -120,9 +120,9 @@ services:
   - type: web
     name: sompacare-recruiter
     runtime: node
-    plan: free
+    plan: starter
     branch: platform
-    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/recruiter-portal
+    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/recruiter-portal
     startCommand: npm run start --workspace=@sompacare/recruiter-portal
     envVars:
       - fromGroup: sompacare-portal-auth
@@ -134,9 +134,9 @@ services:
   - type: web
     name: sompacare-admin
     runtime: node
-    plan: free
+    plan: starter
     branch: platform
-    buildCommand: npm ci --include=dev && npm run build --workspace=@sompacare/admin-portal
+    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/admin-portal
     startCommand: npm run start --workspace=@sompacare/admin-portal
     envVars:
       - fromGroup: sompacare-portal-auth

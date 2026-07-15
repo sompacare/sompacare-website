@@ -13,7 +13,11 @@ if ! npx prisma migrate deploy 2>/tmp/migrate.log; then
       20260713200000_referrals_job_postings \
       20260713210000_candidate_resume_storage \
       20260713230000_legal_consent_trust \
-      20260713240000_enable_background_check_auto
+      20260713240000_enable_background_check_auto \
+      20260714120000_facility_manager_invites \
+      20260714180000_employee_numbers_hr_screening \
+      20260714190000_hired_stage \
+      20260714200000_internal_facility
     do
       npx prisma migrate resolve --rolled-back "$mig" 2>/dev/null || true
     done

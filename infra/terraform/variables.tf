@@ -19,7 +19,8 @@ variable "availability_zones" {
 }
 
 variable "documents_bucket_name" {
-  type = string
+  type    = string
+  default = "sompacare-documents-dev"
 }
 
 variable "db_name" {
@@ -35,6 +36,7 @@ variable "db_username" {
 variable "db_password" {
   type      = string
   sensitive = true
+  default   = "change-me-in-production"
 }
 
 variable "rds_instance_class" {

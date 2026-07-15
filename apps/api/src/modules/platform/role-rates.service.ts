@@ -17,7 +17,11 @@ export class RoleRatesService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
 
   async onModuleInit() {
-    await this.ensureSeed();
+    try {
+      await this.ensureSeed();
+    } catch (err) {
+      console.warn("Platform role rates seed skipped:", err);
+    }
   }
 
   async ensureSeed() {
