@@ -1,6 +1,11 @@
 "use client";
 
-import { getDefaultBillRateForRole } from "@sompacare/shared";
+import { useEffect, useState } from "react";
+import {
+  getDefaultBillRateForRole,
+  getDefaultPayRateForRole,
+  type RoleRateMap,
+} from "@sompacare/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
@@ -30,6 +35,7 @@ export default function RecruiterNewShiftPage() {
   const router = useRouter();
   const api = useApi();
   const [facility, setFacility] = useState<HomecareFacility | null>(null);
+  const [platformRates, setPlatformRates] = useState<RoleRateMap | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +56,7 @@ export default function RecruiterNewShiftPage() {
     role: "CNA",
     shiftType: "PER_DIEM",
     billRate: String(getDefaultBillRateForRole("CNA")),
+    payRate: String(getDefaultPayRateForRole("CNA")),
     startTime: defaultStartTime(),
     endTime: defaultEndTime(),
     slotsTotal: "1",
@@ -58,8 +65,12 @@ export default function RecruiterNewShiftPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.getInternalHomecareFacility();
+        const [res, ratesRes] = await Promise.all([
+          api.getInternalHomecareFacility(),
+          api.getRoleRates(),
+        ]);
         setFacility(res.data);
+        setPlatformRates(ratesRes.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not load Sompacare home care facility.");
       } finally {
@@ -91,6 +102,7 @@ export default function RecruiterNewShiftPage() {
         role: shift.role,
         shiftType: shift.shiftType,
         billRate: Number(shift.billRate),
+        payRate: Number(shift.payRate),
         startTime: new Date(shift.startTime).toISOString(),
         endTime: new Date(shift.endTime).toISOString(),
         slotsTotal: Number(shift.slotsTotal),
@@ -201,7 +213,8 @@ export default function RecruiterNewShiftPage() {
                     setShift({
                       ...shift,
                       role,
-                      billRate: String(getDefaultBillRateForRole(role)),
+                      billRate: String(getDefaultBillRateForRole(role, platformRates ?? undefined)),
+                      payRate: String(getDefaultPayRateForRole(role, platformRates ?? undefined)),
                     });
                   }}
                 >
@@ -213,16 +226,29 @@ export default function RecruiterNewShiftPage() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="billRate">Bill $/hr</Label>
+                <Label htmlFor="payRate">Pay $/hr</Label>
                 <Input
-                  id="billRate"
+                  id="payRate"
                   type="number"
                   min="0"
-                  value={shift.billRate}
-                  onChange={(e) => setShift({ ...shift, billRate: e.target.value })}
+                  step="0.5"
+                  value={shift.payRate}
+                  onChange={(e) => setShift({ ...shift, payRate: e.target.value })}
                   required
                 />
               </div>
+            </div>
+            <div>
+              <Label htmlFor="billRate">Bill $/hr</Label>
+              <Input
+                id="billRate"
+                type="number"
+                min="0"
+                step="0.5"
+                value={shift.billRate}
+                onChange={(e) => setShift({ ...shift, billRate: e.target.value })}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="startTime">Start</Label>

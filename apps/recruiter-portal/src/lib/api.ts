@@ -105,6 +105,7 @@ export type ShiftRecord = {
   shiftType: string;
   status: string;
   payRate?: string | number;
+  billRate?: string | number;
   hourlyRate?: string | number;
   startTime: string;
   endTime: string;
@@ -315,7 +316,8 @@ export function createApiClient(getToken: () => Promise<string | null>) {
       description?: string;
       role: string;
       shiftType: string;
-      billRate: number;
+      payRate?: number;
+      billRate?: number;
       startTime: string;
       endTime: string;
       slotsTotal?: number;
@@ -324,5 +326,41 @@ export function createApiClient(getToken: () => Promise<string | null>) {
     }) => withAuth<ShiftRecord>("/shifts", { method: "POST", body: JSON.stringify(body) }),
     publishShift: (id: string) =>
       withAuth<ShiftRecord>(`/shifts/${id}/publish`, { method: "POST" }),
+    getRoleRates: () =>
+      withAuth<{ data: Record<string, { payRate: number; billRate: number }> }>(
+        "/platform/role-rates"
+      ),
+    getAssignments: (params?: Record<string, string>) => {
+      const qs = params ? `?${new URLSearchParams(params)}` : "";
+      return withAuth<{
+        data: Array<{
+          id: string;
+          status: string;
+          worker: { id: string; firstName: string; lastName: string; email: string };
+          shift: {
+            id: string;
+            title: string;
+            role: string;
+            startTime: string;
+            endTime: string;
+            payRate?: string | number;
+            billRate?: string | number;
+            facility: { id: string; name: string };
+            location: { city: string; state: string; addressLine1?: string };
+          };
+          clockEvents?: Array<{ type: string; timestamp: string; isVerified: boolean }>;
+        }>;
+      }>(`/assignments${qs}`);
+    },
+    proxyClockIn: (assignmentId: string, note?: string) =>
+      withAuth(`/assignments/${assignmentId}/proxy-clock-in`, {
+        method: "POST",
+        body: JSON.stringify({ note }),
+      }),
+    proxyClockOut: (assignmentId: string, note?: string) =>
+      withAuth(`/assignments/${assignmentId}/proxy-clock-out`, {
+        method: "POST",
+        body: JSON.stringify({ note }),
+      }),
   };
 }

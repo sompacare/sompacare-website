@@ -46,6 +46,7 @@ const assignmentInclude = {
       profile: { select: { clinicalRole: true, complianceScore: true } },
     },
   },
+  clockEvents: { orderBy: { timestamp: "asc" as const } },
   application: true,
 } satisfies Prisma.ShiftAssignmentInclude;
 
@@ -62,7 +63,14 @@ export class AssignmentsService {
 
     if (query.shiftId) where.shiftId = query.shiftId;
     if (query.workerId) where.workerId = query.workerId;
-    if (query.status) where.status = query.status;
+    if (query.statuses) {
+      const parts = query.statuses.split(",").map((s) => s.trim()).filter(Boolean);
+      if (parts.length) {
+        where.status = { in: parts as AssignmentStatus[] };
+      }
+    } else if (query.status) {
+      where.status = query.status;
+    }
     if (query.facilityId) {
       where.shift = { facilityId: query.facilityId };
     }

@@ -88,9 +88,14 @@ export default function RecruiterShiftsPage() {
                     </div>
                     <h3 className="mt-2 font-bold text-navy">{shift.title}</h3>
                   </div>
-                  <p className="text-sm font-bold text-navy">
-                    ${Number(shift.billRate ?? shift.hourlyRate).toFixed(0)}/hr bill
-                  </p>
+                  <div className="text-right text-sm">
+                    <p className="font-bold text-navy">
+                      ${Number(shift.payRate ?? shift.hourlyRate).toFixed(0)}/hr pay
+                    </p>
+                    <p className="font-semibold text-muted">
+                      ${Number(shift.billRate ?? shift.hourlyRate).toFixed(0)}/hr bill
+                    </p>
+                  </div>
                 </div>
                 <div className="mt-3 space-y-1 text-sm text-muted">
                   <div className="flex items-center gap-2">

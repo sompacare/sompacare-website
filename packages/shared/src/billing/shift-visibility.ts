@@ -14,16 +14,18 @@ function isFacilityViewer(roles: PlatformRole[]) {
   return roles.some((r) => FACILITY_ROLES.includes(r));
 }
 
-function isAdminViewer(roles: PlatformRole[]) {
-  return roles.some((r) => ADMIN_ROLES.includes(r));
+function isCommandCenterViewer(roles: PlatformRole[]) {
+  return roles.some(
+    (r) => ADMIN_ROLES.includes(r) || r === PlatformRole.RECRUITER
+  );
 }
 
-/** Hide bill rate from clinicians; hide pay rate from facilities. Admins see both. */
+/** Hide bill rate from clinicians; hide pay rate from facilities. Command center sees both. */
 export function sanitizeShiftRatesForRoles<T extends ShiftRateFields>(
   shift: T,
   roles: PlatformRole[]
 ): T {
-  if (isAdminViewer(roles)) {
+  if (isCommandCenterViewer(roles)) {
     return shift;
   }
 

@@ -15,7 +15,7 @@ import { calculateTimecardTotals, isWithinGeofence } from "@sompacare/shared";
 import { AuditService } from "../../common/audit/audit.service";
 import { PrismaService } from "../../common/prisma/prisma.module";
 import { ReferralsService } from "../referrals/referrals.service";
-import { ClockLocationDto } from "./dto/clock.dto";
+import { ClockLocationDto, ProxyClockDto } from "./dto/clock.dto";
 
 const CLOCK_WINDOW_MS = 30 * 60 * 1000; // 30 min before shift start
 
@@ -48,6 +48,36 @@ export class TimekeepingService {
       throw new ForbiddenException("Only the assigned worker can clock in/out");
     }
     return assignment;
+  }
+
+  private async getAssignmentForProxy(id: string) {
+    const assignment = await this.prisma.shiftAssignment.findUnique({
+      where: { id },
+      include: {
+        shift: {
+          include: {
+            facility: true,
+            location: true,
+          },
+        },
+        clockEvents: { orderBy: { timestamp: "asc" } },
+        timecard: true,
+      },
+    });
+
+    if (!assignment) throw new NotFoundException("Assignment not found");
+    return assignment;
+  }
+
+  private locationCoords(assignment: Awaited<ReturnType<typeof this.getAssignmentForProxy>>) {
+    const location = assignment.shift.location;
+    if (!location?.latitude || !location?.longitude) {
+      throw new BadRequestException("Shift location is missing GPS coordinates");
+    }
+    return {
+      latitude: Number(location.latitude),
+      longitude: Number(location.longitude),
+    };
   }
 
   private verifyGeofence(
@@ -260,6 +290,169 @@ export class TimekeepingService {
     });
 
     void this.referrals.qualifyOnFirstShift(workerId);
+
+    return result;
+  }
+
+  async proxyClockIn(assignmentId: string, actorId: string, dto: ProxyClockDto) {
+    const assignment = await this.getAssignmentForProxy(assignmentId);
+
+    if (assignment.status !== AssignmentStatus.CONFIRMED) {
+      throw new BadRequestException("Assignment must be confirmed before clock-in");
+    }
+
+    const existingIn = assignment.clockEvents.find((e) => e.type === ClockEventType.CLOCK_IN);
+    if (existingIn) {
+      throw new BadRequestException("Worker is already clocked in for this shift");
+    }
+
+    const coords = this.locationCoords(assignment);
+    const timestamp = dto.timestamp ? new Date(dto.timestamp) : new Date();
+    const proxyMeta = { proxy: true, actorId, note: dto.note ?? null };
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const event = await tx.clockEvent.create({
+        data: {
+          assignmentId,
+          workerId: assignment.workerId,
+          type: ClockEventType.CLOCK_IN,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          isVerified: true,
+          timestamp,
+          deviceInfo: proxyMeta,
+        },
+      });
+
+      const updatedAssignment = await tx.shiftAssignment.update({
+        where: { id: assignmentId },
+        data: { status: AssignmentStatus.CHECKED_IN },
+        include: {
+          shift: { include: { facility: true, location: true } },
+        },
+      });
+
+      await tx.shift.update({
+        where: { id: assignment.shiftId },
+        data: { status: ShiftStatus.IN_PROGRESS },
+      });
+
+      return { event, assignment: updatedAssignment };
+    });
+
+    await this.audit.log({
+      userId: actorId,
+      action: "clock.in.proxy",
+      entityType: "ShiftAssignment",
+      entityId: assignmentId,
+      changes: { workerId: assignment.workerId, note: dto.note, timestamp },
+    });
+
+    return result;
+  }
+
+  async proxyClockOut(assignmentId: string, actorId: string, dto: ProxyClockDto) {
+    const assignment = await this.getAssignmentForProxy(assignmentId);
+
+    if (
+      assignment.status !== AssignmentStatus.CHECKED_IN &&
+      assignment.status !== AssignmentStatus.IN_PROGRESS
+    ) {
+      throw new BadRequestException("Worker must be clocked in before clock-out");
+    }
+
+    const clockIn = assignment.clockEvents.find((e) => e.type === ClockEventType.CLOCK_IN);
+    if (!clockIn) {
+      throw new BadRequestException("No clock-in event found");
+    }
+
+    const existingOut = assignment.clockEvents.find((e) => e.type === ClockEventType.CLOCK_OUT);
+    if (existingOut) {
+      throw new BadRequestException("Worker is already clocked out for this shift");
+    }
+
+    const coords = this.locationCoords(assignment);
+    const clockOutTime = dto.timestamp ? new Date(dto.timestamp) : new Date();
+    const proxyMeta = { proxy: true, actorId, note: dto.note ?? null };
+    const msWorked = clockOutTime.getTime() - clockIn.timestamp.getTime();
+    const breakMinutes = assignment.shift.breakMinutes ?? 0;
+    const workedHours = Math.max(0, msWorked / 3_600_000 - breakMinutes / 60);
+    const payRate = Number(assignment.shift.payRate ?? assignment.shift.hourlyRate);
+    const billRate = Number(assignment.shift.billRate ?? assignment.shift.hourlyRate);
+    const totals = calculateTimecardTotals(workedHours, payRate, billRate);
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const event = await tx.clockEvent.create({
+        data: {
+          assignmentId,
+          workerId: assignment.workerId,
+          type: ClockEventType.CLOCK_OUT,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          isVerified: true,
+          timestamp: clockOutTime,
+          deviceInfo: proxyMeta,
+        },
+      });
+
+      const updatedAssignment = await tx.shiftAssignment.update({
+        where: { id: assignmentId },
+        data: { status: AssignmentStatus.COMPLETED },
+        include: {
+          shift: { include: { facility: true, location: true } },
+        },
+      });
+
+      const timecard = await tx.timecard.upsert({
+        where: { assignmentId },
+        update: {
+          regularHours: totals.regularHours,
+          overtimeHours: totals.overtimeHours,
+          breakMinutes,
+          payRate,
+          billRate,
+          hourlyRate: payRate,
+          grossAmount: totals.grossAmount,
+          billAmount: totals.billAmount,
+          status: TimecardStatus.SUBMITTED,
+        },
+        create: {
+          assignmentId,
+          workerId: assignment.workerId,
+          regularHours: totals.regularHours,
+          overtimeHours: totals.overtimeHours,
+          breakMinutes,
+          payRate,
+          billRate,
+          hourlyRate: payRate,
+          grossAmount: totals.grossAmount,
+          billAmount: totals.billAmount,
+          status: TimecardStatus.SUBMITTED,
+        },
+      });
+
+      await tx.shift.update({
+        where: { id: assignment.shiftId },
+        data: { status: ShiftStatus.COMPLETED },
+      });
+
+      return { event, assignment: updatedAssignment, timecard };
+    });
+
+    await this.audit.log({
+      userId: actorId,
+      action: "clock.out.proxy",
+      entityType: "ShiftAssignment",
+      entityId: assignmentId,
+      changes: {
+        workerId: assignment.workerId,
+        note: dto.note,
+        regularHours: totals.regularHours,
+        grossAmount: totals.grossAmount,
+      },
+    });
+
+    void this.referrals.qualifyOnFirstShift(assignment.workerId);
 
     return result;
   }

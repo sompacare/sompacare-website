@@ -75,7 +75,6 @@ export type CreateShiftInput = {
   description?: string;
   role: string;
   shiftType: string;
-  billRate: number;
   startTime: string;
   endTime: string;
   slotsTotal?: number;
@@ -269,6 +268,10 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         }
       ),
     getFacility: (id: string) => withAuth<{ data: Facility }>(`/facilities/${id}`),
+    getRoleRates: () =>
+      withAuth<{ data: Record<string, { payRate: number; billRate: number }> }>(
+        "/platform/role-rates"
+      ),
     getShifts: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";
       return withAuth<ListResponse<Shift>>(`/shifts${qs}`);

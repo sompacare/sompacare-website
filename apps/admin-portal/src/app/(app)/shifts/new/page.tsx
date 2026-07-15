@@ -1,6 +1,11 @@
 "use client";
 
-import { getDefaultBillRateForRole } from "@sompacare/shared";
+import { useEffect, useState } from "react";
+import {
+  getDefaultBillRateForRole,
+  getDefaultPayRateForRole,
+  type RoleRateMap,
+} from "@sompacare/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
@@ -39,6 +44,7 @@ export default function AdminNewShiftPage() {
 
   const [homecareFacility, setHomecareFacility] = useState<FacilityRecord | null>(null);
   const [clientFacilities, setClientFacilities] = useState<FacilityRecord[]>([]);
+  const [platformRates, setPlatformRates] = useState<RoleRateMap | null>(null);
 
   const [mode, setMode] = useState<PostMode>("homecare");
   const [clientFacilityId, setClientFacilityId] = useState("");
@@ -60,6 +66,7 @@ export default function AdminNewShiftPage() {
     role: "CNA",
     shiftType: "PER_DIEM",
     billRate: String(getDefaultBillRateForRole("CNA")),
+    payRate: String(getDefaultPayRateForRole("CNA")),
     startTime: defaultStartTime(),
     endTime: defaultEndTime(),
     slotsTotal: "1",
@@ -70,11 +77,13 @@ export default function AdminNewShiftPage() {
     async function load() {
       setLoading(true);
       try {
-        const [internalRes, facilitiesRes] = await Promise.all([
+        const [internalRes, facilitiesRes, ratesRes] = await Promise.all([
           api.getInternalHomecareFacility(),
           api.getFacilities({ limit: "100" }),
+          api.getRoleRates(),
         ]);
         setHomecareFacility(internalRes.data);
+        setPlatformRates(ratesRes.data);
         const clients = (facilitiesRes.data ?? []).filter((f) => !f.isInternal);
         setClientFacilities(clients);
         if (clients[0]) {
@@ -112,6 +121,7 @@ export default function AdminNewShiftPage() {
         role: shift.role,
         shiftType: shift.shiftType,
         billRate: Number(shift.billRate),
+        payRate: Number(shift.payRate),
         startTime: new Date(shift.startTime).toISOString(),
         endTime: new Date(shift.endTime).toISOString(),
         slotsTotal: Number(shift.slotsTotal),
@@ -373,7 +383,8 @@ export default function AdminNewShiftPage() {
                     setShift({
                       ...shift,
                       role,
-                      billRate: String(getDefaultBillRateForRole(role)),
+                      billRate: String(getDefaultBillRateForRole(role, platformRates ?? undefined)),
+                      payRate: String(getDefaultPayRateForRole(role, platformRates ?? undefined)),
                     });
                   }}
                 >
@@ -400,7 +411,20 @@ export default function AdminNewShiftPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <Label htmlFor="payRate">Pay rate ($/hr)</Label>
+                <Input
+                  id="payRate"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={shift.payRate}
+                  onChange={(e) => setShift({ ...shift, payRate: e.target.value })}
+                  required
+                />
+                <p className="mt-1 text-xs text-muted">What the clinician earns.</p>
+              </div>
               <div>
                 <Label htmlFor="billRate">Bill rate ($/hr)</Label>
                 <Input
@@ -412,6 +436,7 @@ export default function AdminNewShiftPage() {
                   onChange={(e) => setShift({ ...shift, billRate: e.target.value })}
                   required
                 />
+                <p className="mt-1 text-xs text-muted">What the facility pays Sompacare.</p>
               </div>
               <div>
                 <Label htmlFor="slotsTotal">Open slots</Label>

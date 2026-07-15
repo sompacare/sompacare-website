@@ -14,6 +14,7 @@ import { FacilityLocationInputDto } from "../facility-onboarding/dto/facility-on
 import { ComplianceService } from "../compliance/compliance.service";
 import { MatchingService } from "../ai/matching.service";
 import { JobsService } from "../jobs/jobs.service";
+import { RoleRatesService } from "../platform/role-rates.service";
 import { RealtimeService } from "../realtime/realtime.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { ApplyShiftDto, CreateShiftDto, ShiftQueryDto, UpdateShiftDto } from "./dto/shift.dto";
@@ -28,7 +29,8 @@ export class ShiftsService {
     private jobs: JobsService,
     private realtime: RealtimeService,
     private tenant: TenantService,
-    private geocoding: GeocodingService
+    private geocoding: GeocodingService,
+    private roleRates: RoleRatesService
   ) {}
 
   async create(dto: CreateShiftDto, user: AuthenticatedUser) {
@@ -36,9 +38,11 @@ export class ShiftsService {
     const locationId = await this.resolveLocationId(dto.facilityId, dto.locationId, dto.location);
 
     const isFacilityPoster = user.roles.some((r) => FACILITY_ROLES.includes(r));
+    const standard = await this.roleRates.getForRole(dto.role);
     const rates = resolveShiftRates({
       role: dto.role,
-      billRate: dto.billRate,
+      standard,
+      billRate: isFacilityPoster ? undefined : dto.billRate,
       payRate: isFacilityPoster ? undefined : (dto.payRate ?? dto.hourlyRate),
     });
 
@@ -122,12 +126,15 @@ export class ShiftsService {
   async update(id: string, dto: UpdateShiftDto, user?: AuthenticatedUser) {
     const existing = await this.findOne(id);
     const isFacilityEditor = user?.roles.some((r) => FACILITY_ROLES.includes(r));
+    const standard = await this.roleRates.getForRole(existing.role);
     const rateUpdate =
-      dto.billRate != null || dto.payRate != null || dto.hourlyRate != null
+      !isFacilityEditor &&
+      (dto.billRate != null || dto.payRate != null || dto.hourlyRate != null)
         ? resolveShiftRates({
             role: existing.role,
+            standard,
             billRate: dto.billRate,
-            payRate: isFacilityEditor ? undefined : (dto.payRate ?? dto.hourlyRate),
+            payRate: dto.payRate ?? dto.hourlyRate,
           })
         : null;
 

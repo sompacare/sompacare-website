@@ -71,6 +71,7 @@ export type PermissionKey =
   | "assignments:read"
   | "assignments:write"
   | "assignments:confirm"
+  | "timekeeping:proxy"
   | "timecards:read"
   | "timecards:approve"
   | "payroll:read"
@@ -113,6 +114,7 @@ export const ALL_PERMISSIONS: PermissionKey[] = [
   "shifts:read", "shifts:write", "shifts:delete", "shifts:publish",
   "applications:read", "applications:write",
   "assignments:read", "assignments:write", "assignments:confirm",
+  "timekeeping:proxy",
   "timecards:read", "timecards:approve",
   "payroll:read", "payroll:write", "payroll:approve", "payroll:process",
   "compliance:read", "compliance:write", "compliance:verify",
@@ -141,11 +143,14 @@ export const ROLE_PERMISSIONS: Record<PlatformRole, PermissionKey[]> = {
     "facilities:read",
     "shifts:read", "shifts:write", "shifts:publish",
     "applications:read", "applications:write",
+    "assignments:read", "assignments:write",
+    "timekeeping:proxy",
     "compliance:read",
     "notifications:read", "notifications:write",
     "messages:read", "messages:write",
     "recruiter:pipeline", "recruiter:placements",
     "job_postings:read", "job_postings:write",
+    "admin:dashboard",
   ],
 
   [PlatformRole.FACILITY_MANAGER]: [

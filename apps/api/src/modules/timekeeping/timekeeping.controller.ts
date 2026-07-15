@@ -5,7 +5,7 @@ import {
   CurrentUser,
   RequirePermissions,
 } from "../../common/decorators";
-import { ClockLocationDto } from "./dto/clock.dto";
+import { ClockLocationDto, ProxyClockDto } from "./dto/clock.dto";
 import { TimekeepingService } from "./timekeeping.service";
 
 @ApiTags("timekeeping")
@@ -34,5 +34,27 @@ export class TimekeepingController {
     @CurrentUser() user: AuthenticatedUser
   ) {
     return this.timekeepingService.clockOut(id, user.id, dto);
+  }
+
+  @Post(":id/proxy-clock-in")
+  @RequirePermissions("timekeeping:proxy")
+  @ApiOperation({ summary: "Manually clock in a worker (command center override)" })
+  proxyClockIn(
+    @Param("id") id: string,
+    @Body() dto: ProxyClockDto,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.timekeepingService.proxyClockIn(id, user.id, dto);
+  }
+
+  @Post(":id/proxy-clock-out")
+  @RequirePermissions("timekeeping:proxy")
+  @ApiOperation({ summary: "Manually clock out a worker (command center override)" })
+  proxyClockOut(
+    @Param("id") id: string,
+    @Body() dto: ProxyClockDto,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.timekeepingService.proxyClockOut(id, user.id, dto);
   }
 }

@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, Max, Min } from "class-validator";
+import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class ClockLocationDto {
@@ -19,4 +19,16 @@ export class ClockLocationDto {
   @IsNumber()
   @Min(0)
   accuracyMeters?: number;
+}
+
+export class ProxyClockDto {
+  @ApiPropertyOptional({ description: "Optional override timestamp (ISO). Defaults to now." })
+  @IsOptional()
+  @IsString()
+  timestamp?: string;
+
+  @ApiPropertyOptional({ description: "Reason for manual clock (audit trail)" })
+  @IsOptional()
+  @IsString()
+  note?: string;
 }

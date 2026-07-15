@@ -24,6 +24,7 @@ export type ShiftRateInput = {
   payRate?: number;
   role?: string;
   billRate?: number;
+  standard?: { payRate: number; billRate: number };
 };
 
 export type ResolvedShiftRates = {
@@ -46,7 +47,7 @@ export function calculateBillRate(payRate: number, role?: string): number {
 }
 
 export function resolveShiftRates(input: ShiftRateInput): ResolvedShiftRates {
-  const standard = getStandardRatesForRole(input.role);
+  const standard = input.standard ?? getStandardRatesForRole(input.role);
   const payRate =
     input.payRate != null && input.payRate >= 0
       ? Math.round(Math.max(0, input.payRate) * 100) / 100

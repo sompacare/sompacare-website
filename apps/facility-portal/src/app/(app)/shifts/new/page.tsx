@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getDefaultBillRateForRole } from "@sompacare/shared";
+import { getDefaultBillRateForRole, type RoleRateMap } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
 import { useFacility } from "@/hooks/use-facility";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export default function NewShiftPage() {
   const api = useApi();
   const { facility, primaryLocation, loading: facilityLoading } = useFacility();
   const [selectedLocationId, setSelectedLocationId] = useState("");
+  const [platformRates, setPlatformRates] = useState<RoleRateMap | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [publishNow, setPublishNow] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,18 +43,27 @@ export default function NewShiftPage() {
     description: "Experienced clinician needed. BLS required.",
     role: "RN",
     shiftType: "PER_DIEM",
-    billRate: String(getDefaultBillRateForRole("RN")),
     startTime: defaultStartTime(),
     endTime: defaultEndTime(),
     slotsTotal: "1",
   });
 
+  const billRate = getDefaultBillRateForRole(form.role, platformRates ?? undefined);
+
+  useEffect(() => {
+    async function loadRates() {
+      try {
+        const res = await api.getRoleRates();
+        setPlatformRates(res.data);
+      } catch {
+        setPlatformRates(null);
+      }
+    }
+    void loadRates();
+  }, [api]);
+
   function updateRole(role: string) {
-    setForm((current) => ({
-      ...current,
-      role,
-      billRate: String(getDefaultBillRateForRole(role)),
-    }));
+    setForm((current) => ({ ...current, role }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -73,7 +83,6 @@ export default function NewShiftPage() {
         description: form.description,
         role: form.role,
         shiftType: form.shiftType,
-        billRate: Number(form.billRate),
         startTime: new Date(form.startTime).toISOString(),
         endTime: new Date(form.endTime).toISOString(),
         slotsTotal: Number(form.slotsTotal),
@@ -180,19 +189,12 @@ export default function NewShiftPage() {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="billRate">Your bill rate ($/hr)</Label>
-              <Input
-                id="billRate"
-                type="number"
-                min="0"
-                step="0.5"
-                value={form.billRate}
-                onChange={(e) => setForm({ ...form, billRate: e.target.value })}
-                required
-              />
+            <div className="rounded-xl border border-border bg-slate-50 px-4 py-3">
+              <p className="text-sm font-semibold text-navy">Your bill rate</p>
+              <p className="mt-1 text-2xl font-bold text-primary">${billRate.toFixed(2)}/hr</p>
               <p className="mt-1 text-xs text-muted">
-                This is the hourly rate your facility pays Sompacare for this {form.role} shift.
+                Set by Sompacare for {form.role === "MED_TECH" ? "Med Tech" : form.role} shifts.
+                Contact Sompacare if you need a rate review.
               </p>
             </div>
 

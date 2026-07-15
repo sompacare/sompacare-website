@@ -23,6 +23,13 @@ export class AssignmentQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(AssignmentStatus)
   status?: AssignmentStatus;
+
+  @ApiPropertyOptional({
+    description: "Comma-separated assignment statuses (e.g. CONFIRMED,CHECKED_IN)",
+  })
+  @IsOptional()
+  @IsString()
+  statuses?: string;
 }
 
 export class CancelAssignmentDto {
