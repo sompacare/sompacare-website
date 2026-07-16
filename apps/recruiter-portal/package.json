@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3003",
     "build": "npm run build --workspace=@sompacare/shared && next build",
-    "start": "next start -H 0.0.0.0",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-3003}",
     "lint": "next lint"
   },
   "dependencies": {

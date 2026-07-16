@@ -90,8 +90,9 @@ services:
     runtime: node
     plan: pro
     branch: platform
-    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/nurse-portal
+    buildCommand: node scripts/render-build-portal.mjs nurse-portal
     startCommand: npm run start --workspace=@sompacare/nurse-portal
+    healthCheckPath: /sign-in
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
@@ -106,8 +107,9 @@ services:
     runtime: node
     plan: pro
     branch: platform
-    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/facility-portal
+    buildCommand: node scripts/render-build-portal.mjs facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
+    healthCheckPath: /sign-in
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
@@ -122,8 +124,9 @@ services:
     runtime: node
     plan: pro
     branch: platform
-    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/recruiter-portal
+    buildCommand: node scripts/render-build-portal.mjs recruiter-portal
     startCommand: npm run start --workspace=@sompacare/recruiter-portal
+    healthCheckPath: /sign-in
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
@@ -136,8 +139,9 @@ services:
     runtime: node
     plan: pro
     branch: platform
-    buildCommand: npm ci --include=dev && NODE_OPTIONS=--max-old-space-size=4096 npm run build --workspace=@sompacare/admin-portal
+    buildCommand: node scripts/render-build-portal.mjs admin-portal
     startCommand: npm run start --workspace=@sompacare/admin-portal
+    healthCheckPath: /sign-in
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
