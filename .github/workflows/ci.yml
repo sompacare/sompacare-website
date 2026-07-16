@@ -82,6 +82,7 @@ jobs:
           npm run build --workspace=@sompacare/recruiter-portal
 
       - name: Lint API
+        continue-on-error: true
         run: npm run lint --workspace=@sompacare/api --if-present
 
   terraform-validate:

@@ -36,19 +36,77 @@ export class FacilitiesService {
   }
 
   async findInternalHomecareFacility() {
-    const facility = await this.prisma.facility.findFirst({
+    let facility = await this.prisma.facility.findFirst({
       where: { isInternal: true, isActive: true },
       include: {
         locations: { where: { isActive: true }, orderBy: [{ isPrimary: "desc" }, { name: "asc" }] },
         organization: { select: { id: true, name: true } },
       },
     });
+
     if (!facility) {
-      throw new NotFoundException(
-        "Sompacare home care facility is not configured. Run database seed or migrations."
-      );
+      await this.ensureInternalHomecareFacility();
+      facility = await this.prisma.facility.findFirst({
+        where: { isInternal: true, isActive: true },
+        include: {
+          locations: { where: { isActive: true }, orderBy: [{ isPrimary: "desc" }, { name: "asc" }] },
+          organization: { select: { id: true, name: true } },
+        },
+      });
     }
+
+    if (!facility) {
+      throw new NotFoundException("Sompacare home care facility could not be initialized.");
+    }
+
     return { data: facility };
+  }
+
+  /** Creates Sompacare-owned home care org/facility if production DB was never seeded. */
+  private async ensureInternalHomecareFacility() {
+    const org = await this.prisma.organization.upsert({
+      where: { slug: "sompacare-internal" },
+      update: {},
+      create: {
+        name: "Sompacare Home Care",
+        slug: "sompacare-internal",
+        type: "home_health",
+        email: "ops@sompacare.com",
+        phone: "(240) 676-1208",
+      },
+    });
+
+    const facility = await this.prisma.facility.upsert({
+      where: { slug: "sompacare-homecare" },
+      update: { isInternal: true, isActive: true },
+      create: {
+        organizationId: org.id,
+        name: "Sompacare Home Care",
+        slug: "sompacare-homecare",
+        type: "home_health",
+        isInternal: true,
+        rating: 5,
+        ratingCount: 0,
+      },
+    });
+
+    await this.prisma.facilityLocation.upsert({
+      where: { id: "seed-location-sompacare-hq" },
+      update: { isActive: true, facilityId: facility.id },
+      create: {
+        id: "seed-location-sompacare-hq",
+        facilityId: facility.id,
+        name: "Sompacare Operations",
+        addressLine1: "15604 Marathon Circle",
+        addressLine2: "Suite 401",
+        city: "Gaithersburg",
+        state: "MD",
+        zipCode: "20870",
+        latitude: 39.1434,
+        longitude: -77.2014,
+        isPrimary: true,
+      },
+    });
   }
 
   async findOne(user: AuthenticatedUser, id: string) {

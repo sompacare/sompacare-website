@@ -72,7 +72,13 @@ export default function RecruiterNewShiftPage() {
         setFacility(res.data);
         setPlatformRates(ratesRes.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not load Sompacare home care facility.");
+        const body = (err as { body?: { message?: string | string[] } }).body;
+        const msg = body?.message;
+        const detail = Array.isArray(msg) ? msg.join(", ") : (msg as string | undefined);
+        setError(
+          detail ??
+            (err instanceof Error ? err.message : "Could not load Sompacare home care facility.")
+        );
       } finally {
         setLoading(false);
       }
