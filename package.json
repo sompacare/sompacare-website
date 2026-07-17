@@ -26,6 +26,8 @@
     "db:seed": "npm run db:seed --workspace=@sompacare/database",
     "db:seed:roles": "npm run db:seed:roles --workspace=@sompacare/database",
     "db:studio": "npm run db:studio --workspace=@sompacare/database",
+    "link:user": "node scripts/link-clerk-user.mjs",
+    "check:user": "node scripts/check-linked-user.mjs",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:observability": "docker compose -f docker-compose.observability.yml up -d",

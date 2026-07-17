@@ -1,197 +1,186 @@
-/**
- * Assign a worker role + profile to a Clerk user in the platform database.
- *
- * Usage:
- *   node scripts/link-clerk-user.mjs --email you@example.com --role GNA
- *   node scripts/link-clerk-user.mjs --clerk-id user_2abc... --role CMA
- */
-import { readFileSync } from "fs";
+import { randomUUID } from "crypto";
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync, unlinkSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { createClerkClient } from "@clerk/backend";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-function loadEnv() {
-  for (const file of [".env", join("packages", "database", ".env")]) {
+function loadProductionEnv() {
+  const files = [
+    join(root, ".env"),
+    join(root, "packages/database/.env"),
+    join(root, ".env.platform.live"),
+  ];
+
+  for (const file of files) {
     try {
-      const content = readFileSync(join(root, file), "utf8");
+      const content = readFileSync(file, "utf8");
+      const force = file.endsWith(".env.platform.live");
       for (const line of content.split("\n")) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith("#")) continue;
         const idx = trimmed.indexOf("=");
         if (idx === -1) continue;
         const key = trimmed.slice(0, idx).trim();
-        const value = trimmed.slice(idx + 1).trim().replace(/^"|"$/g, "");
-        if (!process.env[key]) process.env[key] = value;
+        let value = trimmed.slice(idx + 1).trim();
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1);
+        }
+        if (force || !process.env[key]) process.env[key] = value;
       }
     } catch {
-      // ignore missing env files
+      // optional
     }
   }
 }
 
-function parseArgs(argv) {
-  const args = { email: null, clerkId: null, role: "RN" };
-  for (let i = 2; i < argv.length; i++) {
-    if (argv[i] === "--email" && argv[i + 1]) args.email = argv[++i];
-    if (argv[i] === "--clerk-id" && argv[i + 1]) args.clerkId = argv[++i];
-    if (argv[i] === "--role" && argv[i + 1]) args.role = argv[++i].toUpperCase();
-  }
-  return args;
+function sqlEscape(value) {
+  return String(value).replace(/'/g, "''");
 }
 
-async function ensurePlatformUser({ email, clerkId }) {
-  let user = await prisma.user.findFirst({
-    where: email ? { email } : { clerkId },
-    include: { roles: true, profile: true },
-  });
-  if (user) return user;
-
+async function fetchClerkUser(email) {
   const secretKey = process.env.CLERK_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error("CLERK_SECRET_KEY missing from .env");
+  if (!secretKey) throw new Error("CLERK_SECRET_KEY missing in .env.platform.live");
+
+  const url = new URL("https://api.clerk.com/v1/users");
+  url.searchParams.set("email_address", email);
+  url.searchParams.set("limit", "1");
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${secretKey}` } });
+  if (!res.ok) throw new Error(`Clerk API ${res.status}: ${await res.text()}`);
+  const body = await res.json();
+  return body[0] ?? null;
+}
+
+function runSql(databaseUrl, sql) {
+  const sqlFile = join(root, "scripts", ".tmp-link-user.sql");
+  writeFileSync(sqlFile, sql, "utf8");
+  try {
+    execSync(
+      `docker run --rm -v "${sqlFile.replace(/\\/g, "/")}:/script.sql:ro" postgres:16-alpine psql "${databaseUrl}" -v ON_ERROR_STOP=1 -f /script.sql`,
+      { stdio: "inherit", shell: true }
+    );
+  } finally {
+    try {
+      unlinkSync(sqlFile);
+    } catch {
+      // ignore
+    }
   }
-
-  const clerk = createClerkClient({ secretKey });
-  let clerkUser;
-
-  if (clerkId) {
-    clerkUser = await clerk.users.getUser(clerkId);
-  } else if (email) {
-    const list = await clerk.users.getUserList({ emailAddress: [email] });
-    clerkUser = list.data[0];
-  }
-
-  if (!clerkUser) {
-    console.error(`No Clerk account found for ${email ?? clerkId}`);
-    process.exit(1);
-  }
-
-  const primaryEmail =
-    clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
-      ?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress ?? email;
-
-  return prisma.user.create({
-    data: {
-      clerkId: clerkUser.id,
-      email: primaryEmail,
-      firstName: clerkUser.firstName ?? "New",
-      lastName: clerkUser.lastName ?? "User",
-      avatarUrl: clerkUser.imageUrl ?? undefined,
-      status: "ACTIVE",
-      emailVerified: true,
-    },
-    include: { roles: true, profile: true },
-  });
 }
 
 async function main() {
-  loadEnv();
-  const { email, clerkId, role } = parseArgs(process.argv);
-  if (!email && !clerkId) {
-    console.error("Usage: node scripts/link-clerk-user.mjs --email you@example.com [--role RN]");
-    console.error("   or: node scripts/link-clerk-user.mjs --clerk-id user_... [--role GNA]");
-    console.error("Roles: RN, LPN, CNA, GNA, CMA, MED_TECH");
-    process.exit(1);
-  }
+  loadProductionEnv();
 
-  const user = await ensurePlatformUser({ email, clerkId });
+  const emailArg = process.argv.find((a, i) => process.argv[i - 1] === "--email");
+  const email = emailArg ?? "mountainoflifeprayer@gmail.com";
+  const roleArg = process.argv.find((a, i) => process.argv[i - 1] === "--role");
+  const role = (roleArg ?? "RN").toUpperCase();
 
-  const platformRole = await prisma.role.findUnique({ where: { name: role } });
-  if (!platformRole) {
-    console.error(`${role} role missing — run: npm run db:seed`);
-    process.exit(1);
-  }
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("DATABASE_URL missing in .env.platform.live");
+  const dbUrl = databaseUrl.includes("sslmode=")
+    ? databaseUrl
+    : `${databaseUrl}${databaseUrl.includes("?") ? "&" : "?"}sslmode=require`;
 
-  const clinicalRoleMap = {
-    RN: "RN",
-    LPN: "LPN",
-    CNA: "CNA",
-    GNA: "GNA",
-    CMA: "CMA",
-    MED_TECH: "MED_TECH",
-    NURSE: "RN",
-  };
-  const clinicalRole = clinicalRoleMap[role] ?? "RN";
+  const clerkUser = await fetchClerkUser(email);
+  if (!clerkUser) throw new Error(`No Clerk Production user for ${email}`);
 
-  await prisma.userRole.upsert({
-    where: { userId_roleId: { userId: user.id, roleId: platformRole.id } },
-    update: {},
-    create: { userId: user.id, roleId: platformRole.id },
-  });
+  const primaryEmail =
+    clerkUser.email_addresses?.find((e) => e.id === clerkUser.primary_email_address_id)
+      ?.email_address ??
+    clerkUser.email_addresses?.[0]?.email_address ??
+    email;
 
-  await prisma.workerProfile.upsert({
-    where: { userId: user.id },
-    update: { clinicalRole },
-    create: {
-      userId: user.id,
-      clinicalRole,
-      specialties: ["Med-Surg"],
-      preferredShiftTypes: ["PER_DIEM"],
-      minHourlyRate: 40,
-      complianceScore: 100,
-      reliabilityScore: 100,
-    },
-  });
+  const firstName = sqlEscape(clerkUser.first_name ?? "Google");
+  const lastName = sqlEscape(clerkUser.last_name ?? "Play Review");
+  const clerkId = sqlEscape(clerkUser.id);
+  const safeEmail = sqlEscape(primaryEmail);
+  const safeRole = sqlEscape(role);
+  const userId = randomUUID();
+  const licenseExpiry = new Date(Date.now() + 86400000 * 365).toISOString();
 
-  const licenseExpiry = new Date(Date.now() + 86400000 * 365);
-  await prisma.license.upsert({
-    where: { id: `seed-license-${user.id}` },
-    update: { status: "ACTIVE", expiresAt: licenseExpiry },
-    create: {
-      id: `seed-license-${user.id}`,
-      userId: user.id,
-      type: role,
-      number: `${role}-MD-DEV-001`,
-      state: "MD",
-      status: "ACTIVE",
-      expiresAt: licenseExpiry,
-      verifiedAt: new Date(),
-    },
-  });
+  const sql = `
+DO $$
+DECLARE
+  v_user_id text;
+  v_role_id text;
+  v_license_id text;
+  v_cert_id text;
+  v_bg_id text;
+BEGIN
+  SELECT id INTO v_user_id FROM users WHERE email = '${safeEmail}';
 
-  await prisma.certification.upsert({
-    where: { id: `seed-cert-${user.id}` },
-    update: { status: "VERIFIED", expiresAt: licenseExpiry },
-    create: {
-      id: `seed-cert-${user.id}`,
-      userId: user.id,
-      name: "BLS/CPR",
-      issuer: "American Heart Association",
-      status: "VERIFIED",
-      expiresAt: licenseExpiry,
-      issuedAt: new Date(),
-    },
-  });
+  IF v_user_id IS NULL THEN
+    v_user_id := '${userId}';
+    INSERT INTO users (id, email, clerk_id, first_name, last_name, status, email_verified, created_at, updated_at)
+    VALUES (v_user_id, '${safeEmail}', '${clerkId}', '${firstName}', '${lastName}', 'ACTIVE', true, NOW(), NOW());
+  ELSE
+    UPDATE users SET clerk_id = '${clerkId}', status = 'ACTIVE', updated_at = NOW() WHERE id = v_user_id;
+  END IF;
 
-  await prisma.backgroundCheck.upsert({
-    where: { id: `seed-bg-${user.id}` },
-    update: { status: "VERIFIED" },
-    create: {
-      id: `seed-bg-${user.id}`,
-      userId: user.id,
-      provider: "checkr",
-      status: "VERIFIED",
-      completedAt: new Date(),
-    },
-  });
+  SELECT id INTO v_role_id FROM roles WHERE name = '${safeRole}'::"PlatformRole";
+  IF v_role_id IS NULL THEN
+    RAISE EXCEPTION 'Role ${safeRole} missing in production DB';
+  END IF;
 
-  await prisma.wallet.upsert({
-    where: { userId: user.id },
-    update: {},
-    create: { userId: user.id, balance: 0 },
-  });
+  INSERT INTO user_roles (id, user_id, role_id, granted_at)
+  VALUES ('${randomUUID()}', v_user_id, v_role_id, NOW())
+  ON CONFLICT (user_id, role_id) DO NOTHING;
 
-  console.log(`Linked ${user.email} (${user.clerkId}) as ${role} with worker profile and credentials.`);
-  console.log("Refresh http://localhost:3001/home to see open shifts.");
+  INSERT INTO worker_profiles (
+    id, user_id, clinical_role, specialties, preferred_shift_types,
+    min_hourly_rate, compliance_score, reliability_score, attendance_rate,
+    created_at, updated_at
+  )
+  VALUES (
+    '${randomUUID()}', v_user_id, '${safeRole}'::"ClinicalRole", ARRAY['Med-Surg']::text[], ARRAY['PER_DIEM']::"ShiftType"[],
+    40, 100, 100, 100, NOW(), NOW()
+  )
+  ON CONFLICT (user_id) DO UPDATE SET clinical_role = EXCLUDED.clinical_role, compliance_score = 100, updated_at = NOW();
+
+  v_license_id := 'seed-license-' || v_user_id;
+  v_cert_id := 'seed-cert-' || v_user_id;
+  v_bg_id := 'seed-bg-' || v_user_id;
+
+  INSERT INTO licenses (id, user_id, type, number, state, status, expires_at, verified_at, created_at, updated_at)
+  VALUES (v_license_id, v_user_id, '${safeRole}', '${safeRole}-MD-PLAY-001', 'MD', 'ACTIVE', '${licenseExpiry}', NOW(), NOW(), NOW())
+  ON CONFLICT (id) DO UPDATE SET status = 'ACTIVE', expires_at = EXCLUDED.expires_at, updated_at = NOW();
+
+  INSERT INTO certifications (id, user_id, name, issuer, status, expires_at, issued_at, created_at)
+  VALUES (v_cert_id, v_user_id, 'BLS/CPR', 'American Heart Association', 'VERIFIED', '${licenseExpiry}', NOW(), NOW())
+  ON CONFLICT (id) DO UPDATE SET status = 'VERIFIED', expires_at = EXCLUDED.expires_at;
+
+  INSERT INTO background_checks (id, user_id, provider, status, completed_at, created_at)
+  VALUES (v_bg_id, v_user_id, 'checkr', 'VERIFIED', NOW(), NOW())
+  ON CONFLICT (id) DO UPDATE SET status = 'VERIFIED';
+
+  INSERT INTO wallets (id, user_id, balance, updated_at)
+  VALUES ('${randomUUID()}', v_user_id, 0, NOW())
+  ON CONFLICT (user_id) DO NOTHING;
+
+  RAISE NOTICE 'Linked user % as ${safeRole}', '${safeEmail}';
+END $$;
+`;
+
+  console.log(`Linking ${primaryEmail} to production DB...`);
+  runSql(dbUrl, sql);
+  console.log(`Linked ${primaryEmail} (${clerkUser.id}) as ${role}.`);
+  console.log("READY: yes");
+  console.log("Test: https://sompacare-nurse.onrender.com/sign-in");
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+main().catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("password authentication failed")) {
+    console.error(
+      "Database password rejected. Copy the fresh External Database URL from Render → sompacare-db → Connect, update .env.platform.live, then rerun: npm run link:user"
+    );
+  }
+  console.error(message);
+  process.exit(1);
+});

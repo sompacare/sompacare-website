@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   ScrollText,
+  UserPlus,
   Users,
   LifeBuoy,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import { UserButton } from "@clerk/nextjs";
 const navItems = [
   { href: "/home", label: "Dashboard", icon: LayoutDashboard },
   { href: "/users", label: "Users", icon: Users },
+  { href: "/employees/invite", label: "Employees", icon: UserPlus },
   { href: "/facilities", label: "Facilities", icon: Building2 },
   { href: "/shifts", label: "Shifts", icon: CalendarClock },
   { href: "/timekeeping", label: "Timekeeping", icon: Clock },

@@ -362,5 +362,49 @@ export function createApiClient(getToken: () => Promise<string | null>) {
         method: "POST",
         body: JSON.stringify({ note }),
       }),
+    inviteWorkerByEmail: (body: { email: string; clinicalRole?: string }) =>
+      withAuth<{
+        data: {
+          employeeNumber: string;
+          signupUrl: string;
+          signInUrl: string;
+          clerkInvited: boolean;
+          email: string;
+          firstName: string;
+          lastName: string;
+          clinicalRole: string;
+        };
+      }>("/worker-onboarding/recruiter/invite", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }).then((res) => res.data),
+    createWorkerEmployee: (body: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      clinicalRole: string;
+      facilityId?: string;
+      notes?: string;
+      licenseNumber?: string;
+      licenseState?: string;
+      payRate?: string;
+      startDate?: string;
+    }) =>
+      withAuth<{
+        data: {
+          employeeNumber: string;
+          signupUrl: string;
+          signInUrl: string;
+          clerkInvited: boolean;
+          email: string;
+          firstName: string;
+          lastName: string;
+          clinicalRole: string;
+        };
+      }>("/worker-onboarding/recruiter/create", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }).then((res) => res.data),
   };
 }

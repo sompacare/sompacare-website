@@ -37,6 +37,7 @@ import { TenantModule } from "./common/tenant/tenant.module";
 import { GeocodingModule } from "./common/geocoding/geocoding.module";
 import { LegalModule } from "./modules/legal/legal.module";
 import { FacilityOnboardingModule } from "./modules/facility-onboarding/facility-onboarding.module";
+import { WorkerOnboardingModule } from "./modules/worker-onboarding/worker-onboarding.module";
 import { PlatformModule } from "./modules/platform/platform.module";
 
 @Module({
@@ -73,6 +74,7 @@ import { PlatformModule } from "./modules/platform/platform.module";
     ComplianceModule,
     LegalModule,
     FacilityOnboardingModule,
+    WorkerOnboardingModule,
     PlatformModule,
     ShiftsModule,
     ApplicationsModule,

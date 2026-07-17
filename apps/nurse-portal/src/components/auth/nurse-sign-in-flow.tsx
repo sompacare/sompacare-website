@@ -1,11 +1,48 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { SignIn } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useSignIn } from "@clerk/nextjs";
 import { SOMPACARE_BRAND } from "@sompacare/shared";
 import { Logo } from "@/components/brand/logo";
+import { Button } from "@/components/ui/button";
 
 export function NurseSignInFlow() {
+  const { signIn, setActive, isLoaded } = useSignIn();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoaded || !signIn) return;
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const result = await signIn.create({
+        identifier: email.trim(),
+        password,
+      });
+
+      if (result.status === "complete" && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/");
+        return;
+      }
+
+      setError("Additional verification is required. Check your email or contact HR.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="w-full max-w-md">
       <div className="mb-8 flex flex-col items-center text-center">
@@ -14,7 +51,49 @@ export function NurseSignInFlow() {
           Sign in with your email and password to access shifts
         </p>
       </div>
-      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        className="space-y-4 rounded-2xl border bg-card p-6 shadow-sm"
+      >
+        <div>
+          <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@email.com"
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="password" className="mb-1 block text-sm font-medium text-navy">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Your password"
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <Button type="submit" className="w-full" disabled={busy || !email || !password}>
+          {busy ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
+
       <p className="mt-6 text-center text-sm text-muted">
         New hire?{" "}
         <Link href="/sign-up" className="font-semibold text-primary hover:underline">
