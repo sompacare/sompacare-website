@@ -183,14 +183,40 @@ Each portal also needs `NEXT_PUBLIC_API_URL` (already in `render.yaml`).
 
 **Dashboard:** https://dashboard.clerk.com → your production application
 
+### 7a. DNS (required — portals will not sign in without this)
+
+Your production instance uses **Frontend API URL:** `https://clerk.sompacare.com`. Until DNS exists, sign-in shows “Loading…” then times out. The publishable key will show **Never used** in Clerk.
+
+1. Clerk → **Configure** → **Domains** (not API Keys)
+2. Copy each **CNAME** record Clerk shows (typically includes `clerk` → `frontend-api.clerk.services`, and `accounts` → `accounts.clerk.services`)
+3. At your **sompacare.com DNS provider** (registrar, Cloudflare, Vercel Domains, etc.), add those CNAME records exactly
+4. If using **Cloudflare**, set each Clerk CNAME to **DNS only** (grey cloud), not proxied
+5. Wait 5–30 minutes; return to Clerk **Domains** until all records show verified
+6. Confirm `nslookup clerk.sompacare.com` resolves (not “Non-existent domain”)
+
+> **Option B (default Clerk keys) does not apply** when Frontend API is already `clerk.sompacare.com` — both `pk_live_` and `sk_live_` from this app require the DNS above.
+
+### 7b. API keys → Render
+
+**Env group:** Render → **sompacare-portal-auth**
+
+| Variable | Value (from Clerk → Configure → API Keys → Production) | Done? |
+|----------|----------------------------------------------------------|-------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_live_...` from Quick copy | ☐ |
+| `CLERK_SECRET_KEY` | `sk_live_...` from Quick copy | ☐ |
+
+Also set `CLERK_SECRET_KEY` on **sompacare-api** (same secret key).
+
+After DNS + keys: **Manual sync** the Render blueprint so all four portals redeploy.
+
+### 7c. Other Clerk settings
+
 | Setting | Value | Done? |
 |---------|-------|-------|
-| Allowed redirect URLs | All four `*.onrender.com` portal URLs | ☐ |
+| Allowed redirect URLs | All four `*.onrender.com` portal URLs + `/sign-in`, `/sign-up` | ☐ |
 | Sign-in URL (Paths) | Each portal's `/sign-in` on its own domain — **not** `accounts.sompacare.com` | ☐ |
 | Sign-up URL (Paths) | Each portal's `/sign-up` on its own domain | ☐ |
-| Custom frontend API (optional) | `clerk.sompacare.com` if using Clerk production domain | ☐ |
 | Webhook endpoint | `https://sompacare-api.onrender.com/api/v1/auth/webhook/clerk` | ☐ |
-| Production keys in Render | `pk_live_` + `sk_live_` (not test keys) | ☐ |
 
 ---
 
