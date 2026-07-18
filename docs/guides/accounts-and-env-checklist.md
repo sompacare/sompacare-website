@@ -37,14 +37,28 @@ Printable checklist for everything you need subscribed and configured for the we
 
 ## 2. Your live URLs
 
-| App | URL |
-|-----|-----|
-| Marketing site | https://www.sompacare.com |
-| Platform API | https://sompacare-api.onrender.com/api/v1 |
-| Nurse portal | https://sompacare-nurse.onrender.com |
-| Facility portal | https://sompacare-facility.onrender.com |
-| Recruiter portal | https://sompacare-recruiter.onrender.com |
-| Admin portal | https://sompacare-admin.onrender.com |
+| App | Production URL | Render fallback |
+|-----|----------------|-----------------|
+| Marketing site | https://www.sompacare.com | — |
+| Platform API | https://api.sompacare.com/api/v1 | https://sompacare-api.onrender.com/api/v1 |
+| Nurse portal | https://nurse.sompacare.com | https://sompacare-nurse.onrender.com |
+| Facility portal | https://facility.sompacare.com | https://sompacare-facility.onrender.com |
+| Recruiter portal | https://recruiter.sompacare.com | https://sompacare-recruiter.onrender.com |
+| Admin portal | https://admin.sompacare.com | https://sompacare-admin.onrender.com |
+
+### 2a. Custom domain DNS (Namecheap → Render)
+
+After **Manual sync** of the Blueprint, each Render service lists its custom domain. Add CNAME records in **Namecheap → sompacare.com → Advanced DNS**:
+
+| Host | Points to (from Render → service → Custom Domains) |
+|------|------------------------------------------------------|
+| `api` | Render CNAME target for `sompacare-api` |
+| `nurse` | Render CNAME target for `sompacare-nurse` |
+| `facility` | Render CNAME target for `sompacare-facility` |
+| `recruiter` | Render CNAME target for `sompacare-recruiter` |
+| `admin` | Render CNAME target for `sompacare-admin` |
+
+Wait for Render to show each domain **Verified** and SSL issued (usually 5–30 minutes after DNS propagates). Do not remove existing Clerk CNAMEs (`clerk`, `accounts`, etc.) or the `www` record for Vercel.
 
 ---
 
@@ -59,12 +73,12 @@ Printable checklist for everything you need subscribed and configured for the we
 | `DATABASE_URL` | Linked from `sompacare-db` |
 | `NODE_ENV` | `production` |
 | `API_PORT` | `4000` |
-| `CORS_ORIGINS` | In `render.yaml` |
-| `NURSE_PORTAL_URL` | `https://sompacare-nurse.onrender.com` |
-| `FACILITY_PORTAL_URL` | `https://sompacare-facility.onrender.com` |
-| `RECRUITER_PORTAL_URL` | `https://sompacare-recruiter.onrender.com` |
-| `ADMIN_PORTAL_URL` | `https://sompacare-admin.onrender.com` |
-| `API_PUBLIC_URL` | `https://sompacare-api.onrender.com/api/v1` |
+| `CORS_ORIGINS` | In `render.yaml` (custom domains + `onrender.com` fallbacks) |
+| `NURSE_PORTAL_URL` | `https://nurse.sompacare.com` |
+| `FACILITY_PORTAL_URL` | `https://facility.sompacare.com` |
+| `RECRUITER_PORTAL_URL` | `https://recruiter.sompacare.com` |
+| `ADMIN_PORTAL_URL` | `https://admin.sompacare.com` |
+| `API_PUBLIC_URL` | `https://api.sompacare.com/api/v1` |
 | `SITE_URL` | `https://www.sompacare.com` |
 | `CHECKR_DEV_BYPASS` | `false` |
 | `CHECKR_PACKAGE` | `tasker_standard` |
@@ -103,9 +117,9 @@ Printable checklist for everything you need subscribed and configured for the we
 
 | Provider | Webhook URL | Events |
 |----------|-------------|--------|
-| **Clerk** | `https://sompacare-api.onrender.com/api/v1/auth/webhook/clerk` | `user.created`, `user.updated` |
-| **Stripe** | `https://sompacare-api.onrender.com/api/v1/payments/stripe/webhook` | `payment_intent.succeeded`, `account.updated` |
-| **Checkr** | `https://sompacare-api.onrender.com/api/v1/compliance/checkr/webhook` | `report.completed`, `report.updated` |
+| **Clerk** | `https://api.sompacare.com/api/v1/auth/webhook/clerk` | `user.created`, `user.updated` |
+| **Stripe** | `https://api.sompacare.com/api/v1/payments/stripe/webhook` | `payment_intent.succeeded`, `account.updated` |
+| **Checkr** | `https://api.sompacare.com/api/v1/compliance/checkr/webhook` | `report.completed`, `report.updated` |
 
 ---
 
@@ -123,19 +137,29 @@ Shared by all four portals (nurse, facility, recruiter, admin).
 | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/sign-up` | ☐ |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/home` | ☐ |
 | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/home` | ☐ |
+| `NEXT_PUBLIC_CLERK_IS_SATELLITE` | `false` (portals are `*.sompacare.com` subdomains) | ☐ |
+
+Per-service `NEXT_PUBLIC_CLERK_DOMAIN` (in `render.yaml`):
+
+| Service | `NEXT_PUBLIC_CLERK_DOMAIN` |
+|---------|----------------------------|
+| sompacare-nurse | `nurse.sompacare.com` |
+| sompacare-facility | `facility.sompacare.com` |
+| sompacare-recruiter | `recruiter.sompacare.com` |
+| sompacare-admin | `admin.sompacare.com` |
 
 ---
 
 ## 5. Render — Portal services
 
-Each portal also needs `NEXT_PUBLIC_API_URL` (already in `render.yaml`).
+Each portal also needs `NEXT_PUBLIC_API_URL` = `https://api.sompacare.com/api/v1` (already in `render.yaml`).
 
-| Service | Extra env vars | Set? |
-|---------|----------------|------|
-| **sompacare-nurse** | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_live_...` | ☐ |
-| **sompacare-facility** | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_live_...` | ☐ |
-| **sompacare-recruiter** | (none beyond env group + API URL) | ☐ |
-| **sompacare-admin** | (none beyond env group + API URL) | ☐ |
+| Service | Custom domain | Extra env vars | Set? |
+|---------|---------------|----------------|------|
+| **sompacare-nurse** | `nurse.sompacare.com` | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_live_...` | ☐ |
+| **sompacare-facility** | `facility.sompacare.com` | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_live_...` | ☐ |
+| **sompacare-recruiter** | `recruiter.sompacare.com` | (none beyond env group + API URL) | ☐ |
+| **sompacare-admin** | `admin.sompacare.com` | (none beyond env group + API URL) | ☐ |
 
 **Do NOT set** `NEXT_PUBLIC_*_DEV_TOKEN` or `FORCE_DEV_TOKEN` in production.
 
@@ -147,7 +171,7 @@ Each portal also needs `NEXT_PUBLIC_API_URL` (already in `render.yaml`).
 
 | Variable | Production value | Set? |
 |----------|------------------|------|
-| `PLATFORM_API_URL` | `https://sompacare-api.onrender.com/api/v1` | ☐ |
+| `PLATFORM_API_URL` | `https://api.sompacare.com/api/v1` | ☐ |
 | `CAREERS_INGEST_SECRET` | **Same string** as Render `sompacare-api` | ☐ |
 | `RESEND_API_KEY` | Resend `re_...` | ☐ |
 | `RESEND_FROM_EMAIL` | `Sompacare <careers@sompacare.com>` | ☐ |
@@ -209,29 +233,27 @@ Also set `CLERK_SECRET_KEY` on **sompacare-api** (same secret key).
 
 After DNS + keys: **Manual sync** the Render blueprint so all four portals redeploy.
 
-### 7d. Clerk satellite domains (required for Render `*.onrender.com`)
+### 7d. Clerk on `*.sompacare.com` (production portals)
 
-Portals on Render are **not** subdomains of `sompacare.com`, so Clerk needs each URL registered as a **satellite domain**:
+Portals use subdomains of your primary Clerk domain (`sompacare.com`), so **satellite mode is off** (`NEXT_PUBLIC_CLERK_IS_SATELLITE=false` in `render.yaml`).
 
-1. Clerk → **Configure → Domains → Satellites** tab
-2. **Add satellite domain** for each:
-   - `sompacare-nurse.onrender.com`
-   - `sompacare-admin.onrender.com`
-   - `sompacare-recruiter.onrender.com`
-   - `sompacare-facility.onrender.com`
-3. Wait until each shows **Verified**
-4. Render env (in `render.yaml`): `NEXT_PUBLIC_CLERK_IS_SATELLITE=true` + per-service `NEXT_PUBLIC_CLERK_DOMAIN`
+1. Clerk → **Configure → Domains → Allowed subdomains** (if enabled): add `nurse`, `facility`, `recruiter`, `admin`
+2. **Allowed redirect URLs**: add each portal origin:
+   - `https://nurse.sompacare.com`
+   - `https://facility.sompacare.com`
+   - `https://recruiter.sompacare.com`
+   - `https://admin.sompacare.com`
 
-Without this step, sign-in shows “Authentication could not start” even when DNS for `clerk.sompacare.com` is correct.
+> **Legacy:** If you still use `*.onrender.com` URLs before DNS cutover, register them under **Domains → Satellites** and set `NEXT_PUBLIC_CLERK_IS_SATELLITE=true` until custom domains are live.
 
 ### 7c. Other Clerk settings
 
 | Setting | Value | Done? |
 |---------|-------|-------|
-| Allowed redirect URLs | All four `*.onrender.com` portal URLs + `/sign-in`, `/sign-up` | ☐ |
+| Allowed redirect URLs | All four `*.sompacare.com` portal URLs + `/sign-in`, `/sign-up` | ☐ |
 | Sign-in URL (Paths) | Each portal's `/sign-in` on its own domain — **not** `accounts.sompacare.com` | ☐ |
 | Sign-up URL (Paths) | Each portal's `/sign-up` on its own domain | ☐ |
-| Webhook endpoint | `https://sompacare-api.onrender.com/api/v1/auth/webhook/clerk` | ☐ |
+| Webhook endpoint | `https://api.sompacare.com/api/v1/auth/webhook/clerk` | ☐ |
 
 ---
 
@@ -293,17 +315,17 @@ Without this step, sign-in shows “Authentication could not start” even when 
 
 ```bash
 # API healthy
-curl https://sompacare-api.onrender.com/api/v1/health
+curl https://api.sompacare.com/api/v1/health
 
 # Marketing legal pages
 curl -I https://www.sompacare.com/privacy
 curl -I https://www.sompacare.com/terms
 
-# Portals load
-curl -I https://sompacare-nurse.onrender.com/sign-in
-curl -I https://sompacare-facility.onrender.com/sign-in
-curl -I https://sompacare-recruiter.onrender.com/sign-in
-curl -I https://sompacare-admin.onrender.com/sign-in
+# Portals load (production domains)
+curl -I https://nurse.sompacare.com/sign-in
+curl -I https://facility.sompacare.com/sign-in
+curl -I https://recruiter.sompacare.com/sign-in
+curl -I https://admin.sompacare.com/sign-in
 ```
 
 | Check | Expected | Pass? |
@@ -322,15 +344,20 @@ curl -I https://sompacare-admin.onrender.com/sign-in
 
 ```
 sompacare.com (DNS)
-    └── Vercel → marketing site + /admin + /api/contact + /api/careers
+    ├── Vercel → www.sompacare.com (marketing + /admin + /api/contact + /api/careers)
+    ├── api.sompacare.com → Render sompacare-api
+    ├── nurse.sompacare.com → Render sompacare-nurse
+    ├── facility.sompacare.com → Render sompacare-facility
+    ├── recruiter.sompacare.com → Render sompacare-recruiter
+    └── admin.sompacare.com → Render sompacare-admin
 
 Render Blueprint
-    ├── sompacare-api (Docker)     → NestJS API + webhooks
+    ├── sompacare-api (Docker)     → NestJS API + webhooks @ api.sompacare.com
     ├── sompacare-db (Postgres)    → platform database
-    ├── sompacare-nurse            → Clerk + API
-    ├── sompacare-facility         → Clerk + API + Stripe
-    ├── sompacare-recruiter        → Clerk + API
-    └── sompacare-admin            → Clerk + API
+    ├── sompacare-nurse            → Clerk + API @ nurse.sompacare.com
+    ├── sompacare-facility         → Clerk + API + Stripe @ facility.sompacare.com
+    ├── sompacare-recruiter        → Clerk + API @ recruiter.sompacare.com
+    └── sompacare-admin            → Clerk + API @ admin.sompacare.com
 
 External APIs called by sompacare-api
     ├── Clerk (auth)

@@ -16,7 +16,7 @@ Or merge `platform` into your current production branch (`main`) and redeploy.
 
 | Variable | Production value |
 |----------|------------------|
-| `PLATFORM_API_URL` | `https://sompacare-api.onrender.com/api/v1` |
+| `PLATFORM_API_URL` | `https://api.sompacare.com/api/v1` |
 | `CAREERS_INGEST_SECRET` | Same secret as Render `sompacare-api` |
 | `RESEND_API_KEY` | Resend production key |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |

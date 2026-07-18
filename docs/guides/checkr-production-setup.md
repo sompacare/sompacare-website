@@ -24,7 +24,7 @@ Set on the **sompacare-api** service (`render.yaml` already declares these keys)
 Register this endpoint in Checkr:
 
 ```
-https://sompacare-api.onrender.com/api/v1/compliance/checkr/webhook
+https://api.sompacare.com/api/v1/compliance/checkr/webhook
 ```
 
 Events: report lifecycle updates (`report.completed`, `report.updated`, etc.).

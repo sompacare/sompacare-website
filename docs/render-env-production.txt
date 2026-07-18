@@ -16,12 +16,14 @@ CLERK_SECRET_KEY=sk_test_OR_sk_live_YOUR_KEY
 CLERK_PUBLISHABLE_KEY=pk_test_OR_pk_live_YOUR_KEY
 CLERK_WEBHOOK_SECRET=whsec_PASTE_AFTER_CLERK_WEBHOOK_SETUP
 
-# Render portal URLs (comma-separated, no spaces)
-CORS_ORIGINS=https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
-NURSE_PORTAL_URL=https://sompacare-nurse.onrender.com
-FACILITY_PORTAL_URL=https://sompacare-facility.onrender.com
-RECRUITER_PORTAL_URL=https://sompacare-recruiter.onrender.com
-ADMIN_PORTAL_URL=https://sompacare-admin.onrender.com
+# Render portal URLs — production custom domains (comma-separated, no spaces)
+# onrender.com fallbacks remain in CORS during DNS cutover
+CORS_ORIGINS=https://www.sompacare.com,https://sompacare.com,https://nurse.sompacare.com,https://facility.sompacare.com,https://recruiter.sompacare.com,https://admin.sompacare.com,https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
+NURSE_PORTAL_URL=https://nurse.sompacare.com
+FACILITY_PORTAL_URL=https://facility.sompacare.com
+RECRUITER_PORTAL_URL=https://recruiter.sompacare.com
+ADMIN_PORTAL_URL=https://admin.sompacare.com
+API_PUBLIC_URL=https://api.sompacare.com/api/v1
 
 # Email (optional)
 RESEND_API_KEY=re_YOUR_KEY

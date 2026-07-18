@@ -15,7 +15,7 @@ envVarGroups:
       - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
         value: /home
       - key: NEXT_PUBLIC_CLERK_IS_SATELLITE
-        value: "true"
+        value: "false"
 
 services:
   - type: web
@@ -25,6 +25,8 @@ services:
     branch: platform
     dockerfilePath: ./apps/api/Dockerfile
     healthCheckPath: /api/v1/health
+    domains:
+      - api.sompacare.com
     envVars:
       - key: NODE_ENV
         value: production
@@ -51,15 +53,15 @@ services:
       - key: CLERK_WEBHOOK_SECRET
         sync: false
       - key: CORS_ORIGINS
-        value: https://www.sompacare.com,https://sompacare.com,https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
+        value: https://www.sompacare.com,https://sompacare.com,https://nurse.sompacare.com,https://facility.sompacare.com,https://recruiter.sompacare.com,https://admin.sompacare.com,https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
       - key: NURSE_PORTAL_URL
-        value: https://sompacare-nurse.onrender.com
+        value: https://nurse.sompacare.com
       - key: FACILITY_PORTAL_URL
-        value: https://sompacare-facility.onrender.com
+        value: https://facility.sompacare.com
       - key: RECRUITER_PORTAL_URL
-        value: https://sompacare-recruiter.onrender.com
+        value: https://recruiter.sompacare.com
       - key: ADMIN_PORTAL_URL
-        value: https://sompacare-admin.onrender.com
+        value: https://admin.sompacare.com
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
@@ -83,7 +85,7 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: API_PUBLIC_URL
-        value: https://sompacare-api.onrender.com/api/v1
+        value: https://api.sompacare.com/api/v1
       - key: SITE_URL
         value: https://www.sompacare.com
       - key: S3_BUCKET_DOCUMENTS
@@ -103,16 +105,18 @@ services:
     buildCommand: node scripts/render-build-portal.mjs nurse-portal
     startCommand: npm run start --workspace=@sompacare/nurse-portal
     healthCheckPath: /sign-in
+    domains:
+      - nurse.sompacare.com
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://sompacare-api.onrender.com/api/v1
+        value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         value: pk_live_51TrLFRExydo0cTefW5v7MsXRTFqLGk4JCbLEjYbDMXU7c6suSzJ2WP16iKNJ9sXFULvajqkBHrYdExZTXzm9uieM00OroLJ96T
       - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: sompacare-nurse.onrender.com
+        value: nurse.sompacare.com
 
   - type: web
     name: sompacare-facility
@@ -122,16 +126,18 @@ services:
     buildCommand: node scripts/render-build-portal.mjs facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
     healthCheckPath: /sign-in
+    domains:
+      - facility.sompacare.com
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://sompacare-api.onrender.com/api/v1
+        value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         value: pk_live_51TrLFRExydo0cTefW5v7MsXRTFqLGk4JCbLEjYbDMXU7c6suSzJ2WP16iKNJ9sXFULvajqkBHrYdExZTXzm9uieM00OroLJ96T
       - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: sompacare-facility.onrender.com
+        value: facility.sompacare.com
 
   - type: web
     name: sompacare-recruiter
@@ -141,6 +147,8 @@ services:
     buildCommand: node scripts/render-build-portal.mjs recruiter-portal
     startCommand: npm run start --workspace=@sompacare/recruiter-portal
     healthCheckPath: /sign-in
+    domains:
+      - recruiter.sompacare.com
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
@@ -148,9 +156,9 @@ services:
       - key: NODE_OPTIONS
         value: --max-old-space-size=4096
       - key: NEXT_PUBLIC_API_URL
-        value: https://sompacare-api.onrender.com/api/v1
+        value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: sompacare-recruiter.onrender.com
+        value: recruiter.sompacare.com
 
   - type: web
     name: sompacare-admin
@@ -160,14 +168,16 @@ services:
     buildCommand: node scripts/render-build-portal.mjs admin-portal
     startCommand: npm run start --workspace=@sompacare/admin-portal
     healthCheckPath: /sign-in
+    domains:
+      - admin.sompacare.com
     envVars:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://sompacare-api.onrender.com/api/v1
+        value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: sompacare-admin.onrender.com
+        value: admin.sompacare.com
 
 databases:
   - name: sompacare-db

@@ -12,7 +12,7 @@
 Mobile apps use **Clerk** (same instance as web portals). Production API:
 
 ```
-https://sompacare-api.onrender.com/api/v1
+https://api.sompacare.com/api/v1
 ```
 
 ### Clerk Dashboard setup
