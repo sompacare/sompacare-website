@@ -7,7 +7,7 @@ import { useSignIn } from "@clerk/nextjs";
 import { SOMPACARE_BRAND } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { Logo } from "@/components/brand/logo";
-import { formatClerkError } from "@/lib/clerk";
+import { CLERK_INIT_TIMEOUT_HELP, formatClerkError } from "@/lib/clerk";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
@@ -33,9 +33,7 @@ export function NurseSignInFlow() {
       return (
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            Sign-in is taking longer than expected. Confirm{" "}
-            <code className="text-xs">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> is set for this
-            service, then refresh the page.
+            {CLERK_INIT_TIMEOUT_HELP}
           </p>
         </div>
       );
