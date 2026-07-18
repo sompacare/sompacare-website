@@ -17,16 +17,18 @@ if (!portal || !valid.includes(portal)) {
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 process.chdir(root);
-process.env.NODE_OPTIONS = process.env.NODE_OPTIONS ?? "--max-old-space-size=4096";
+process.env.NODE_OPTIONS = process.env.NODE_OPTIONS ?? "--max-old-space-size=6144";
 
-function run(cmd) {
+function run(cmd, opts = {}) {
   console.log(`\n> ${cmd}`);
-  execSync(cmd, { stdio: "inherit", env: process.env });
+  execSync(cmd, { stdio: "inherit", env: process.env, ...opts });
 }
 
 run("npm ci --include=dev");
 run("npm run build --workspace=@sompacare/shared");
-run(`npm run build --workspace=@sompacare/${portal}`);
+// Run next build directly so we don't compile @sompacare/shared twice via the
+// portal package.json build script (Render builds were OOMing on recruiter).
+run("npx next build", { cwd: path.join(root, "apps", portal) });
 
 const nextDir = path.join(root, "apps", portal, ".next");
 if (!fs.existsSync(nextDir)) {
