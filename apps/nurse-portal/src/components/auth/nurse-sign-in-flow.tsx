@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSignIn } from "@clerk/nextjs";
 import { SOMPACARE_BRAND } from "@sompacare/shared";
+import { PasswordField } from "@/components/auth/password-field";
 import { Logo } from "@/components/brand/logo";
-import { Button } from "@/components/ui/button";
 import { formatClerkError } from "@/lib/clerk";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
@@ -31,7 +31,7 @@ export function NurseSignInFlow() {
   if (!isLoaded || !signIn) {
     if (loadTimedOut) {
       return (
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             Sign-in is taking longer than expected. Confirm{" "}
             <code className="text-xs">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> is set for this
@@ -42,7 +42,11 @@ export function NurseSignInFlow() {
     }
 
     return (
-      <div className="flex w-full max-w-md flex-col items-center gap-3 py-8" aria-live="polite" aria-busy="true">
+      <div
+        className="flex w-full max-w-md flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white p-8 py-12 shadow-lg"
+        aria-live="polite"
+        aria-busy="true"
+      >
         <div
           className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
           role="status"
@@ -82,27 +86,30 @@ export function NurseSignInFlow() {
 
       setError("Additional verification is required. Check your email or contact HR.");
     } catch (err) {
-      setError(formatClerkError(err, "Sign in failed"));
+      setError(formatClerkError(err, "Invalid email or password."));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="w-full max-w-md">
-      <div className="mb-8 flex flex-col items-center text-center">
+    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
+      <div className="flex flex-col items-center text-center">
         <Logo height={56} subtitle={SOMPACARE_BRAND.tagline} />
-        <p className="mt-4 text-sm text-muted">
-          Sign in with your email and password to access shifts
+        <h1 className="mt-6 text-2xl font-bold text-navy">Nurse Portal</h1>
+        <p className="mt-2 text-sm text-muted">
+          Sign in with your email and password to access shifts.
         </p>
       </div>
 
-      <form
-        onSubmit={(e) => void handleSubmit(e)}
-        className="space-y-4 rounded-2xl border bg-card p-6 shadow-sm"
-      >
+      <form onSubmit={(e) => void handleSubmit(e)} className="mt-8 space-y-4">
+        {error && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+            {error}
+          </p>
+        )}
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
+          <label htmlFor="email" className="mb-2 block text-xs font-semibold uppercase text-navy">
             Email
           </label>
           <input
@@ -112,29 +119,30 @@ export function NurseSignInFlow() {
             required
             autoComplete="email"
             placeholder="you@email.com"
-            className="w-full rounded-lg border px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium text-navy">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            placeholder="Your password"
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-          />
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label htmlFor="password" className="text-xs font-semibold uppercase text-navy">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <PasswordField id="password" />
         </div>
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Signing in…" : "Sign in"}
-        </Button>
+        <button
+          type="submit"
+          disabled={busy}
+          className="w-full rounded-full bg-primary py-3 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {busy ? "Signing in..." : "Sign In"}
+        </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted">
@@ -148,6 +156,15 @@ export function NurseSignInFlow() {
           className="font-semibold text-primary hover:underline"
         >
           Apply first
+        </Link>
+      </p>
+
+      <p className="mt-4 text-center text-sm text-muted">
+        <Link
+          href={SOMPACARE_BRAND.marketingUrl}
+          className="font-semibold text-primary hover:underline"
+        >
+          sompacare.com
         </Link>
       </p>
     </div>

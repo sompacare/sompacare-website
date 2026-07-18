@@ -1,17 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
+import { PasswordField } from "@/components/auth/password-field";
 import { formatClerkError } from "@/lib/clerk";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
 type Props = {
   afterSignInUrl?: string;
+  forgotPasswordUrl?: string;
 };
 
-export function PortalSignInFlow({ afterSignInUrl = "/home" }: Props) {
+export function PortalSignInFlow({
+  afterSignInUrl = "/home",
+  forgotPasswordUrl = "/forgot-password",
+}: Props) {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -108,17 +114,18 @@ export function PortalSignInFlow({ afterSignInUrl = "/home" }: Props) {
         />
       </div>
       <div>
-        <label htmlFor="password" className="mb-2 block text-xs font-semibold uppercase text-navy">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-        />
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <label htmlFor="password" className="text-xs font-semibold uppercase text-navy">
+            Password
+          </label>
+          <Link
+            href={forgotPasswordUrl}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <PasswordField id="password" />
       </div>
       <button
         type="submit"

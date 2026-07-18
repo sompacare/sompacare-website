@@ -4,8 +4,8 @@ import { PortalSignInFlow } from "@/components/auth/portal-sign-in-flow";
 export default function SignInPage() {
   return (
     <PortalAuthShell
-      portalLabel="Facility portal"
-      subtitle="Sign in to post shifts, manage staff, and run your facility"
+      portalLabel="Facility Portal"
+      subtitle="Sign in with your email and password to post shifts, manage staff, and run your facility."
     >
       <PortalSignInFlow />
     </PortalAuthShell>

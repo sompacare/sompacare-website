@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
+import { PasswordField } from "@/components/auth/password-field";
 import { formatClerkError } from "@/lib/clerk";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
@@ -12,9 +12,14 @@ const CLERK_LOAD_TIMEOUT_MS = 15_000;
 type Props = {
   afterSignInUrl?: string;
   signUpUrl?: string;
+  forgotPasswordUrl?: string;
 };
 
-export function PortalSignInFlow({ afterSignInUrl = "/home", signUpUrl = "/sign-up" }: Props) {
+export function PortalSignInFlow({
+  afterSignInUrl = "/home",
+  signUpUrl = "/sign-up",
+  forgotPasswordUrl = "/forgot-password",
+}: Props) {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -83,19 +88,21 @@ export function PortalSignInFlow({ afterSignInUrl = "/home", signUpUrl = "/sign-
 
       setError("Additional verification is required. Check your email or contact support.");
     } catch (err) {
-      setError(formatClerkError(err, "Sign in failed"));
+      setError(formatClerkError(err, "Invalid email or password."));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <form
-      onSubmit={(e) => void handleSubmit(e)}
-      className="space-y-4 rounded-2xl border bg-card p-6 shadow-sm"
-    >
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+          {error}
+        </p>
+      )}
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
+        <label htmlFor="email" className="mb-2 block text-xs font-semibold uppercase text-navy">
           Email
         </label>
         <input
@@ -105,29 +112,30 @@ export function PortalSignInFlow({ afterSignInUrl = "/home", signUpUrl = "/sign-
           required
           autoComplete="email"
           placeholder="you@email.com"
-          className="w-full rounded-lg border px-3 py-2 text-sm"
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
       <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium text-navy">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          placeholder="Your password"
-          className="w-full rounded-lg border px-3 py-2 text-sm"
-        />
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <label htmlFor="password" className="text-xs font-semibold uppercase text-navy">
+            Password
+          </label>
+          <Link
+            href={forgotPasswordUrl}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <PasswordField id="password" />
       </div>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <Button type="submit" className="w-full" disabled={busy}>
-        {busy ? "Signing in…" : "Sign in"}
-      </Button>
+      <button
+        type="submit"
+        disabled={busy}
+        className="w-full rounded-full bg-primary py-3 text-sm font-semibold text-white disabled:opacity-60"
+      >
+        {busy ? "Signing in..." : "Sign In"}
+      </button>
 
       <p className="text-center text-sm text-muted">
         Need an account?{" "}
