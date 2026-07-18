@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
 import { formatClerkError } from "@/lib/clerk";
+
+const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
 type Props = {
   afterSignInUrl?: string;
@@ -14,15 +16,44 @@ export function PortalSignInFlow({ afterSignInUrl = "/home" }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && signIn) {
+      setLoadTimedOut(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setLoadTimedOut(true), CLERK_LOAD_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [isLoaded, signIn]);
+
+  if (!isLoaded || !signIn) {
+    if (loadTimedOut) {
+      return (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Sign-in is taking longer than expected. Confirm{" "}
+          <code className="text-xs">NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</code> is set for this
+          service, then refresh the page.
+        </p>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center gap-3 py-8" aria-live="polite" aria-busy="true">
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          role="status"
+          aria-label="Loading sign-in"
+        />
+        <p className="text-sm text-muted">Loading sign-in…</p>
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-
-    if (!isLoaded || !signIn) {
-      setError("Authentication is still loading. Please wait a moment and try again.");
-      return;
-    }
 
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email") ?? "").trim();

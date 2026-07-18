@@ -13,9 +13,17 @@ export const metadata: Metadata = {
   },
 };
 
+const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/home"
+      afterSignUpUrl="/home"
+    >
       <html lang="en">
         <body>{children}</body>
       </html>
