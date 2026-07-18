@@ -63,6 +63,9 @@ export function ForgotPasswordFlow({
     );
   }
 
+  const clerkSignIn = signIn;
+  const activateSession = setActive;
+
   async function handleRequestCode(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -79,7 +82,7 @@ export function ForgotPasswordFlow({
     setBusy(true);
 
     try {
-      await signIn.create({
+      await clerkSignIn.create({
         strategy: "reset_password_email_code",
         identifier,
       });
@@ -115,14 +118,14 @@ export function ForgotPasswordFlow({
     setBusy(true);
 
     try {
-      const result = await signIn.attemptFirstFactor({
+      const result = await clerkSignIn.attemptFirstFactor({
         strategy: "reset_password_email_code",
         code,
         password,
       });
 
       if (result.status === "complete" && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
+        await activateSession({ session: result.createdSessionId });
         router.replace(afterResetUrl);
         return;
       }

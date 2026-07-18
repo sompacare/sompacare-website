@@ -57,6 +57,9 @@ export function PortalSignInFlow({
     );
   }
 
+  const clerkSignIn = signIn;
+  const activateSession = setActive;
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -73,13 +76,13 @@ export function PortalSignInFlow({
     setBusy(true);
 
     try {
-      const result = await signIn.create({
+      const result = await clerkSignIn.create({
         identifier: email,
         password,
       });
 
       if (result.status === "complete" && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
+        await activateSession({ session: result.createdSessionId });
         router.replace(afterSignInUrl);
         return;
       }
