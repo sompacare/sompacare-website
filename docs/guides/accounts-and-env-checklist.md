@@ -209,6 +209,21 @@ Also set `CLERK_SECRET_KEY` on **sompacare-api** (same secret key).
 
 After DNS + keys: **Manual sync** the Render blueprint so all four portals redeploy.
 
+### 7d. Clerk satellite domains (required for Render `*.onrender.com`)
+
+Portals on Render are **not** subdomains of `sompacare.com`, so Clerk needs each URL registered as a **satellite domain**:
+
+1. Clerk → **Configure → Domains → Satellites** tab
+2. **Add satellite domain** for each:
+   - `sompacare-nurse.onrender.com`
+   - `sompacare-admin.onrender.com`
+   - `sompacare-recruiter.onrender.com`
+   - `sompacare-facility.onrender.com`
+3. Wait until each shows **Verified**
+4. Render env (in `render.yaml`): `NEXT_PUBLIC_CLERK_IS_SATELLITE=true` + per-service `NEXT_PUBLIC_CLERK_DOMAIN`
+
+Without this step, sign-in shows “Authentication could not start” even when DNS for `clerk.sompacare.com` is correct.
+
 ### 7c. Other Clerk settings
 
 | Setting | Value | Done? |
