@@ -1,12 +1,14 @@
+import { PRODUCTION } from "./production-urls.mjs";
+
 /**
  * Verify production portals baked Stripe publishable key mode (live vs test).
  * Does not print full keys — only mode summary.
  */
 const portals = [
-  { name: "nurse", url: "https://sompacare-nurse.onrender.com", pages: ["/sign-in", "/"] },
+  { name: "nurse", url: PRODUCTION.nurse, pages: ["/sign-in", "/"] },
   {
     name: "facility",
-    url: "https://sompacare-facility.onrender.com",
+    url: PRODUCTION.facility,
     pages: ["/sign-in", "/payroll", "/"],
   },
 ];
@@ -131,7 +133,7 @@ for (const portal of portals) {
 }
 
 try {
-  const webhook = await fetch("https://sompacare-api.onrender.com/api/v1/payments/stripe/webhook", {
+  const webhook = await fetch(`${PRODUCTION.apiV1}/payments/stripe/webhook`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: "{}",
@@ -180,5 +182,5 @@ async function scanAllStaticChunks(base, label) {
   console.log(`${label}: scanned ${checked} chunk URLs — live Stripe key: ${live ? "yes" : "no"}, test Stripe key: ${test ? "yes" : "no"}`);
 }
 
-await scanAllStaticChunks("https://sompacare-facility.onrender.com", "facility");
-await scanAllStaticChunks("https://sompacare-nurse.onrender.com", "nurse");
+await scanAllStaticChunks(PRODUCTION.facility, "facility");
+await scanAllStaticChunks(PRODUCTION.nurse, "nurse");

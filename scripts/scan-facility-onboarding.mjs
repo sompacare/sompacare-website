@@ -1,3 +1,5 @@
+import { PRODUCTION } from "./production-urls.mjs";
+
 async function scan(base, page, markers) {
   const html = await (await fetch(`${base}${page}`)).text();
   const paths = [...new Set([...html.matchAll(/\/_next\/static\/[^"']+\.js/g)].map((m) => m[0]))];
@@ -24,5 +26,5 @@ const markers = [
   "Unable to create your facility",
 ];
 
-const hits = await scan("https://sompacare-facility.onrender.com", "/onboarding", markers);
+const hits = await scan(PRODUCTION.facility, "/onboarding", markers);
 console.log(JSON.stringify(hits, null, 2));

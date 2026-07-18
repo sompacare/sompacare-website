@@ -1,4 +1,4 @@
-/** Clerk satellite config for Render-hosted portals (*.onrender.com). */
+/** Clerk config for production portals on *.sompacare.com (satellite mode off). */
 export function clerkProviderProps() {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const isSatellite = process.env.NEXT_PUBLIC_CLERK_IS_SATELLITE === "true";

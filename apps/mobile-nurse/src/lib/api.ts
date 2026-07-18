@@ -3,7 +3,7 @@ import { resolveAuthToken } from "@sompacare/mobile-shared";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "https://sompacare-api.onrender.com/api/v1";
+  process.env.EXPO_PUBLIC_API_URL ?? "https://api.sompacare.com/api/v1";
 
 const devToken =
   __DEV__ && process.env.EXPO_PUBLIC_DEV_TOKEN

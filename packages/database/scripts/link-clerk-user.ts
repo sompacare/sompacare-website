@@ -196,7 +196,7 @@ async function main() {
   });
 
   console.log(`Linked ${user.email} (${user.clerkId}) as ${role}.`);
-  console.log("Test: https://sompacare-nurse.onrender.com/sign-in");
+  console.log(`Test: https://nurse.sompacare.com/sign-in`);
 }
 
 main()

@@ -100,6 +100,16 @@ npm run dev --workspace=@sompacare/nurse-portal   # http://localhost:3001
 - [ ] Keys in `.env.local` and `.env.platform`
 - [ ] First user assigned RN/CNA/LPN role in database
 
+## 8. Production custom domains (`*.sompacare.com`)
+
+Portals run on subdomains of your primary Clerk domain with **satellite mode off** (`NEXT_PUBLIC_CLERK_IS_SATELLITE=false`).
+
+1. Verify `clerk.sompacare.com` DNS in Clerk Dashboard → **Domains**
+2. Add redirect URLs — run `npm run clerk:redirect-urls` and paste each line into **Paths → Allowed redirect URLs**
+3. Webhook: `https://api.sompacare.com/api/v1/auth/webhook/clerk`
+
+See `docs/guides/accounts-and-env-checklist.md` §7 for the full Clerk checklist.
+
 ## Troubleshooting: `host_invalid` / "Invalid host"
 
 This JSON error from `*.clerk.accounts.dev/v1/client/handshake` almost always means the **publishable key is wrong or incomplete** — not a code bug.

@@ -1,4 +1,6 @@
-const base = process.argv[2] ?? "https://sompacare-facility.onrender.com";
+import { PRODUCTION } from "./production-urls.mjs";
+
+const base = process.argv[2] ?? PRODUCTION.facility;
 const page = process.argv[3] ?? "/sign-in";
 
 const res = await fetch(`${base}${page}`, { redirect: "follow" });

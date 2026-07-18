@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import { readFileSync, writeFileSync, unlinkSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { PRODUCTION } from "./production-urls.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -171,7 +172,7 @@ END $$;
   runSql(dbUrl, sql);
   console.log(`Linked ${primaryEmail} (${clerkUser.id}) as ${role}.`);
   console.log("READY: yes");
-  console.log("Test: https://sompacare-nurse.onrender.com/sign-in");
+  console.log(`Test: ${PRODUCTION.nurse}/sign-in`);
 }
 
 main().catch((error) => {

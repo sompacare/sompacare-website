@@ -27,6 +27,7 @@
     "db:seed:roles": "npm run db:seed:roles --workspace=@sompacare/database",
     "db:studio": "npm run db:studio --workspace=@sompacare/database",
     "link:user": "node scripts/link-clerk-user.mjs",
+    "clerk:redirect-urls": "node scripts/clerk-redirect-urls.mjs",
     "check:user": "node scripts/check-linked-user.mjs",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
