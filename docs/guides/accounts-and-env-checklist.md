@@ -119,6 +119,10 @@ Shared by all four portals (nurse, facility, recruiter, admin).
 |----------|-----------------|------|
 | `CLERK_SECRET_KEY` | Same as API (`sk_live_...`) | ☐ |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk → Publishable (`pk_live_...`) | ☐ |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` (portal-hosted, not Account Portal) | ☐ |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/sign-up` | ☐ |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/home` | ☐ |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/home` | ☐ |
 
 ---
 
@@ -181,6 +185,9 @@ Each portal also needs `NEXT_PUBLIC_API_URL` (already in `render.yaml`).
 | Setting | Value | Done? |
 |---------|-------|-------|
 | Allowed redirect URLs | All four `*.onrender.com` portal URLs | ☐ |
+| Sign-in URL (Paths) | Each portal's `/sign-in` on its own domain — **not** `accounts.sompacare.com` | ☐ |
+| Sign-up URL (Paths) | Each portal's `/sign-up` on its own domain | ☐ |
+| Custom frontend API (optional) | `clerk.sompacare.com` if using Clerk production domain | ☐ |
 | Webhook endpoint | `https://sompacare-api.onrender.com/api/v1/auth/webhook/clerk` | ☐ |
 | Production keys in Render | `pk_live_` + `sk_live_` (not test keys) | ☐ |
 

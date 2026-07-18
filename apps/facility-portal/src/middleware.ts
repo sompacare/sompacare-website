@@ -2,14 +2,17 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/onboarding(.*)"]);
 
-export default clerkMiddleware(async (auth, request) => {
-  if (process.env.NEXT_PUBLIC_FACILITY_PORTAL_FORCE_DEV_TOKEN === "true") {
-    return;
-  }
-  if (!isPublicRoute(request)) {
-    await auth.protect();
-  }
-});
+export default clerkMiddleware(
+  async (auth, request) => {
+    if (process.env.NEXT_PUBLIC_FACILITY_PORTAL_FORCE_DEV_TOKEN === "true") {
+      return;
+    }
+    if (!isPublicRoute(request)) {
+      await auth.protect();
+    }
+  },
+  { signInUrl: "/sign-in", signUpUrl: "/sign-up" }
+);
 
 export const config = {
   matcher: [

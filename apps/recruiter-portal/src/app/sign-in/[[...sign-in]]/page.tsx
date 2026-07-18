@@ -1,5 +1,5 @@
-import { SignIn } from "@clerk/nextjs";
 import { PortalAuthShell } from "@/components/brand/portal-auth-shell";
+import { PortalSignInFlow } from "@/components/auth/portal-sign-in-flow";
 
 export default function SignInPage() {
   return (
@@ -7,7 +7,7 @@ export default function SignInPage() {
       portalLabel="Recruiter portal"
       subtitle="Sign in to manage candidates, interviews, and placements"
     >
-      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+      <PortalSignInFlow />
     </PortalAuthShell>
   );
 }
