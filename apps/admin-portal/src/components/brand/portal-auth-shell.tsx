@@ -10,16 +10,14 @@ type Props = {
 
 export function PortalAuthShell({ portalLabel, subtitle, children }: Props) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <Logo height={56} subtitle={SOMPACARE_BRAND.tagline} />
-          <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">
-            {portalLabel}
-          </p>
-          <p className="mt-2 text-sm text-muted">{subtitle}</p>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
+        <div className="flex justify-center">
+          <Logo height={56} />
         </div>
-        {children}
+        <h1 className="mt-6 text-center text-2xl font-bold text-navy">{portalLabel}</h1>
+        <p className="mt-2 text-center text-sm text-muted">{subtitle}</p>
+        <div className="mt-8">{children}</div>
         <p className="mt-6 text-center text-sm text-muted">
           <Link
             href={SOMPACARE_BRAND.marketingUrl}

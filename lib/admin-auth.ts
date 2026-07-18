@@ -14,6 +14,13 @@ export function verifyAdminPassword(password: string): boolean {
   return password === expected;
 }
 
+export function verifyAdminCredentials(email: string, password: string): boolean {
+  const expectedEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
+  if (expectedEmail && normalizedEmail !== expectedEmail) return false;
+  return verifyAdminPassword(password);
+}
+
 export async function isAdminAuthenticated(): Promise<boolean> {
   const token = getAdminSessionToken();
   if (!token) return false;

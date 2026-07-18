@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
-import { clearAdminSession, setAdminSession, verifyAdminPassword } from "@/lib/admin-auth";
+import { clearAdminSession, setAdminSession, verifyAdminCredentials } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
-  let body: { password?: string };
+  let body: { email?: string; password?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  if (!body.password || !verifyAdminPassword(body.password)) {
-    return NextResponse.json({ error: "Invalid password." }, { status: 401 });
+  const email = body.email?.trim() ?? "";
+  const password = body.password ?? "";
+
+  if (!email || !password) {
+    return NextResponse.json({ error: "Enter your company email and password." }, { status: 400 });
+  }
+
+  if (!verifyAdminCredentials(email, password)) {
+    return NextResponse.json({ error: "Invalid company email or password." }, { status: 401 });
   }
 
   try {

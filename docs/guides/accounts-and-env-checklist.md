@@ -157,6 +157,7 @@ Each portal also needs `NEXT_PUBLIC_API_URL` (already in `render.yaml`).
 | `STRIPE_SECRET_KEY` | Stripe secret (marketing admin payments) | ☐ |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | ☐ |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook for `/api/stripe/webhook` | ☐ |
+| `ADMIN_EMAIL` | Company email for `/admin/login` on marketing site | ☐ |
 | `ADMIN_PASSWORD` | Password for `/admin/login` on marketing site | ☐ |
 | `ADMIN_SESSION_TOKEN` | Long random string for admin cookie | ☐ |
 | `INFO_TO_EMAIL` | `info@sompacare.com` | ☐ |
