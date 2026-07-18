@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SignUp } from "@clerk/nextjs";
 import { EmployeeAccessGate, storeEmployeeAccess } from "@/components/auth/employee-access-gate";
+import { NurseSignUpPasswordForm } from "@/components/auth/nurse-sign-up-password-form";
 import { useApi } from "@/hooks/use-api";
 import { formatApiError } from "@/lib/api";
 
@@ -71,14 +71,5 @@ export function NurseSignUpFlow({ initialEmail = "", initialEmployeeNumber = "" 
     );
   }
 
-  return (
-    <div className="w-full max-w-md">
-      <SignUp
-        routing="path"
-        path="/sign-up"
-        signInUrl="/sign-in"
-        initialValues={{ emailAddress: email }}
-      />
-    </div>
-  );
+  return <NurseSignUpPasswordForm email={email} />;
 }

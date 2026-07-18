@@ -7,37 +7,49 @@ import { useSignIn } from "@clerk/nextjs";
 import { SOMPACARE_BRAND } from "@sompacare/shared";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { formatClerkError } from "@/lib/clerk";
 
 export function NurseSignInFlow() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!isLoaded || !signIn) return;
+    setError(null);
+
+    if (!isLoaded || !signIn) {
+      setError("Authentication is still loading. Please wait a moment and try again.");
+      return;
+    }
+
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+
+    if (!email || !password) {
+      setError("Enter your email and password.");
+      return;
+    }
 
     setBusy(true);
-    setError(null);
 
     try {
       const result = await signIn.create({
-        identifier: email.trim(),
+        identifier: email,
         password,
       });
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        router.replace("/");
+        router.replace("/home");
         return;
       }
 
       setError("Additional verification is required. Check your email or contact HR.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed");
+      setError(formatClerkError(err, "Sign in failed"));
     } finally {
       setBusy(false);
     }
@@ -62,11 +74,10 @@ export function NurseSignInFlow() {
           </label>
           <input
             id="email"
+            name="email"
             type="email"
             required
             autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@email.com"
             className="w-full rounded-lg border px-3 py-2 text-sm"
           />
@@ -77,11 +88,10 @@ export function NurseSignInFlow() {
           </label>
           <input
             id="password"
+            name="password"
             type="password"
             required
             autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             placeholder="Your password"
             className="w-full rounded-lg border px-3 py-2 text-sm"
           />
@@ -89,7 +99,7 @@ export function NurseSignInFlow() {
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <Button type="submit" className="w-full" disabled={busy || !email || !password}>
+        <Button type="submit" className="w-full" disabled={busy}>
           {busy ? "Signing in…" : "Sign in"}
         </Button>
       </form>

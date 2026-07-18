@@ -40,19 +40,28 @@ export function EmployeeAccessGate({
   externalError = null,
 }: Props) {
   const api = useApi();
-  const [email, setEmail] = useState(initialEmail);
-  const [employeeNumber, setEmployeeNumber] = useState(initialEmployeeNumber);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleVerify(e: React.FormEvent) {
+  async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError(null);
+
+    const form = new FormData(e.currentTarget);
+    const nextEmail = String(form.get("email") ?? "").trim();
+    const nextEmployeeNumber = String(form.get("employeeNumber") ?? "").trim();
+
+    if (!nextEmail || !nextEmployeeNumber) {
+      setError("Enter your work email and employee number.");
+      setBusy(false);
+      return;
+    }
+
     try {
-      await api.verifyEmployee({ email: email.trim(), employeeNumber: employeeNumber.trim() });
-      storeEmployeeAccess(email, employeeNumber);
-      onVerified(email.trim(), employeeNumber.trim().toUpperCase());
+      await api.verifyEmployee({ email: nextEmail, employeeNumber: nextEmployeeNumber });
+      storeEmployeeAccess(nextEmail, nextEmployeeNumber);
+      onVerified(nextEmail, nextEmployeeNumber.toUpperCase());
     } catch (err) {
       setError(formatApiError(err, "Unable to verify employee access."));
     } finally {
@@ -78,10 +87,10 @@ export function EmployeeAccessGate({
           </label>
           <input
             id="email"
+            name="email"
             type="email"
             required
-            value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            defaultValue={initialEmail}
             placeholder="you@email.com"
             className="w-full rounded-lg border px-3 py-2 text-sm"
           />
@@ -92,13 +101,11 @@ export function EmployeeAccessGate({
           </label>
           <input
             id="employeeNumber"
+            name="employeeNumber"
             required
-            value={employeeNumber}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setEmployeeNumber(e.target.value.toUpperCase())
-            }
+            defaultValue={initialEmployeeNumber}
             placeholder="SC-XXXXXX"
-            className="w-full rounded-lg border px-3 py-2 text-sm"
+            className="w-full rounded-lg border px-3 py-2 text-sm uppercase"
           />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
