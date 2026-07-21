@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { LifeBuoy } from "lucide-react";
-import { useApi } from "@/hooks/use-api";
+import { useApi, formatApiError } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ export default function SupportPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -40,9 +41,12 @@ export default function SupportPage() {
 
   async function resolveTicket(id: string) {
     setUpdating(id);
+    setError(null);
     try {
       await api.updateSupportTicket(id, { status: "RESOLVED" });
       await load();
+    } catch (err) {
+      setError(formatApiError(err, "Could not resolve ticket."));
     } finally {
       setUpdating(null);
     }
@@ -54,6 +58,10 @@ export default function SupportPage() {
         <h1 className="text-2xl font-bold text-navy">Support tickets</h1>
         <p className="mt-1 text-sm text-muted">Customer support queue</p>
       </section>
+
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
 
       {loading ? (
         <div className="space-y-2">
@@ -92,10 +100,11 @@ export default function SupportPage() {
                   </span>
                   {t.status !== "RESOLVED" && t.status !== "CLOSED" && (
                     <Button
+                      type="button"
                       size="sm"
                       variant="secondary"
                       disabled={updating === t.id}
-                      onClick={() => resolveTicket(t.id)}
+                      onClick={() => void resolveTicket(t.id)}
                     >
                       Mark resolved
                     </Button>

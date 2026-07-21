@@ -81,8 +81,9 @@ export function ShiftCard({ shift, onClaim, claiming, compact, matchScore }: Shi
 
         {onClaim && slotsLeft > 0 && (
           <Button
+            type="button"
             className="mt-4 w-full"
-            onClick={handleClaim}
+            onClick={() => void handleClaim()}
             disabled={claiming}
           >
             <Zap className="h-4 w-4" />

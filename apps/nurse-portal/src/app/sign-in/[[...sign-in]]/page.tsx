@@ -1,5 +1,5 @@
-import { SignIn } from "@clerk/nextjs";
 import { Logo } from "@/components/brand/logo";
+import { ClerkSignInPanel } from "@/components/auth/clerk-sign-in-panel";
 
 export default function SignInPage() {
   return (
@@ -12,8 +12,8 @@ export default function SignInPage() {
         <p className="mt-2 text-center text-sm text-muted">
           Sign in with your work email and password to view shifts and manage your schedule.
         </p>
-        <div className="mt-8 flex justify-center">
-          <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl="/home" />
+        <div className="mt-8">
+          <ClerkSignInPanel />
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+import { nestApiErrorMessage } from "@sompacare/shared";
+
 export type DashboardKpis = {
   totalUsers: number;
   activeWorkers: number;
@@ -144,6 +146,14 @@ export class ApiError extends Error {
   }
 }
 
+export function formatApiError(err: unknown, fallback = "Something went wrong. Please try again."): string {
+  if (err instanceof ApiError) {
+    return nestApiErrorMessage(err.body, err.message);
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit & { token?: string | null } = {}
@@ -170,7 +180,11 @@ export async function apiFetch<T>(
     } catch {
       body = undefined;
     }
-    throw new ApiError(`API ${res.status}: ${path}`, res.status, body);
+    throw new ApiError(
+      nestApiErrorMessage(body, `Request failed (${res.status}).`),
+      res.status,
+      body
+    );
   }
 
   return res.json() as Promise<T>;

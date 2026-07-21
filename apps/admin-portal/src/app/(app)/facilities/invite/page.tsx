@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Mail, MapPin, Building2 } from "lucide-react";
-import { useApi } from "@/hooks/use-api";
+import { useApi, formatApiError } from "@/hooks/use-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -68,7 +68,7 @@ export default function InviteFacilityManagerPage() {
       });
       setForm(emptyForm);
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to send facility invite."));
     } finally {
       setBusy(false);
     }
@@ -204,16 +204,31 @@ export default function InviteFacilityManagerPage() {
 
       {result && (
         <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardContent className="space-y-2 p-6 text-sm text-navy">
+          <CardContent className="space-y-3 p-6 text-sm text-navy">
             <p className="font-semibold text-emerald-800">Invite sent</p>
             <p>
               {result.clerkInvited
                 ? "Clerk invitation email sent."
                 : "Clerk invitation skipped — share the onboarding link manually."}
             </p>
-            <p className="break-all">
-              <span className="font-semibold">Onboarding link:</span> {result.onboardingUrl}
-            </p>
+            <p className="break-all font-medium">{result.onboardingUrl}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => void navigator.clipboard.writeText(result.onboardingUrl)}
+              >
+                Copy onboarding link
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => window.open(result.onboardingUrl, "_blank", "noopener,noreferrer")}
+              >
+                Open link
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

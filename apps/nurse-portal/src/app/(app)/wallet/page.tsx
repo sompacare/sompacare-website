@@ -54,7 +54,7 @@ export default function WalletPage() {
         }
         return load();
       }).catch((e) => {
-        setMessage((e) => formatApiError(e, "Unable to finish payout setup."));
+        setMessage(formatApiError(e, "Unable to finish payout setup."));
       });
     }
   }, [searchParams, api, load]);
@@ -86,7 +86,7 @@ export default function WalletPage() {
       setMessage("Instant payout sent.");
       await load();
     } catch (e) {
-      setMessage(formatApiError(e, "Unable to start payout setup."));
+      setMessage(formatApiError(e, "Instant payout failed."));
     } finally {
       setActing(false);
     }

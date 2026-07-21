@@ -4,10 +4,12 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { CLINICAL_ROLE_LABELS, CLINICAL_ROLES } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { EmployeeSectionNav } from "@/components/employees/employee-section-nav";
+import { EmployeeProvisionResult } from "@/components/employees/employee-provision-result";
 
 type InviteResult = {
   employeeNumber: string;
@@ -42,7 +44,7 @@ export default function InviteEmployeePage() {
       setResult(res);
       setEmail("");
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to send invite."));
     } finally {
       setBusy(false);
     }
@@ -99,7 +101,7 @@ export default function InviteEmployeePage() {
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" disabled={busy} className="w-full">
               {busy ? "Creating access…" : "Create employee ID & send invite"}
             </Button>
           </CardContent>
@@ -107,28 +109,14 @@ export default function InviteEmployeePage() {
       </form>
 
       {result && (
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardContent className="space-y-2 p-6 text-sm text-navy">
-            <p className="font-semibold text-emerald-800">Employee provisioned</p>
-            <p>
-              {result.firstName} {result.lastName} ({result.clinicalRole})
-            </p>
-            <p>
-              <span className="font-semibold">Employee number:</span> {result.employeeNumber}
-            </p>
-            <p>
-              {result.clerkInvited
-                ? "Clerk invitation email sent."
-                : "Clerk invitation skipped — share the signup link manually."}
-            </p>
-            <p className="break-all">
-              <span className="font-semibold">Sign-up link:</span> {result.signupUrl}
-            </p>
-            <p className="break-all">
-              <span className="font-semibold">Sign-in link:</span> {result.signInUrl}
-            </p>
-          </CardContent>
-        </Card>
+        <EmployeeProvisionResult
+          title="Employee provisioned"
+          subtitle={`${result.firstName} ${result.lastName} (${result.clinicalRole})`}
+          employeeNumber={result.employeeNumber}
+          signupUrl={result.signupUrl}
+          signInUrl={result.signInUrl}
+          clerkInvited={result.clerkInvited}
+        />
       )}
     </div>
   );

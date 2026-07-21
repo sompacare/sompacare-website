@@ -7,7 +7,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", ...props }, ref) => {
+  ({ className, variant = "primary", size = "md", type = "button", ...props }, ref) => {
     const variants = {
       primary: "bg-primary text-white hover:bg-primary-dark shadow-sm",
       secondary: "bg-white text-navy border border-border hover:bg-slate-50",
@@ -30,6 +30,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           sizes[size],
           className
         )}
+        type={type}
         {...props}
       />
     );

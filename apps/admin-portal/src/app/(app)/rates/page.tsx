@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ROLE_STANDARD_RATES } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -36,7 +37,7 @@ export default function RatesPage() {
         }
         setRates(rows);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not load rates.");
+        setError(formatApiError(err, "Could not load rates."));
       } finally {
         setLoading(false);
       }
@@ -62,7 +63,7 @@ export default function RatesPage() {
       await api.updateRoleRates(payload);
       setSuccess("Rates saved. Open published shifts now reflect these defaults.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save rates.");
+      setError(formatApiError(err, "Could not save rates."));
     } finally {
       setSaving(false);
     }

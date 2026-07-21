@@ -4,10 +4,12 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { CLINICAL_ROLE_LABELS, CLINICAL_ROLES } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { EmployeeSectionNav } from "@/components/employees/employee-section-nav";
+import { EmployeeProvisionResult } from "@/components/employees/employee-provision-result";
 
 const emptyForm = {
   firstName: "",
@@ -66,7 +68,7 @@ export default function NewEmployeePage() {
       setResult(res);
       setForm(emptyForm);
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to create employee."));
     } finally {
       setBusy(false);
     }
@@ -204,7 +206,7 @@ export default function NewEmployeePage() {
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" disabled={busy} className="w-full">
               {busy ? "Creating employee…" : "Create employee & grant portal access"}
             </Button>
           </CardContent>
@@ -212,23 +214,14 @@ export default function NewEmployeePage() {
       </form>
 
       {result && (
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardContent className="space-y-2 p-6 text-sm text-navy">
-            <p className="font-semibold text-emerald-800">Employee created</p>
-            <p>
-              {result.firstName} {result.lastName} — employee number{" "}
-              <span className="font-semibold">{result.employeeNumber}</span>
-            </p>
-            <p>
-              {result.clerkInvited
-                ? "Clerk invitation email sent."
-                : "Share the signup link manually if no invitation email was sent."}
-            </p>
-            <p className="break-all">
-              <span className="font-semibold">Sign-up link:</span> {result.signupUrl}
-            </p>
-          </CardContent>
-        </Card>
+        <EmployeeProvisionResult
+          title="Employee created"
+          subtitle={`${result.firstName} ${result.lastName}`}
+          employeeNumber={result.employeeNumber}
+          signupUrl={result.signupUrl}
+          signInUrl={result.signInUrl}
+          clerkInvited={result.clerkInvited}
+        />
       )}
     </div>
   );

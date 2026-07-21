@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle, Users } from "lucide-react";
-import { useApi } from "@/hooks/use-api";
+import { useApi, formatApiError } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ export default function UsersPage() {
   const [riskMeta, setRiskMeta] = useState<{ score: number; isCompliant: boolean } | null>(null);
   const [riskLoading, setRiskLoading] = useState(false);
   const [statusBusy, setStatusBusy] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,13 +50,14 @@ export default function UsersPage() {
 
   async function updateAccess(userId: string, status: "ACTIVE" | "INACTIVE") {
     setStatusBusy(userId);
+    setActionError(null);
     try {
       const res = await api.updateUserStatus(userId, status);
       setUsers((prev) =>
         prev.map((entry) => (entry.id === userId ? { ...entry, status: res.data.status } : entry))
       );
-    } catch {
-      // keep list unchanged on failure
+    } catch (err) {
+      setActionError(formatApiError(err, "Could not update user access."));
     } finally {
       setStatusBusy(null);
     }
@@ -89,6 +91,10 @@ export default function UsersPage() {
         <h1 className="text-2xl font-bold text-navy">Users</h1>
         <p className="mt-1 text-sm text-muted">Platform accounts, roles, and compliance risks</p>
       </section>
+
+      {actionError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{actionError}</p>
+      )}
 
       {loading ? (
         <div className="space-y-2">
@@ -125,25 +131,27 @@ export default function UsersPage() {
                       </Badge>
                     ))}
                     {user.profile?.clinicalRole && <Badge>{user.profile.clinicalRole}</Badge>}
-                    <Button size="sm" variant="secondary" onClick={() => loadRisks(user.id)}>
+                    <Button type="button" size="sm" variant="secondary" onClick={() => void loadRisks(user.id)}>
                       <AlertTriangle className="h-4 w-4" />
                       {riskUserId === user.id ? "Hide risks" : "AI risks"}
                     </Button>
                     {user.status === "ACTIVE" ? (
                       <Button
+                        type="button"
                         size="sm"
                         variant="secondary"
                         disabled={statusBusy === user.id}
-                        onClick={() => updateAccess(user.id, "INACTIVE")}
+                        onClick={() => void updateAccess(user.id, "INACTIVE")}
                       >
                         Terminate access
                       </Button>
                     ) : (
                       <Button
+                        type="button"
                         size="sm"
                         variant="secondary"
                         disabled={statusBusy === user.id}
-                        onClick={() => updateAccess(user.id, "ACTIVE")}
+                        onClick={() => void updateAccess(user.id, "ACTIVE")}
                       >
                         Reactivate
                       </Button>

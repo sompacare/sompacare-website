@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useApi } from "@/hooks/use-api";
+import { useApi, formatApiError } from "@/hooks/use-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,7 @@ export default function TimekeepingPage() {
       });
       setRows(res.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load assignments.");
+      setError(formatApiError(err, "Could not load assignments."));
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function TimekeepingPage() {
       await api.proxyClockIn(id, note);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Clock-in failed.");
+      setError(formatApiError(err, "Clock-in failed."));
     } finally {
       setBusyId(null);
     }
@@ -77,7 +77,7 @@ export default function TimekeepingPage() {
       await api.proxyClockOut(id, note);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Clock-out failed.");
+      setError(formatApiError(err, "Clock-out failed."));
     } finally {
       setBusyId(null);
     }
@@ -148,6 +148,7 @@ export default function TimekeepingPage() {
                   <div className="flex gap-2 shrink-0">
                     {canIn && (
                       <Button
+                        type="button"
                         size="sm"
                         disabled={busyId === row.id}
                         onClick={() => void handleClockIn(row.id)}
@@ -157,6 +158,7 @@ export default function TimekeepingPage() {
                     )}
                     {canOut && (
                       <Button
+                        type="button"
                         size="sm"
                         variant="secondary"
                         disabled={busyId === row.id}

@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { CalendarClock, MapPin, Plus } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import type { ShiftRecord } from "@/lib/api";
+import { formatApiError } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/ui/link-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -31,6 +32,7 @@ export default function AdminShiftsPage() {
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -50,9 +52,12 @@ export default function AdminShiftsPage() {
 
   async function publish(id: string) {
     setPublishingId(id);
+    setError(null);
     try {
       await api.publishShift(id);
       await load();
+    } catch (err) {
+      setError(formatApiError(err, "Could not publish shift."));
     } finally {
       setPublishingId(null);
     }
@@ -67,13 +72,15 @@ export default function AdminShiftsPage() {
             Post Sompacare home care visits or shifts on behalf of client facilities.
           </p>
         </div>
-        <Link href="/shifts/new">
-          <Button size="sm">
-            <Plus className="h-4 w-4" />
-            Post shift
-          </Button>
-        </Link>
+        <LinkButton href="/shifts/new" size="sm">
+          <Plus className="h-4 w-4" />
+          Post shift
+        </LinkButton>
       </div>
+
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
 
       {loading ? (
         <div className="space-y-3">
@@ -88,9 +95,9 @@ export default function AdminShiftsPage() {
             <p className="mt-2 text-sm text-muted">
               Create a home care visit at any client address for nurses to claim.
             </p>
-            <Link href="/shifts/new">
-              <Button className="mt-4">Post first shift</Button>
-            </Link>
+            <LinkButton href="/shifts/new" className="mt-4">
+              Post first shift
+            </LinkButton>
           </CardContent>
         </Card>
       ) : (
@@ -135,6 +142,7 @@ export default function AdminShiftsPage() {
                   </div>
                   {shift.status === "DRAFT" && (
                     <Button
+                      type="button"
                       className="mt-4 w-full sm:w-auto"
                       onClick={() => void publish(shift.id)}
                       disabled={publishingId === shift.id}

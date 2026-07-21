@@ -49,7 +49,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <aside className="hidden w-52 shrink-0 md:block">
           <nav className="sticky top-20 space-y-1">
             {navItems.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href || pathname.startsWith(`${href}/`);
+              const active =
+                href === "/employees/invite"
+                  ? pathname.startsWith("/employees")
+                  : pathname === href || pathname.startsWith(`${href}/`);
               return (
                 <Link
                   key={href}
@@ -75,7 +78,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md md:hidden">
         <div className="mx-auto flex max-w-lg gap-1 overflow-x-auto px-2 py-2">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+            const active =
+              href === "/employees/invite"
+                ? pathname.startsWith("/employees")
+                : pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}

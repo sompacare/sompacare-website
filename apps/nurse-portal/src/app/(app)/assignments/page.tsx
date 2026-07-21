@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { MapPin, LogIn, LogOut } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import type { Assignment } from "@/lib/api";
 import { getCurrentPosition, facilityFallbackPosition } from "@/lib/geolocation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +74,7 @@ export default function AssignmentsPage() {
         prev.map((a) => (a.id === id ? { ...a, status: "CONFIRMED" } : a))
       );
     } catch (e) {
-      setError((e as Error).message);
+      setError(formatApiError(e, "Could not confirm assignment."));
     } finally {
       setActingId(null);
     }
@@ -91,8 +92,7 @@ export default function AssignmentsPage() {
         )
       );
     } catch (e) {
-      const body = (e as { body?: { message?: string } }).body;
-      setError(body?.message ?? (e as Error).message);
+      setError(formatApiError(e, "Clock-in failed."));
     } finally {
       setActingId(null);
     }
@@ -110,8 +110,7 @@ export default function AssignmentsPage() {
         )
       );
     } catch (e) {
-      const body = (e as { body?: { message?: string } }).body;
-      setError(body?.message ?? (e as Error).message);
+      setError(formatApiError(e, "Clock-out failed."));
     } finally {
       setActingId(null);
     }
@@ -200,9 +199,10 @@ export default function AssignmentsPage() {
 
                   {assignment.status === "PENDING_CONFIRMATION" && (
                     <Button
+                      type="button"
                       className="mt-4 w-full"
                       variant="success"
-                      onClick={() => handleConfirm(assignment.id)}
+                      onClick={() => void handleConfirm(assignment.id)}
                       disabled={actingId === assignment.id}
                     >
                       {actingId === assignment.id ? "Confirming…" : "Confirm shift"}
@@ -224,8 +224,9 @@ export default function AssignmentsPage() {
 
                   {assignment.status === "CONFIRMED" && clockWindow === "open" && (
                     <Button
+                      type="button"
                       className="mt-4 w-full"
-                      onClick={() => handleClockIn(assignment)}
+                      onClick={() => void handleClockIn(assignment)}
                       disabled={actingId === assignment.id}
                     >
                       <LogIn className="h-4 w-4" />
@@ -236,9 +237,10 @@ export default function AssignmentsPage() {
                   {(assignment.status === "CHECKED_IN" ||
                     assignment.status === "IN_PROGRESS") && (
                     <Button
+                      type="button"
                       className="mt-4 w-full"
                       variant="secondary"
-                      onClick={() => handleClockOut(assignment)}
+                      onClick={() => void handleClockOut(assignment)}
                       disabled={actingId === assignment.id}
                     >
                       <LogOut className="h-4 w-4" />
