@@ -42,6 +42,7 @@
     "test:resume-sync": "node scripts/test-resume-sync.mjs",
     "test:trust-layer": "node scripts/test-trust-layer.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
+    "verify:clerk-emails": "node scripts/verify-clerk-emails.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"
   },

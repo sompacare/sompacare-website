@@ -1,5 +1,5 @@
+import { SignIn } from "@clerk/nextjs";
 import { PortalAuthShell } from "@/components/brand/portal-auth-shell";
-import { PortalSignInFlow } from "@/components/auth/portal-sign-in-flow";
 
 export default function SignInPage() {
   return (
@@ -7,7 +7,7 @@ export default function SignInPage() {
       portalLabel="Facility Portal"
       subtitle="Sign in with your email and password to post shifts, manage staff, and run your facility."
     >
-      <PortalSignInFlow />
+      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" forceRedirectUrl="/home" />
     </PortalAuthShell>
   );
 }

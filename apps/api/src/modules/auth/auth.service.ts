@@ -74,6 +74,25 @@ export class AuthService {
 
   ) {}
 
+  /** Trust company / invited users — skip Clerk email verification gates at sign-in. */
+  private async markClerkEmailsVerified(clerkUserId: string): Promise<void> {
+    const secretKey = this.config.get<string>("CLERK_SECRET_KEY");
+    if (!secretKey?.trim()) return;
+
+    try {
+      const clerk = createClerkClient({ secretKey });
+      const clerkUser = await clerk.users.getUser(clerkUserId);
+
+      for (const email of clerkUser.emailAddresses) {
+        if (email.verification?.status === "verified") continue;
+        await clerk.emailAddresses.updateEmailAddress(email.id, { verified: true });
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Clerk email auto-verify failed for ${clerkUserId}: ${(error as Error).message}`
+      );
+    }
+  }
 
 
   async validateToken(token: string): Promise<AuthenticatedUser | null> {
@@ -347,6 +366,8 @@ export class AuthService {
       throw new NotFoundException("User not found");
     }
 
+    await this.markClerkEmailsVerified(user.clerkId);
+
     if (user.status !== UserStatus.ACTIVE) {
       throw new ForbiddenException(
         "Your Sompacare access has been terminated. Contact support if you believe this is an error."
@@ -432,6 +453,8 @@ export class AuthService {
 
 
   private async syncClerkUser(data: ClerkWebhookEvent["data"]) {
+
+    await this.markClerkEmailsVerified(data.id);
 
     const email = data.email_addresses?.[0]?.email_address;
 

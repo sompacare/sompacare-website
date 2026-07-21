@@ -1,11 +1,26 @@
+function clerkSatelliteOptions() {
+  const isSatellite = process.env.NEXT_PUBLIC_CLERK_IS_SATELLITE === "true";
+  const domain = process.env.NEXT_PUBLIC_CLERK_DOMAIN?.trim();
+  return isSatellite && domain ? { isSatellite: true as const, domain } : {};
+}
+
 /** Clerk middleware options (paths from NEXT_PUBLIC_CLERK_* env vars on Render). */
 export function clerkMiddlewareOptions() {
-  const isSatellite = process.env.NEXT_PUBLIC_CLERK_IS_SATELLITE === "true";
-  const domain = process.env.NEXT_PUBLIC_CLERK_DOMAIN;
-
   return {
-    signInUrl: "/sign-in",
-    signUpUrl: "/sign-up",
-    ...(isSatellite && domain ? { isSatellite: true, domain } : {}),
+    signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? "/sign-in",
+    signUpUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? "/sign-up",
+    ...clerkSatelliteOptions(),
+  };
+}
+
+/** Props for root `ClerkProvider` — keep in sync with middleware. */
+export function clerkProviderProps() {
+  return {
+    publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? "/sign-in",
+    signUpUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? "/sign-up",
+    afterSignInUrl: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL ?? "/home",
+    afterSignUpUrl: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL ?? "/home",
+    ...clerkSatelliteOptions(),
   };
 }
