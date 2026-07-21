@@ -2,17 +2,24 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { useSignIn, useSignUp } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useClerk, useSignUp } from "@clerk/nextjs";
 import {
   isAlreadySignedInClerkError,
   isAlreadyVerifiedClerkError,
   isEmailVerificationVerified,
   isSompacareCompanyEmail,
   normalizeEmailVerificationCode,
+  type RecruiterSignUpDraft,
 } from "@sompacare/shared";
+import {
+  clearRecruiterSignUpDraft,
+  readRecruiterSignUpDraft,
+  writeRecruiterSignUpDraft,
+} from "@/lib/recruiter-signup-draft";
 import { PasswordField } from "@/components/auth/password-field";
 import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
+import { activateClerkSession, completeRecruiterSignUp } from "@/lib/clerk-sign-up-complete";
 import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
@@ -27,15 +34,14 @@ export function PortalSignUpFlow({
   signInUrl = "/sign-in",
 }: Props) {
   const { signUp, setActive, isLoaded } = useSignUp();
-  const { signIn: clerkSignInClient, isLoaded: signInLoaded } = useSignIn();
+  const clerk = useClerk();
   const router = useRouter();
   const [step, setStep] = useState<"register" | "verify">("register");
-  const [pendingEmail, setPendingEmail] = useState("");
+  const [draft, setDraft] = useState<RecruiterSignUpDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loadTimedOut, setLoadTimedOut] = useState(false);
-  const pendingPasswordRef = useRef("");
   const redirecting = useRedirectIfSignedIn(afterSignUpUrl);
 
   useEffect(() => {
@@ -43,15 +49,19 @@ export function PortalSignUpFlow({
       setLoadTimedOut(false);
       return;
     }
-
     const timer = window.setTimeout(() => setLoadTimedOut(true), CLERK_LOAD_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [isLoaded, signUp]);
 
   useEffect(() => {
-    if (!isLoaded || !signUp || step === "verify") {
-      return;
+    const stored = readRecruiterSignUpDraft();
+    if (stored) {
+      setDraft(stored);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded || !signUp) return;
 
     let cancelled = false;
 
@@ -60,27 +70,27 @@ export function PortalSignUpFlow({
         await signUp.reload();
         if (cancelled) return;
 
-        const email = signUp.emailAddress?.trim() || null;
-
-        const needsEmailCode =
+        const pending =
           signUp.status === "missing_requirements" &&
           (signUp.unverifiedFields?.includes("email_address") ||
-            signUp.verifications?.emailAddress?.status === "unverified");
+            signUp.verifications?.emailAddress?.status === "unverified" ||
+            signUp.verifications?.emailAddress?.status === "transferable");
 
-        if (needsEmailCode && email) {
-          setPendingEmail(email);
+        const email = signUp.emailAddress?.trim() || readRecruiterSignUpDraft()?.email;
+        if (pending && email) {
+          setDraft((prev) => prev ?? readRecruiterSignUpDraft() ?? null);
           setStep("verify");
           setSuccess(`Enter the verification code we sent to ${email}.`);
         }
       } catch {
-        /* fresh sign-up */
+        /* ignore */
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, signUp, step]);
+  }, [isLoaded, signUp]);
 
   if (redirecting) {
     return (
@@ -103,7 +113,7 @@ export function PortalSignUpFlow({
     );
   }
 
-  if (!isLoaded || !signUp || !signInLoaded) {
+  if (!isLoaded || !signUp) {
     if (loadTimedOut) {
       return (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -124,39 +134,59 @@ export function PortalSignUpFlow({
     );
   }
 
-  const clerkSignUp = signUp;
-  const activateSession = setActive;
+  const activeSignUp = signUp;
 
-  async function activateSessionIfComplete(): Promise<boolean> {
-    await clerkSignUp.reload();
-    const sessionId = clerkSignUp.createdSessionId;
-    if (clerkSignUp.status === "complete" && sessionId && activateSession) {
-      await activateSession({ session: sessionId });
-      router.replace(afterSignUpUrl);
-      return true;
-    }
-    return false;
+  async function goHome(sessionId: string) {
+    await activateClerkSession(setActive, sessionId);
+    clearRecruiterSignUpDraft();
+    router.replace(afterSignUpUrl);
   }
 
-  async function signInWithPendingPassword(): Promise<boolean> {
-    const email = pendingEmail.trim();
-    const password = pendingPasswordRef.current;
-    if (!email || !password || !clerkSignInClient || !activateSession) {
+  async function trySignInWithDraft(activeDraft: RecruiterSignUpDraft): Promise<boolean> {
+    if (!clerk.client) return false;
+
+    try {
+      const signInResult = await clerk.client.signIn.create({
+        identifier: activeDraft.email,
+        password: activeDraft.password,
+      });
+
+      if (signInResult.status === "complete" && signInResult.createdSessionId) {
+        await clerk.setActive({ session: signInResult.createdSessionId });
+        clearRecruiterSignUpDraft();
+        router.replace(afterSignUpUrl);
+        return true;
+      }
+    } catch {
       return false;
     }
 
-    const result = await clerkSignInClient.create({
-      identifier: email,
-      password,
-    });
+    return false;
+  }
 
-    if (result.status === "complete" && result.createdSessionId) {
-      await activateSession({ session: result.createdSessionId });
-      router.replace(afterSignUpUrl);
-      return true;
+  async function finishAfterVerification(activeDraft: RecruiterSignUpDraft) {
+    const completion = await completeRecruiterSignUp(activeSignUp, activeDraft);
+
+    if (completion.status === "complete" && completion.sessionId) {
+      await goHome(completion.sessionId);
+      return;
     }
 
-    return false;
+    if (isEmailVerificationVerified(activeSignUp) || completion.missingFields.length === 0) {
+      if (await trySignInWithDraft(activeDraft)) {
+        return;
+      }
+    }
+
+    if (completion.missingFields.length > 0) {
+      setError(
+        `Account setup needs: ${completion.missingFields.join(", ")}. Contact Sompacare IT or try sign-in if you already registered.`
+      );
+      return;
+    }
+
+    setError("Verification succeeded but we could not start your session. Sign in with your password.");
+    router.replace(signInUrl);
   }
 
   async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
@@ -168,9 +198,17 @@ export function PortalSignUpFlow({
     const nextEmail = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
     const confirmPassword = String(form.get("confirmPassword") ?? "");
+    const firstName = String(form.get("firstName") ?? "").trim();
+    const lastName = String(form.get("lastName") ?? "").trim();
+    const legalAccepted = form.get("legalAccepted") === "on";
 
-    if (!nextEmail || !password) {
-      setError("Enter your company email and choose a password.");
+    if (!nextEmail || !password || !firstName || !lastName) {
+      setError("Enter your name, company email, and password.");
+      return;
+    }
+
+    if (!legalAccepted) {
+      setError("Accept the Terms of Service and Privacy Policy to continue.");
       return;
     }
 
@@ -184,33 +222,35 @@ export function PortalSignUpFlow({
       return;
     }
 
-    pendingPasswordRef.current = password;
+    const nextDraft: RecruiterSignUpDraft = {
+      email: nextEmail,
+      password,
+      firstName,
+      lastName,
+      legalAccepted: true,
+    };
+
+    writeRecruiterSignUpDraft(nextDraft);
+    setDraft(nextDraft);
     setBusy(true);
 
     try {
-      const signUpWithReset = clerkSignUp as typeof clerkSignUp & { reset?: () => void };
-      signUpWithReset.reset?.();
-
-      const result = await clerkSignUp.create({
+      const result = await activeSignUp.create({
         emailAddress: nextEmail,
         password,
+        firstName,
+        lastName,
+        legalAccepted: true,
       });
 
       if (result.status === "complete" && result.createdSessionId) {
-        await activateSession({ session: result.createdSessionId });
-        router.replace(afterSignUpUrl);
+        await goHome(result.createdSessionId);
         return;
       }
 
-      if (result.status === "missing_requirements") {
-        await clerkSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
-        setPendingEmail(nextEmail);
-        setStep("verify");
-        setSuccess(`We sent a verification code to ${nextEmail}.`);
-        return;
-      }
-
-      setError("Unable to finish account setup. Contact your Sompacare admin.");
+      await activeSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setStep("verify");
+      setSuccess(`We sent a verification code to ${nextEmail}.`);
     } catch (err) {
       if (isAlreadySignedInClerkError(err)) {
         router.replace(afterSignUpUrl);
@@ -227,60 +267,53 @@ export function PortalSignUpFlow({
     setError(null);
     setSuccess(null);
 
+    const activeDraft = draft ?? readRecruiterSignUpDraft();
+    if (!activeDraft) {
+      setError("Your sign-up session expired. Start over and request a new code.");
+      setStep("register");
+      return;
+    }
+
     const form = new FormData(e.currentTarget);
     const code = normalizeEmailVerificationCode(String(form.get("code") ?? ""));
 
-    if (!code) {
-      setError("Enter the verification code from your email.");
+    if (code.length < 6) {
+      setError("Enter the 6-digit verification code from your email.");
       return;
     }
 
     setBusy(true);
 
     try {
-      const result = await clerkSignUp.attemptEmailAddressVerification({ code });
-
-      if (result.status === "complete" && result.createdSessionId && activateSession) {
-        await activateSession({ session: result.createdSessionId });
-        router.replace(afterSignUpUrl);
-        return;
-      }
-
-      if (await activateSessionIfComplete()) {
-        return;
-      }
-
-      if (isEmailVerificationVerified(clerkSignUp) || isEmailVerificationVerified(result)) {
-        if (await signInWithPendingPassword()) {
-          return;
-        }
-        setSuccess("Email verified. Sign in with your password to continue.");
-        router.replace(signInUrl);
-        return;
-      }
-
-      const missing = clerkSignUp.missingFields?.length
-        ? ` Still needed: ${clerkSignUp.missingFields.join(", ")}.`
-        : "";
-      setError(`Verification incomplete. Check the code and try again.${missing}`);
+      await activeSignUp.attemptEmailAddressVerification({ code });
+      await finishAfterVerification(activeDraft);
     } catch (err) {
       if (isAlreadyVerifiedClerkError(err) || isAlreadySignedInClerkError(err)) {
-        if (await activateSessionIfComplete()) {
-          return;
-        }
-        if (await signInWithPendingPassword()) {
-          return;
-        }
-        router.replace(signInUrl);
+        await finishAfterVerification(activeDraft);
         return;
       }
-      setError(formatClerkError(err, "Invalid verification code."));
+      setError(formatClerkError(err, "Invalid or expired verification code."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resendCode() {
+    setError(null);
+    setSuccess(null);
+    setBusy(true);
+    try {
+      await activeSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setSuccess("We sent a new verification code to your email.");
+    } catch (err) {
+      setError(formatClerkError(err, "Could not resend the code. Wait a minute and try again."));
     } finally {
       setBusy(false);
     }
   }
 
   if (step === "verify") {
+    const email = draft?.email ?? readRecruiterSignUpDraft()?.email;
     return (
       <form onSubmit={(e) => void handleVerify(e)} className="space-y-4">
         {error && (
@@ -293,9 +326,7 @@ export function PortalSignUpFlow({
             {success}
           </p>
         )}
-        {pendingEmail && (
-          <p className="text-xs text-muted">Verifying {pendingEmail}</p>
-        )}
+        {email && <p className="text-xs text-muted">Verifying {email}</p>}
         <div>
           <label htmlFor="code" className="mb-2 block text-xs font-semibold uppercase text-navy">
             Verification code
@@ -307,6 +338,7 @@ export function PortalSignUpFlow({
             inputMode="numeric"
             autoComplete="one-time-code"
             required
+            maxLength={6}
             placeholder="123456"
             className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
@@ -318,17 +350,23 @@ export function PortalSignUpFlow({
         >
           {busy ? "Verifying…" : "Verify & continue"}
         </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void resendCode()}
+          className="w-full text-sm font-semibold text-primary hover:underline disabled:opacity-60"
+        >
+          Resend code
+        </button>
         <p className="text-center text-sm text-muted">
           Wrong email?{" "}
           <button
             type="button"
             className="font-semibold text-primary hover:underline"
             onClick={() => {
-              const signUpWithReset = clerkSignUp as typeof clerkSignUp & { reset?: () => void };
-              signUpWithReset.reset?.();
-              pendingPasswordRef.current = "";
+              clearRecruiterSignUpDraft();
+              setDraft(null);
               setStep("register");
-              setPendingEmail("");
               setError(null);
               setSuccess(null);
             }}
@@ -348,6 +386,34 @@ export function PortalSignUpFlow({
             {error}
           </p>
         )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="firstName" className="mb-2 block text-xs font-semibold uppercase text-navy">
+              First name
+            </label>
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              autoComplete="given-name"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="mb-2 block text-xs font-semibold uppercase text-navy">
+              Last name
+            </label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              autoComplete="family-name"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+        </div>
         <div>
           <label htmlFor="email" className="mb-2 block text-xs font-semibold uppercase text-navy">
             Company Email
@@ -389,6 +455,26 @@ export function PortalSignUpFlow({
             minLength={8}
           />
         </div>
+        <label className="flex items-start gap-3 text-sm text-muted">
+          <input
+            id="legalAccepted"
+            name="legalAccepted"
+            type="checkbox"
+            required
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+          />
+          <span>
+            I agree to the Sompacare{" "}
+            <Link href="https://www.sompacare.com/terms" className="font-semibold text-primary hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="https://www.sompacare.com/privacy" className="font-semibold text-primary hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
         <button
           type="submit"
           disabled={busy}

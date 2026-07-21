@@ -108,6 +108,7 @@ Portals run on subdomains of your primary Clerk domain with **satellite mode off
 2. Add allowed subdomains under **Domains → Allowed subdomains** (see checklist)
 3. Webhook: `https://api.sompacare.com/api/v1/auth/webhook/clerk`
 4. **Recruiter portal:** optional **Restrictions → Allowlist** with email domain `sompacare.com` so Clerk rejects non-company sign-ups at the source
+5. **User & authentication → Sign-up:** If **Phone number** is required, custom email/password sign-up will stall after the email code with `missing_requirements`. Either disable phone as required or collect it in the sign-up UI. The recruiter portal sends **first name, last name, password, legal acceptance**, and email verification to satisfy typical production settings.
 
 See `docs/guides/accounts-and-env-checklist.md` §7 for the full Clerk checklist.
 
