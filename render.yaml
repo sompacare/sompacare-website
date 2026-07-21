@@ -115,8 +115,6 @@ services:
         value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         value: pk_live_51TrLFRExydo0cTefW5v7MsXRTFqLGk4JCbLEjYbDMXU7c6suSzJ2WP16iKNJ9sXFULvajqkBHrYdExZTXzm9uieM00OroLJ96T
-      - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: nurse.sompacare.com
 
   - type: web
     name: sompacare-facility
@@ -136,8 +134,6 @@ services:
         value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
         value: pk_live_51TrLFRExydo0cTefW5v7MsXRTFqLGk4JCbLEjYbDMXU7c6suSzJ2WP16iKNJ9sXFULvajqkBHrYdExZTXzm9uieM00OroLJ96T
-      - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: facility.sompacare.com
 
   - type: web
     name: sompacare-recruiter
@@ -157,8 +153,6 @@ services:
         value: --max-old-space-size=4096
       - key: NEXT_PUBLIC_API_URL
         value: https://api.sompacare.com/api/v1
-      - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: recruiter.sompacare.com
 
   - type: web
     name: sompacare-admin
@@ -176,8 +170,6 @@ services:
         value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://api.sompacare.com/api/v1
-      - key: NEXT_PUBLIC_CLERK_DOMAIN
-        value: admin.sompacare.com
 
 databases:
   - name: sompacare-db
