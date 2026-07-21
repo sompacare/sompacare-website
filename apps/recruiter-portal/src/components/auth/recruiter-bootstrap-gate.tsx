@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useApi, ApiError } from "@/hooks/use-api";
@@ -80,9 +81,9 @@ export function RecruiterBootstrapGate({ children }: Props) {
     return (
       <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="max-w-md text-sm text-red-700">{error}</p>
-        <a href="/sign-in" className="text-sm font-semibold text-primary hover:underline">
+        <Link href="/sign-in" className="text-sm font-semibold text-primary hover:underline">
           Back to sign in
-        </a>
+        </Link>
       </div>
     );
   }

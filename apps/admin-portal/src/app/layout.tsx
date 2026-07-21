@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { clerkProviderProps } from "@/lib/clerk-config";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider {...clerkProviderProps()}>
+    <ClerkProvider>
       <html lang="en">
         <body>{children}</body>
       </html>

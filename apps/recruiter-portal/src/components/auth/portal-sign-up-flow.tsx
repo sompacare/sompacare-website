@@ -22,7 +22,7 @@ export function PortalSignUpFlow({
   const { signUp, setActive, isLoaded } = useSignUp();
   const router = useRouter();
   const [step, setStep] = useState<"register" | "verify">("register");
-  const [email, setEmail] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -103,7 +103,7 @@ export function PortalSignUpFlow({
 
       if (result.status === "missing_requirements") {
         await clerkSignUp.prepareEmailAddressVerification({ strategy: "email_code" });
-        setEmail(nextEmail);
+        setPendingEmail(nextEmail);
         setStep("verify");
         setSuccess(`We sent a verification code to ${nextEmail}.`);
         return;
@@ -161,6 +161,9 @@ export function PortalSignUpFlow({
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
             {success}
           </p>
+        )}
+        {pendingEmail && (
+          <p className="text-xs text-muted">Verifying {pendingEmail}</p>
         )}
         <div>
           <label htmlFor="code" className="mb-2 block text-xs font-semibold uppercase text-navy">
