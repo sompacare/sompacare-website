@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { CLINICAL_ROLE_LABELS, CLINICAL_ROLES } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -42,7 +43,7 @@ export default function InviteEmployeePage() {
       setResult(res);
       setEmail("");
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to send invite."));
     } finally {
       setBusy(false);
     }

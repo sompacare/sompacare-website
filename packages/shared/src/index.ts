@@ -1,3 +1,4 @@
+export * from "./api/error-message";
 export * from "./auth/clerk-client-errors";
 export * from "./auth/company-email";
 export * from "./brand/site";

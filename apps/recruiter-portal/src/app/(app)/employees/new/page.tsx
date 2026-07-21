@@ -4,6 +4,7 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { CLINICAL_ROLE_LABELS, CLINICAL_ROLES } from "@sompacare/shared";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
@@ -66,7 +67,7 @@ export default function NewEmployeePage() {
       setResult(res);
       setForm(emptyForm);
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Unable to create employee."));
     } finally {
       setBusy(false);
     }

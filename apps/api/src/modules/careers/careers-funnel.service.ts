@@ -283,6 +283,29 @@ export class CareersFunnelService {
     }
 
     if (
+      candidate.stage === CandidatePipelineStage.HIRED &&
+      candidate.workerId &&
+      candidate.employeeNumber
+    ) {
+      const signupUrl = this.workerSignupUrl(candidate.email, candidate.employeeNumber);
+      const nursePortalUrl =
+        this.config.get<string>("NURSE_PORTAL_URL") ?? "http://localhost:3001";
+      const signInUrl = `${nursePortalUrl.replace(/\/$/, "")}/sign-in`;
+      return {
+        candidate,
+        provision: {
+          workerId: candidate.workerId,
+          linked: true,
+          invited: false,
+          employeeNumber: candidate.employeeNumber,
+        },
+        signupUrl,
+        signInUrl,
+        employeeNumber: candidate.employeeNumber,
+      };
+    }
+
+    if (
       candidate.stage !== CandidatePipelineStage.PLACED &&
       candidate.stage !== CandidatePipelineStage.HIRED
     ) {

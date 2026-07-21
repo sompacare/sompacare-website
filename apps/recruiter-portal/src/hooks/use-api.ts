@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useMemo, useRef } from "react";
 import { createApiClient, ApiError } from "@/lib/api";
 
-export { ApiError };
+export { ApiError, formatApiError } from "@/lib/api";
 
 const forceDevToken =
   process.env.NEXT_PUBLIC_RECRUITER_PORTAL_FORCE_DEV_TOKEN === "true";

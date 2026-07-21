@@ -34,7 +34,7 @@ export class WorkerOnboardingService {
 
   async quickInvite(actorUserId: string, dto: QuickInviteWorkerDto, source: "admin" | "recruiter") {
     const normalizedEmail = dto.email.trim().toLowerCase();
-    const clinicalRole = dto.clinicalRole ?? ClinicalRole.RN;
+    const clinicalRole = (dto.clinicalRole ?? ClinicalRole.RN) as ClinicalRole;
     const { firstName, lastName } = namesFromEmail(normalizedEmail);
 
     const candidateId = await this.ensureCandidateRecord({
@@ -66,7 +66,7 @@ export class WorkerOnboardingService {
       firstName: dto.firstName.trim(),
       lastName: dto.lastName.trim(),
       phone: dto.phone?.trim(),
-      clinicalRole: dto.clinicalRole,
+      clinicalRole: dto.clinicalRole as ClinicalRole,
       facilityId: dto.facilityId,
       notes: notes || undefined,
       source: `${source}_create`,
@@ -150,9 +150,7 @@ export class WorkerOnboardingService {
 
     if (existingCandidate) {
       if (existingCandidate.stage === CandidatePipelineStage.HIRED && existingCandidate.workerId) {
-        throw new BadRequestException(
-          `This employee is already hired (employee number ${existingCandidate.employeeNumber ?? "assigned"}).`
-        );
+        return existingCandidate.id;
       }
 
       const recruiterId = await this.resolveRecruiterId(input.actorUserId);

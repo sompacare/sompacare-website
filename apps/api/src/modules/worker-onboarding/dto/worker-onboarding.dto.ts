@@ -1,24 +1,24 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { CLINICAL_ROLES, type ClinicalRoleValue } from "@sompacare/shared";
 import {
   IsDateString,
   IsEmail,
-  IsEnum,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from "class-validator";
-import { ClinicalRole } from "@sompacare/database";
 
 export class QuickInviteWorkerDto {
   @ApiProperty()
   @IsEmail()
   email!: string;
 
-  @ApiPropertyOptional({ enum: ClinicalRole, default: ClinicalRole.RN })
+  @ApiPropertyOptional({ enum: CLINICAL_ROLES, default: "RN" })
   @IsOptional()
-  @IsEnum(ClinicalRole)
-  clinicalRole?: ClinicalRole;
+  @IsIn([...CLINICAL_ROLES])
+  clinicalRole?: ClinicalRoleValue;
 }
 
 export class CreateWorkerEmployeeDto {
@@ -41,9 +41,9 @@ export class CreateWorkerEmployeeDto {
   @IsString()
   phone?: string;
 
-  @ApiProperty({ enum: ClinicalRole })
-  @IsEnum(ClinicalRole)
-  clinicalRole!: ClinicalRole;
+  @ApiProperty({ enum: CLINICAL_ROLES })
+  @IsIn([...CLINICAL_ROLES])
+  clinicalRole!: ClinicalRoleValue;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -64,6 +64,7 @@ export class CreateWorkerEmployeeDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(2)
   licenseState?: string;
 
   @ApiPropertyOptional()
