@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSignUp } from "@clerk/nextjs";
 import { isSompacareCompanyEmail } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
-import { CLERK_INIT_TIMEOUT_HELP, formatClerkError } from "@/lib/clerk";
+import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
@@ -37,6 +37,14 @@ export function PortalSignUpFlow({
     const timer = window.setTimeout(() => setLoadTimedOut(true), CLERK_LOAD_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [isLoaded, signUp]);
+
+  if (!hasClerkPublishableKey()) {
+    return (
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        {CLERK_MISSING_KEY_HELP}
+      </p>
+    );
+  }
 
   if (!isLoaded || !signUp) {
     if (loadTimedOut) {
