@@ -1,9 +1,15 @@
 import { createClerkClient } from "@clerk/backend";
-import { Injectable, Logger, Inject, forwardRef } from "@nestjs/common";
+import { Injectable, Logger, Inject, forwardRef, ForbiddenException, NotFoundException } from "@nestjs/common";
 
 import { ConfigService } from "@nestjs/config";
 
-import { PlatformRole } from "@sompacare/shared";
+import {
+  ADMIN_ROLES,
+  FACILITY_ROLES,
+  PlatformRole,
+  WORKER_ROLES,
+  isSompacareCompanyEmail,
+} from "@sompacare/shared";
 
 import { UserStatus } from "@sompacare/database";
 
@@ -324,6 +330,75 @@ export class AuthService {
   async verifyEmployee(email: string, employeeNumber: string) {
     const result = await this.careerFunnel.verifyEmployeeAccess(email, employeeNumber);
     return { data: result };
+  }
+
+  async bootstrapRecruiterAccess(userId: string, email: string) {
+    if (!isSompacareCompanyEmail(email)) {
+      throw new ForbiddenException(
+        "Recruiter access requires a @sompacare.com company email."
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { roles: { include: { role: true } } },
+    });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException(
+        "Your Sompacare access has been terminated. Contact support if you believe this is an error."
+      );
+    }
+
+    const roleNames = user.roles.map((entry) => entry.role.name as PlatformRole);
+
+    if (roleNames.some((role) => WORKER_ROLES.includes(role))) {
+      throw new ForbiddenException(
+        "This account is set up as a worker. Sign in through the nurse portal instead."
+      );
+    }
+
+    if (roleNames.some((role) => FACILITY_ROLES.includes(role))) {
+      throw new ForbiddenException(
+        "This account is set up for a facility. Use the facility portal instead."
+      );
+    }
+
+    const existingStaff = roleNames.find(
+      (role) => ADMIN_ROLES.includes(role) || role === PlatformRole.RECRUITER
+    );
+    if (existingStaff) {
+      return { data: { ready: true, role: existingStaff, provisioned: false } };
+    }
+
+    const recruiterRole = await this.prisma.role.upsert({
+      where: { name: PlatformRole.RECRUITER },
+      update: {},
+      create: {
+        name: PlatformRole.RECRUITER,
+        displayName: "Recruiter",
+        description: "RECRUITER platform role",
+      },
+    });
+
+    await this.prisma.userRole.upsert({
+      where: { userId_roleId: { userId, roleId: recruiterRole.id } },
+      update: {},
+      create: { userId, roleId: recruiterRole.id },
+    });
+
+    await this.audit.log({
+      userId,
+      action: "recruiter.access_provisioned",
+      entityType: "User",
+      entityId: userId,
+      changes: { email, role: PlatformRole.RECRUITER },
+    });
+
+    return { data: { ready: true, role: PlatformRole.RECRUITER, provisioned: true } };
   }
 
 

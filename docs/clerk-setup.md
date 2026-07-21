@@ -105,8 +105,9 @@ npm run dev --workspace=@sompacare/nurse-portal   # http://localhost:3001
 Portals run on subdomains of your primary Clerk domain with **satellite mode off** (`NEXT_PUBLIC_CLERK_IS_SATELLITE=false`).
 
 1. Verify `clerk.sompacare.com` DNS in Clerk Dashboard → **Domains**
-2. Add redirect URLs — run `npm run clerk:redirect-urls` and paste each line into **Paths → Allowed redirect URLs**
+2. Add allowed subdomains under **Domains → Allowed subdomains** (see checklist)
 3. Webhook: `https://api.sompacare.com/api/v1/auth/webhook/clerk`
+4. **Recruiter portal:** optional **Restrictions → Allowlist** with email domain `sompacare.com` so Clerk rejects non-company sign-ups at the source
 
 See `docs/guides/accounts-and-env-checklist.md` §7 for the full Clerk checklist.
 

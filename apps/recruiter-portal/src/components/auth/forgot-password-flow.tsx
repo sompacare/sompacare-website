@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
+import { isSompacareCompanyEmail } from "@sompacare/shared";
 import { formatClerkError } from "@/lib/clerk";
 import { PasswordField } from "@/components/auth/password-field";
 
@@ -76,6 +77,11 @@ export function ForgotPasswordFlow({
 
     if (!identifier) {
       setError("Enter your company email.");
+      return;
+    }
+
+    if (!isSompacareCompanyEmail(identifier)) {
+      setError("Use your @sompacare.com company email.");
       return;
     }
 

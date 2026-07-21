@@ -1,13 +1,13 @@
-import { SignUp } from "@clerk/nextjs";
 import { PortalAuthShell } from "@/components/brand/portal-auth-shell";
+import { PortalSignUpFlow } from "@/components/auth/portal-sign-up-flow";
 
 export default function SignUpPage() {
   return (
     <PortalAuthShell
       portalLabel="Recruiter portal"
-      subtitle="Create your recruiter account"
+      subtitle="Create your recruiter account with your @sompacare.com company email."
     >
-      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+      <PortalSignUpFlow />
     </PortalAuthShell>
   );
 }

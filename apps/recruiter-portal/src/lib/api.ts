@@ -193,6 +193,11 @@ export function createApiClient(getToken: () => Promise<string | null>) {
   }
 
   return {
+    bootstrapRecruiter: () =>
+      withAuth<{ data: { ready: boolean; role: string; provisioned?: boolean } }>(
+        "/auth/bootstrap-recruiter",
+        { method: "POST", body: "{}" }
+      ),
     getPipeline: () => withAuth<PipelineResponse>("/recruiters/pipeline"),
     getCandidates: (params?: Record<string, string>) => {
       const qs = params ? `?${new URLSearchParams(params)}` : "";

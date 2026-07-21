@@ -35,6 +35,13 @@ export class AuthController {
     return this.authService.verifyEmployee(dto.email, dto.employeeNumber);
   }
 
+  @Post("bootstrap-recruiter")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Grant recruiter portal access for @sompacare.com staff accounts" })
+  bootstrapRecruiter(@CurrentUser() user: AuthenticatedUser) {
+    return this.authService.bootstrapRecruiterAccess(user.id, user.email);
+  }
+
   @Post("webhook/clerk")
   @Public()
   @ApiOperation({ summary: "Clerk user lifecycle webhook" })

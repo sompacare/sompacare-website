@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
+import { isSompacareCompanyEmail } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { CLERK_INIT_TIMEOUT_HELP, formatClerkError } from "@/lib/clerk";
 
@@ -71,6 +72,11 @@ export function PortalSignInFlow({
       return;
     }
 
+    if (!isSompacareCompanyEmail(email)) {
+      setError("Recruiter access is limited to @sompacare.com company email addresses.");
+      return;
+    }
+
     setBusy(true);
 
     try {
@@ -135,6 +141,13 @@ export function PortalSignInFlow({
       >
         {busy ? "Signing in..." : "Sign In"}
       </button>
+
+      <p className="mt-6 text-center text-sm text-muted">
+        New to the team?{" "}
+        <Link href="/sign-up" className="font-semibold text-primary hover:underline">
+          Create your account
+        </Link>
+      </p>
     </form>
   );
 }
