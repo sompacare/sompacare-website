@@ -56,6 +56,8 @@ services:
         sync: false
       - key: CLERK_WEBHOOK_SECRET
         sync: false
+      - key: CLERK_JWT_KEY
+        sync: false
       - key: CORS_ORIGINS
         value: https://www.sompacare.com,https://sompacare.com,https://nurse.sompacare.com,https://facility.sompacare.com,https://recruiter.sompacare.com,https://admin.sompacare.com,https://sompacare-nurse.onrender.com,https://sompacare-facility.onrender.com,https://sompacare-recruiter.onrender.com,https://sompacare-admin.onrender.com
       - key: NURSE_PORTAL_URL

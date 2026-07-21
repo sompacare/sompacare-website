@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { fetchClerkApiToken } from "@sompacare/shared";
 import { useMemo, useRef } from "react";
 import { createApiClient, ApiError } from "@/lib/api";
 
@@ -18,11 +19,7 @@ export function useApi() {
     () =>
       createApiClient(async () => {
         if (forceDevToken) return null;
-        try {
-          return await getTokenRef.current();
-        } catch {
-          return null;
-        }
+        return fetchClerkApiToken((options) => getTokenRef.current(options));
       }),
     []
   );

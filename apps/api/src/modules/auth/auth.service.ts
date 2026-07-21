@@ -117,6 +117,14 @@ export class AuthService {
 
 
 
+  private clerkAuthorizedParties(): string[] {
+    const raw = this.config.get<string>("CORS_ORIGINS") ?? "";
+    return raw
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
   private async validateClerkToken(token: string): Promise<AuthenticatedUser | null> {
 
     const secretKey = this.config.get<string>("CLERK_SECRET_KEY");
@@ -135,7 +143,12 @@ export class AuthService {
 
       const { verifyToken } = await import("@clerk/backend");
 
-      const payload = await verifyToken(token, { secretKey });
+      const jwtKey = this.config.get<string>("CLERK_JWT_KEY")?.trim();
+      const authorizedParties = this.clerkAuthorizedParties();
+      const payload = await verifyToken(token, {
+        ...(jwtKey ? { jwtKey } : { secretKey }),
+        ...(authorizedParties.length ? { authorizedParties } : {}),
+      });
 
 
 
@@ -181,7 +194,7 @@ export class AuthService {
 
     } catch (error) {
 
-      this.logger.debug(`Clerk token verification failed: ${(error as Error).message}`);
+      this.logger.warn(`Clerk token verification failed: ${(error as Error).message}`);
 
       return null;
 
