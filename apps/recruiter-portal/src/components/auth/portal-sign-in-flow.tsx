@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
-import { isAlreadySignedInClerkError, isSompacareCompanyEmail } from "@sompacare/shared";
+import { isAlreadySignedInClerkError } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
 import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
@@ -14,11 +14,13 @@ const CLERK_LOAD_TIMEOUT_MS = 15_000;
 type Props = {
   afterSignInUrl?: string;
   forgotPasswordUrl?: string;
+  signUpUrl?: string;
 };
 
 export function PortalSignInFlow({
   afterSignInUrl = "/home",
   forgotPasswordUrl = "/forgot-password",
+  signUpUrl = "/sign-up",
 }: Props) {
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
@@ -80,7 +82,6 @@ export function PortalSignInFlow({
   }
 
   const clerkSignIn = signIn;
-  const activateSession = setActive;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -95,11 +96,6 @@ export function PortalSignInFlow({
       return;
     }
 
-    if (!isSompacareCompanyEmail(email)) {
-      setError("Recruiter access is limited to @sompacare.com company email addresses.");
-      return;
-    }
-
     setBusy(true);
 
     try {
@@ -108,8 +104,8 @@ export function PortalSignInFlow({
         password,
       });
 
-      if (result.status === "complete" && result.createdSessionId) {
-        await activateSession({ session: result.createdSessionId });
+      if (result.status === "complete" && result.createdSessionId && setActive) {
+        await setActive({ session: result.createdSessionId });
         router.replace(afterSignInUrl);
         return;
       }
@@ -169,10 +165,10 @@ export function PortalSignInFlow({
         {busy ? "Signing in..." : "Sign In"}
       </button>
 
-      <p className="mt-6 text-center text-sm text-muted">
-        New to the team?{" "}
-        <Link href="/sign-up" className="font-semibold text-primary hover:underline">
-          Create your account
+      <p className="text-center text-sm text-muted">
+        Need an account?{" "}
+        <Link href={signUpUrl} className="font-semibold text-primary hover:underline">
+          Sign up
         </Link>
       </p>
     </form>
