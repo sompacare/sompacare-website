@@ -14,9 +14,14 @@ export function clerkMiddlewareOptions() {
 }
 
 /** Props for root `ClerkProvider` — keep in sync with middleware. */
+export function clerkPublishableKey(): string | undefined {
+  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
+  return key || undefined;
+}
+
 export function clerkProviderProps() {
   return {
-    publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    publishableKey: clerkPublishableKey(),
     signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? "/sign-in",
     signUpUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? "/sign-up",
     afterSignInUrl: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL ?? "/home",

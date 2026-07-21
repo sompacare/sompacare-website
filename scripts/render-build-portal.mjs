@@ -19,6 +19,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 process.chdir(root);
 process.env.NODE_OPTIONS = process.env.NODE_OPTIONS ?? "--max-old-space-size=6144";
 
+const clerkPk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
+if (!clerkPk) {
+  console.error(
+    "\n[render-build-portal] BUILD FAILED: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing.\n" +
+      "Link the Render env group `sompacare-portal-auth` to this service (or set the key on the service),\n" +
+      "then redeploy with Clear build cache.\n"
+  );
+  process.exit(1);
+}
+if (!clerkPk.startsWith("pk_")) {
+  console.error(
+    "\n[render-build-portal] BUILD FAILED: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY must start with pk_\n"
+  );
+  process.exit(1);
+}
+
 function run(cmd, opts = {}) {
   console.log(`\n> ${cmd}`);
   execSync(cmd, { stdio: "inherit", env: process.env, ...opts });
