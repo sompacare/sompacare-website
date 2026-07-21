@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSignIn } from "@clerk/nextjs";
-import { SOMPACARE_BRAND } from "@sompacare/shared";
+import { isAlreadySignedInClerkError, SOMPACARE_BRAND } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { Logo } from "@/components/brand/logo";
 import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
@@ -17,6 +18,7 @@ export function NurseSignInFlow() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const redirecting = useRedirectIfSignedIn("/home");
 
   useEffect(() => {
     if (isLoaded && signIn) {
@@ -27,6 +29,22 @@ export function NurseSignInFlow() {
     const timer = window.setTimeout(() => setLoadTimedOut(true), CLERK_LOAD_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [isLoaded, signIn]);
+
+  if (redirecting) {
+    return (
+      <div
+        className="flex w-full max-w-md flex-col items-center gap-3 rounded-3xl border border-slate-200 bg-white p-8 py-12 shadow-lg"
+        aria-live="polite"
+      >
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          role="status"
+          aria-label="Redirecting"
+        />
+        <p className="text-sm text-muted">Taking you to your dashboard…</p>
+      </div>
+    );
+  }
 
   if (!hasClerkPublishableKey()) {
     return (
@@ -97,6 +115,10 @@ export function NurseSignInFlow() {
 
       setError("Additional verification is required. Check your email or contact HR.");
     } catch (err) {
+      if (isAlreadySignedInClerkError(err)) {
+        router.replace("/home");
+        return;
+      }
       setError(formatClerkError(err, "Invalid email or password."));
     } finally {
       setBusy(false);

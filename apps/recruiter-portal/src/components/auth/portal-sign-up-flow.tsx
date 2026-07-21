@@ -4,9 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignUp } from "@clerk/nextjs";
-import { isSompacareCompanyEmail } from "@sompacare/shared";
+import {
+  isAlreadySignedInClerkError,
+  isAlreadyVerifiedClerkError,
+  isSompacareCompanyEmail,
+} from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
@@ -27,6 +32,7 @@ export function PortalSignUpFlow({
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const redirecting = useRedirectIfSignedIn(afterSignUpUrl);
 
   useEffect(() => {
     if (isLoaded && signUp) {
@@ -37,6 +43,48 @@ export function PortalSignUpFlow({
     const timer = window.setTimeout(() => setLoadTimedOut(true), CLERK_LOAD_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [isLoaded, signUp]);
+
+  useEffect(() => {
+    if (step !== "verify" || !isLoaded || !signUp) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        await signUp.reload();
+        if (
+          !cancelled &&
+          signUp.status === "complete" &&
+          signUp.createdSessionId &&
+          setActive
+        ) {
+          await setActive({ session: signUp.createdSessionId });
+          router.replace(afterSignUpUrl);
+        }
+      } catch {
+        /* user can submit code manually */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [afterSignUpUrl, isLoaded, router, setActive, signUp, step]);
+
+  if (redirecting) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8" aria-live="polite">
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          role="status"
+          aria-label="Redirecting"
+        />
+        <p className="text-sm text-muted">Taking you to your dashboard…</p>
+      </div>
+    );
+  }
 
   if (!hasClerkPublishableKey()) {
     return (
@@ -69,6 +117,16 @@ export function PortalSignUpFlow({
 
   const clerkSignUp = signUp;
   const activateSession = setActive;
+
+  async function activateCompletedSignUp(): Promise<boolean> {
+    await clerkSignUp.reload();
+    if (clerkSignUp.status === "complete" && clerkSignUp.createdSessionId) {
+      await activateSession({ session: clerkSignUp.createdSessionId });
+      router.replace(afterSignUpUrl);
+      return true;
+    }
+    return false;
+  }
 
   async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -119,6 +177,10 @@ export function PortalSignUpFlow({
 
       setError("Unable to finish account setup. Contact your Sompacare admin.");
     } catch (err) {
+      if (isAlreadySignedInClerkError(err)) {
+        router.replace(afterSignUpUrl);
+        return;
+      }
       setError(formatClerkError(err, "Unable to create your account."));
     } finally {
       setBusy(false);
@@ -149,8 +211,19 @@ export function PortalSignUpFlow({
         return;
       }
 
+      if (await activateCompletedSignUp()) {
+        return;
+      }
+
       setError("Verification incomplete. Check the code and try again.");
     } catch (err) {
+      if (isAlreadyVerifiedClerkError(err) || isAlreadySignedInClerkError(err)) {
+        if (await activateCompletedSignUp()) {
+          return;
+        }
+        router.replace(signInUrl);
+        return;
+      }
       setError(formatClerkError(err, "Invalid verification code."));
     } finally {
       setBusy(false);

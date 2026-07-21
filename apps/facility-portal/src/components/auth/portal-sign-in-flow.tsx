@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
+import { isAlreadySignedInClerkError } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
 
@@ -25,6 +27,7 @@ export function PortalSignInFlow({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const redirecting = useRedirectIfSignedIn(afterSignInUrl);
 
   useEffect(() => {
     if (isLoaded && signIn) {
@@ -35,6 +38,19 @@ export function PortalSignInFlow({
     const timer = window.setTimeout(() => setLoadTimedOut(true), CLERK_LOAD_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
   }, [isLoaded, signIn]);
+
+  if (redirecting) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8" aria-live="polite">
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          role="status"
+          aria-label="Redirecting"
+        />
+        <p className="text-sm text-muted">Taking you to your dashboard…</p>
+      </div>
+    );
+  }
 
   if (!hasClerkPublishableKey()) {
     return (
@@ -97,6 +113,10 @@ export function PortalSignInFlow({
 
       setError("Additional verification is required. Check your email or contact support.");
     } catch (err) {
+      if (isAlreadySignedInClerkError(err)) {
+        router.replace(afterSignInUrl);
+        return;
+      }
       setError(formatClerkError(err, "Invalid email or password."));
     } finally {
       setBusy(false);
