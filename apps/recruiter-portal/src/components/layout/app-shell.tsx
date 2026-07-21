@@ -34,7 +34,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md">
         <div className="mx-auto grid max-w-lg grid-cols-7 gap-1 px-1 py-2">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+            const active =
+              href === "/employees/invite"
+                ? pathname.startsWith("/employees")
+                : pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
                 key={href}

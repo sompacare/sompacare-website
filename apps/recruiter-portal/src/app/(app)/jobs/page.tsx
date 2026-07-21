@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Briefcase, Globe, PauseCircle } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ export default function JobPostingsPage() {
   const [postings, setPostings] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -33,11 +35,12 @@ export default function JobPostingsPage() {
 
   async function setStatus(posting: JobPosting, status: string) {
     setBusy(posting.slug);
+    setError(null);
     try {
       await api.updateJobPosting(posting.slug, { status });
       await load();
-    } catch {
-      // keep list
+    } catch (err) {
+      setError(formatApiError(err, "Could not update job posting."));
     } finally {
       setBusy(null);
     }
@@ -49,6 +52,10 @@ export default function JobPostingsPage() {
         <h1 className="text-xl font-bold text-navy">Job postings</h1>
         <p className="text-sm text-muted">Manage roles shown on the public careers page.</p>
       </div>
+
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
 
       {loading ? (
         <Skeleton className="h-32 w-full" />
@@ -70,9 +77,10 @@ export default function JobPostingsPage() {
                 <div className="flex flex-wrap gap-2">
                   {posting.status !== "PUBLISHED" && (
                     <Button
+                      type="button"
                       size="sm"
                       disabled={busy === posting.slug}
-                      onClick={() => setStatus(posting, "PUBLISHED")}
+                      onClick={() => void setStatus(posting, "PUBLISHED")}
                     >
                       <Globe className="mr-2 h-4 w-4" />
                       Publish
@@ -80,10 +88,11 @@ export default function JobPostingsPage() {
                   )}
                   {posting.status === "PUBLISHED" && (
                     <Button
+                      type="button"
                       size="sm"
                       variant="secondary"
                       disabled={busy === posting.slug}
-                      onClick={() => setStatus(posting, "CLOSED")}
+                      onClick={() => void setStatus(posting, "CLOSED")}
                     >
                       <PauseCircle className="mr-2 h-4 w-4" />
                       Close

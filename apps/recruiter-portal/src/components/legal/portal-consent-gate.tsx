@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 
 type Props = {
   children: React.ReactNode;
@@ -17,7 +18,11 @@ export function PortalConsentGate({ children }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setReady(true);
+      return;
+    }
 
     let cancelled = false;
 
@@ -54,13 +59,13 @@ export function PortalConsentGate({ children }: Props) {
       });
       setReady(true);
     } catch (err) {
-      setError((err as Error).message);
+      setError(formatApiError(err, "Could not save your agreement."));
     } finally {
       setBusy(false);
     }
   }
 
-  if (!isLoaded || ready === null) {
+  if (!isLoaded || (isSignedIn && ready === null)) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted">
         Loading…
@@ -68,7 +73,7 @@ export function PortalConsentGate({ children }: Props) {
     );
   }
 
-  if (!ready) {
+  if (isSignedIn && !ready) {
     return (
       <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4">
         <div className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl">

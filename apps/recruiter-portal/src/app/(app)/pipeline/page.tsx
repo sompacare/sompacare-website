@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronRight, Plus, RefreshCw } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export default function PipelinePage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -51,24 +53,26 @@ export default function PipelinePage() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setError(null);
     try {
       await api.createCandidate(form);
       setForm({ firstName: "", lastName: "", email: "", clinicalRole: "RN" });
       setShowAdd(false);
       await load();
-    } catch {
-      // keep form open on error
+    } catch (err) {
+      setError(formatApiError(err, "Could not add candidate."));
     } finally {
       setSaving(false);
     }
   }
 
   async function moveStage(id: string, stage: CandidateStage) {
+    setError(null);
     try {
       await api.updateStage(id, stage);
       await load();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(formatApiError(err, "Could not update stage."));
     }
   }
 
@@ -82,15 +86,19 @@ export default function PipelinePage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={load} disabled={loading}>
+          <Button type="button" size="sm" variant="secondary" onClick={() => void load()} disabled={loading}>
             <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button size="sm" onClick={() => setShowAdd(!showAdd)}>
+          <Button type="button" size="sm" onClick={() => setShowAdd(!showAdd)}>
             <Plus className="mr-1 h-4 w-4" />
             Add
           </Button>
         </div>
       </div>
+
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
 
       {showAdd && (
         <Card>

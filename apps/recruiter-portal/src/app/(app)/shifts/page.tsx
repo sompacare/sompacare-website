@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { CalendarClock, MapPin, Plus } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import type { ShiftRecord } from "@/lib/api";
+import { formatApiError } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import { LinkButton } from "@/components/ui/link-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +16,7 @@ export default function RecruiterShiftsPage() {
   const [shifts, setShifts] = useState<ShiftRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,9 +36,12 @@ export default function RecruiterShiftsPage() {
 
   async function publish(id: string) {
     setPublishingId(id);
+    setError(null);
     try {
       await api.publishShift(id);
       await load();
+    } catch (err) {
+      setError(formatApiError(err, "Could not publish shift."));
     } finally {
       setPublishingId(null);
     }
@@ -49,13 +54,15 @@ export default function RecruiterShiftsPage() {
           <h1 className="text-2xl font-bold text-navy">Home care shifts</h1>
           <p className="mt-1 text-sm text-muted">Post visits at any address for nurses to pick up.</p>
         </div>
-        <Link href="/shifts/new">
-          <Button size="sm">
-            <Plus className="h-4 w-4" />
-            New
-          </Button>
-        </Link>
+        <LinkButton href="/shifts/new" size="sm">
+          <Plus className="h-4 w-4" />
+          New
+        </LinkButton>
       </div>
+
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
 
       {loading ? (
         <div className="space-y-3">
@@ -68,9 +75,9 @@ export default function RecruiterShiftsPage() {
           <CardContent className="p-6 text-center">
             <p className="font-semibold text-navy">No shifts yet</p>
             <p className="mt-2 text-sm text-muted">Post a home care visit and publish to the nurse app.</p>
-            <Link href="/shifts/new">
-              <Button className="mt-4 w-full">Post shift</Button>
-            </Link>
+            <LinkButton href="/shifts/new" className="mt-4 w-full">
+              Post shift
+            </LinkButton>
           </CardContent>
         </Card>
       ) : (
@@ -118,6 +125,7 @@ export default function RecruiterShiftsPage() {
                 </div>
                 {shift.status === "DRAFT" && (
                   <Button
+                    type="button"
                     className="mt-3 w-full"
                     onClick={() => void publish(shift.id)}
                     disabled={publishingId === shift.id}

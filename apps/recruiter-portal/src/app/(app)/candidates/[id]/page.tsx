@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
+import { formatApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ export default function CandidateDetailPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [interviewAt, setInterviewAt] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function reload() {
     const data = await api.getCandidate(id);
@@ -66,8 +68,8 @@ export default function CandidateDetailPage() {
       link.rel = "noopener noreferrer";
       link.download = fileName;
       link.click();
-    } catch {
-      // no resume available
+    } catch (err) {
+      setActionError(formatApiError(err, "Could not download resume."));
     } finally {
       setBusy(null);
     }
@@ -75,11 +77,12 @@ export default function CandidateDetailPage() {
 
   async function run(action: string, fn: () => Promise<unknown>) {
     setBusy(action);
+    setActionError(null);
     try {
       await fn();
       await reload();
-    } catch {
-      // keep UI state
+    } catch (err) {
+      setActionError(formatApiError(err, "Action failed."));
     } finally {
       setBusy(null);
     }
@@ -114,6 +117,10 @@ export default function CandidateDetailPage() {
         <ArrowLeft className="mr-1 h-4 w-4" />
         Pipeline
       </Link>
+
+      {actionError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{actionError}</p>
+      )}
 
       <section>
         <div className="flex items-start justify-between gap-3">
@@ -213,6 +220,7 @@ export default function CandidateDetailPage() {
           )}
           {(candidate.resumeStorageKey || candidate.resumeUrl) && (
             <Button
+              type="button"
               variant="secondary"
               size="sm"
               disabled={busy === "resume"}
@@ -226,6 +234,7 @@ export default function CandidateDetailPage() {
             <p className="text-sm text-muted">Not parsed yet — run AI parse to build a profile.</p>
           )}
           <Button
+            type="button"
             variant="secondary"
             size="sm"
             disabled={busy === "parse"}
@@ -285,6 +294,7 @@ export default function CandidateDetailPage() {
               onChange={(e) => setInterviewAt(e.target.value)}
             />
             <Button
+              type="button"
               size="sm"
               disabled={!interviewAt || busy === "interview"}
               onClick={() =>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { LinkButton } from "@/components/ui/link-button";
 import { ArrowRight, Building2, ClipboardCheck, Inbox, Users } from "lucide-react";
 import { useApi } from "@/hooks/use-api";
 import { useFacility } from "@/hooks/use-facility";
@@ -121,9 +122,9 @@ export default function HomePage() {
                 <p className="text-sm text-muted">Review and approve staff for open shifts</p>
               </div>
             </div>
-            <Link href="/applications">
-              <Button size="sm">Review</Button>
-            </Link>
+            <LinkButton href="/applications" size="sm">
+              Review
+            </LinkButton>
           </CardContent>
         </Card>
       )}

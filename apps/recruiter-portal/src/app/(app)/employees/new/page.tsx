@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { EmployeeSectionNav } from "@/components/employees/employee-section-nav";
+import { EmployeeProvisionResult } from "@/components/employees/employee-provision-result";
 
 const emptyForm = {
   firstName: "",
@@ -188,15 +189,13 @@ export default function NewEmployeePage() {
       </form>
 
       {result && (
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardContent className="space-y-2 p-6 text-sm text-navy">
-            <p className="font-semibold text-emerald-800">Employee created</p>
-            <p>
-              {result.firstName} {result.lastName} — {result.employeeNumber}
-            </p>
-            <p className="break-all">{result.signupUrl}</p>
-          </CardContent>
-        </Card>
+        <EmployeeProvisionResult
+          title="Employee created"
+          subtitle={`${result.firstName} ${result.lastName}`}
+          employeeNumber={result.employeeNumber}
+          signupUrl={result.signupUrl}
+          signInUrl={result.signInUrl}
+        />
       )}
     </div>
   );

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { EmployeeSectionNav } from "@/components/employees/employee-section-nav";
+import { EmployeeProvisionResult } from "@/components/employees/employee-provision-result";
 
 type InviteResult = {
   employeeNumber: string;
@@ -103,17 +104,12 @@ export default function InviteEmployeePage() {
       </form>
 
       {result && (
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardContent className="space-y-2 p-6 text-sm text-navy">
-            <p className="font-semibold text-emerald-800">Employee provisioned</p>
-            <p>
-              <span className="font-semibold">Employee number:</span> {result.employeeNumber}
-            </p>
-            <p className="break-all">
-              <span className="font-semibold">Sign-up link:</span> {result.signupUrl}
-            </p>
-          </CardContent>
-        </Card>
+        <EmployeeProvisionResult
+          title="Employee provisioned"
+          employeeNumber={result.employeeNumber}
+          signupUrl={result.signupUrl}
+          signInUrl={result.signInUrl}
+        />
       )}
     </div>
   );
