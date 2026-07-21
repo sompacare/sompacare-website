@@ -41,6 +41,7 @@
     "test:referrals-jobs": "node scripts/test-referrals-jobs.mjs",
     "test:resume-sync": "node scripts/test-resume-sync.mjs",
     "test:trust-layer": "node scripts/test-trust-layer.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"
   },

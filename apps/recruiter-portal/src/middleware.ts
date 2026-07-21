@@ -11,13 +11,15 @@ export default clerkMiddleware(
       return;
     }
 
-    const { userId } = await auth();
-    if (userId && isAuthEntryRoute(request)) {
+    const authState = await auth();
+    if (authState.userId && isAuthEntryRoute(request)) {
       return NextResponse.redirect(new URL("/home", request.url));
     }
 
     if (!isPublicRoute(request)) {
-      await auth.protect();
+      if (!authState.userId) {
+        return authState.redirectToSignIn({ returnBackUrl: request.url });
+      }
     }
   },
   clerkMiddlewareOptions()

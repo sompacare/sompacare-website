@@ -1,4 +1,5 @@
 export * from "./auth/clerk-client-errors";
+export * from "./auth/clerk-sign-up";
 export * from "./auth/company-email";
 export * from "./brand/site";
 export * from "./rbac/permissions";

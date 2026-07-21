@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useSignUp } from "@clerk/nextjs";
+import { useEffect, useRef, useState } from "react";
+import { useSignIn, useSignUp } from "@clerk/nextjs";
 import {
   isAlreadySignedInClerkError,
   isAlreadyVerifiedClerkError,
+  isEmailVerificationVerified,
   isSompacareCompanyEmail,
+  normalizeEmailVerificationCode,
 } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
 import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
@@ -25,6 +27,7 @@ export function PortalSignUpFlow({
   signInUrl = "/sign-in",
 }: Props) {
   const { signUp, setActive, isLoaded } = useSignUp();
+  const { signIn: clerkSignInClient, isLoaded: signInLoaded } = useSignIn();
   const router = useRouter();
   const [step, setStep] = useState<"register" | "verify">("register");
   const [pendingEmail, setPendingEmail] = useState("");
@@ -32,6 +35,7 @@ export function PortalSignUpFlow({
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const pendingPasswordRef = useRef("");
   const redirecting = useRedirectIfSignedIn(afterSignUpUrl);
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export function PortalSignUpFlow({
   }, [isLoaded, signUp]);
 
   useEffect(() => {
-    if (step !== "verify" || !isLoaded || !signUp) {
+    if (!isLoaded || !signUp || step === "verify") {
       return;
     }
 
@@ -54,24 +58,29 @@ export function PortalSignUpFlow({
     void (async () => {
       try {
         await signUp.reload();
-        if (
-          !cancelled &&
-          signUp.status === "complete" &&
-          signUp.createdSessionId &&
-          setActive
-        ) {
-          await setActive({ session: signUp.createdSessionId });
-          router.replace(afterSignUpUrl);
+        if (cancelled) return;
+
+        const email = signUp.emailAddress?.trim() || null;
+
+        const needsEmailCode =
+          signUp.status === "missing_requirements" &&
+          (signUp.unverifiedFields?.includes("email_address") ||
+            signUp.verifications?.emailAddress?.status === "unverified");
+
+        if (needsEmailCode && email) {
+          setPendingEmail(email);
+          setStep("verify");
+          setSuccess(`Enter the verification code we sent to ${email}.`);
         }
       } catch {
-        /* user can submit code manually */
+        /* fresh sign-up */
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [afterSignUpUrl, isLoaded, router, setActive, signUp, step]);
+  }, [isLoaded, signUp, step]);
 
   if (redirecting) {
     return (
@@ -94,7 +103,7 @@ export function PortalSignUpFlow({
     );
   }
 
-  if (!isLoaded || !signUp) {
+  if (!isLoaded || !signUp || !signInLoaded) {
     if (loadTimedOut) {
       return (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -118,13 +127,35 @@ export function PortalSignUpFlow({
   const clerkSignUp = signUp;
   const activateSession = setActive;
 
-  async function activateCompletedSignUp(): Promise<boolean> {
+  async function activateSessionIfComplete(): Promise<boolean> {
     await clerkSignUp.reload();
-    if (clerkSignUp.status === "complete" && clerkSignUp.createdSessionId) {
-      await activateSession({ session: clerkSignUp.createdSessionId });
+    const sessionId = clerkSignUp.createdSessionId;
+    if (clerkSignUp.status === "complete" && sessionId && activateSession) {
+      await activateSession({ session: sessionId });
       router.replace(afterSignUpUrl);
       return true;
     }
+    return false;
+  }
+
+  async function signInWithPendingPassword(): Promise<boolean> {
+    const email = pendingEmail.trim();
+    const password = pendingPasswordRef.current;
+    if (!email || !password || !clerkSignInClient || !activateSession) {
+      return false;
+    }
+
+    const result = await clerkSignInClient.create({
+      identifier: email,
+      password,
+    });
+
+    if (result.status === "complete" && result.createdSessionId) {
+      await activateSession({ session: result.createdSessionId });
+      router.replace(afterSignUpUrl);
+      return true;
+    }
+
     return false;
   }
 
@@ -153,9 +184,13 @@ export function PortalSignUpFlow({
       return;
     }
 
+    pendingPasswordRef.current = password;
     setBusy(true);
 
     try {
+      const signUpWithReset = clerkSignUp as typeof clerkSignUp & { reset?: () => void };
+      signUpWithReset.reset?.();
+
       const result = await clerkSignUp.create({
         emailAddress: nextEmail,
         password,
@@ -193,7 +228,7 @@ export function PortalSignUpFlow({
     setSuccess(null);
 
     const form = new FormData(e.currentTarget);
-    const code = String(form.get("code") ?? "").trim();
+    const code = normalizeEmailVerificationCode(String(form.get("code") ?? ""));
 
     if (!code) {
       setError("Enter the verification code from your email.");
@@ -205,20 +240,35 @@ export function PortalSignUpFlow({
     try {
       const result = await clerkSignUp.attemptEmailAddressVerification({ code });
 
-      if (result.status === "complete" && result.createdSessionId) {
+      if (result.status === "complete" && result.createdSessionId && activateSession) {
         await activateSession({ session: result.createdSessionId });
         router.replace(afterSignUpUrl);
         return;
       }
 
-      if (await activateCompletedSignUp()) {
+      if (await activateSessionIfComplete()) {
         return;
       }
 
-      setError("Verification incomplete. Check the code and try again.");
+      if (isEmailVerificationVerified(clerkSignUp) || isEmailVerificationVerified(result)) {
+        if (await signInWithPendingPassword()) {
+          return;
+        }
+        setSuccess("Email verified. Sign in with your password to continue.");
+        router.replace(signInUrl);
+        return;
+      }
+
+      const missing = clerkSignUp.missingFields?.length
+        ? ` Still needed: ${clerkSignUp.missingFields.join(", ")}.`
+        : "";
+      setError(`Verification incomplete. Check the code and try again.${missing}`);
     } catch (err) {
       if (isAlreadyVerifiedClerkError(err) || isAlreadySignedInClerkError(err)) {
-        if (await activateCompletedSignUp()) {
+        if (await activateSessionIfComplete()) {
+          return;
+        }
+        if (await signInWithPendingPassword()) {
           return;
         }
         router.replace(signInUrl);
@@ -274,7 +324,11 @@ export function PortalSignUpFlow({
             type="button"
             className="font-semibold text-primary hover:underline"
             onClick={() => {
+              const signUpWithReset = clerkSignUp as typeof clerkSignUp & { reset?: () => void };
+              signUpWithReset.reset?.();
+              pendingPasswordRef.current = "";
               setStep("register");
+              setPendingEmail("");
               setError(null);
               setSuccess(null);
             }}
