@@ -1,4 +1,4 @@
-# Render Blueprint — Sompacare Platform (API + 4 portals)
+# Render Blueprint — Sompacare Platform (API + DB; portals on Vercel — see docs/launch/PHASE-1-VERCEL-PORTALS.md)
 envVarGroups:
   - name: sompacare-portal-auth
     envVars:

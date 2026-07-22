@@ -43,6 +43,10 @@
     "test:trust-layer": "node scripts/test-trust-layer.mjs",
     "smoke:production": "node scripts/smoke-production.mjs",
     "render:deploy-all": "node scripts/render-deploy-all.mjs",
+    "vercel:build:admin": "node scripts/vercel-build-portal.mjs admin-portal",
+    "vercel:build:nurse": "node scripts/vercel-build-portal.mjs nurse-portal",
+    "vercel:build:facility": "node scripts/vercel-build-portal.mjs facility-portal",
+    "vercel:build:recruiter": "node scripts/vercel-build-portal.mjs recruiter-portal",
     "verify:clerk-emails": "node scripts/verify-clerk-emails.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"

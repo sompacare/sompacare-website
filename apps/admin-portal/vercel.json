@@ -1,6 +1,10 @@
 {
   "framework": "nextjs",
-  "installCommand": "cd ../.. && npm install",
-  "buildCommand": "cd ../.. && npm run build --workspace=@sompacare/admin-portal",
-  "outputDirectory": ".next"
+  "installCommand": "cd ../.. && npm ci",
+  "buildCommand": "cd ../.. && node scripts/vercel-build-portal.mjs admin-portal",
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=6144"
+    }
+  }
 }
