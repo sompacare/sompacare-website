@@ -47,11 +47,12 @@ Master checklist for Sompacare platform go-live. Check items in order.
 
 ## Portal deployments
 
-- [ ] Nurse portal on Vercel
-- [ ] Facility portal on Vercel
-- [ ] Recruiter portal on Vercel
-- [ ] Admin portal on Vercel
-- [ ] Marketing site on Vercel — [marketing-vercel-deploy.md](../guides/marketing-vercel-deploy.md); verify `/privacy` and `/terms` return 200
+- [ ] Nurse portal on Render (`sompacare-nurse`) — [GO-LIVE-RENDER.md](./GO-LIVE-RENDER.md)
+- [ ] Facility portal on Render (`sompacare-facility`)
+- [ ] Recruiter portal on Render (`sompacare-recruiter`)
+- [ ] Admin portal on Render (`sompacare-admin`)
+- [ ] Env group `sompacare-portal-auth` linked to all four portal services
+- [ ] Marketing site — verify `/privacy` and `/terms` return 200 (`npm run smoke:production`)
 - [ ] Mobile apps submitted to App Store / Play Store (or TestFlight beta)
 
 ## Pilot validation

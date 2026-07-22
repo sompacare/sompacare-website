@@ -83,7 +83,7 @@ services:
       - key: CHECKR_PACKAGE
         value: tasker_standard
       - key: JOBS_DEV_BYPASS
-        value: "true"
+        value: "false"
       - key: SUPABASE_RESUME_LOCAL_MIRROR
         value: "false"
       - key: SUPABASE_URL
