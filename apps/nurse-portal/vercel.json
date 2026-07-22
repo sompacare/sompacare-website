@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "installCommand": "cd ../.. && npm ci",
+  "installCommand": "cd ../.. && npm install",
   "buildCommand": "cd ../.. && node scripts/vercel-build-portal.mjs nurse-portal",
   "build": {
     "env": {

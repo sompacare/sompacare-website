@@ -46,7 +46,7 @@
     "vercel:build:admin": "node scripts/vercel-build-portal.mjs admin-portal",
     "vercel:build:nurse": "node scripts/vercel-build-portal.mjs nurse-portal",
     "vercel:build:facility": "node scripts/vercel-build-portal.mjs facility-portal",
-    "vercel:build:recruiter": "node scripts/vercel-build-portal.mjs recruiter-portal",
+    "vercel:setup-phase1": "node scripts/vercel-setup-phase1.mjs",
     "verify:clerk-emails": "node scripts/verify-clerk-emails.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"

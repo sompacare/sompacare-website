@@ -8,6 +8,18 @@ Branch: **`platform`**
 
 ## Step A — Create four Vercel projects
 
+### Automated (recommended — Vercel CLI already logged in on this machine)
+
+From repo root, after Clerk keys exist in **`.env.platform.live`** or **`.env.vercel-portals`**:
+
+```bash
+npm run vercel:setup-phase1
+```
+
+Creates four projects, sets Production env vars, links, and deploys. Then do **Step C** (domains) and **Step D** (suspend Render portals).
+
+### Manual (Vercel dashboard)
+
 1. [vercel.com/new](https://vercel.com/new) → Import **sompacare/sompacare-website**
 2. Repeat four times (one project per portal). Each time:
 
