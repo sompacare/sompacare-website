@@ -141,6 +141,8 @@ services:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=6144
       - key: NEXT_PUBLIC_API_URL
         value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -154,6 +156,7 @@ services:
     buildCommand: node scripts/render-build-portal.mjs facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
     healthCheckPath: /sign-in
+    autoDeployTrigger: off
     buildFilter:
       paths:
         - apps/facility-portal/**
@@ -169,6 +172,8 @@ services:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=6144
       - key: NEXT_PUBLIC_API_URL
         value: https://api.sompacare.com/api/v1
       - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -182,6 +187,7 @@ services:
     buildCommand: node scripts/render-build-portal.mjs recruiter-portal
     startCommand: npm run start --workspace=@sompacare/recruiter-portal
     healthCheckPath: /sign-in
+    autoDeployTrigger: off
     buildFilter:
       paths:
         - apps/recruiter-portal/**
@@ -210,6 +216,7 @@ services:
     buildCommand: node scripts/render-build-portal.mjs admin-portal
     startCommand: npm run start --workspace=@sompacare/admin-portal
     healthCheckPath: /sign-in
+    autoDeployTrigger: off
     buildFilter:
       paths:
         - apps/admin-portal/**
@@ -225,6 +232,8 @@ services:
       - fromGroup: sompacare-portal-auth
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=6144
       - key: NEXT_PUBLIC_API_URL
         value: https://api.sompacare.com/api/v1
 

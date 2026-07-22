@@ -43,9 +43,12 @@ function run(cmd, opts = {}) {
 process.env.NEXT_TELEMETRY_DISABLED = "1";
 process.env.CI = "true";
 
-const workspacePkg = `@sompacare/${portal}`;
-// Scoped install — faster than full monorepo npm ci (saves Render build pipeline minutes).
-run(`npm ci --include=dev -w ${workspacePkg} -w @sompacare/shared`);
+console.log(
+  `[render-build-portal] ${portal}: Clerk key ${clerkPk.slice(0, 12)}… (${clerkPk.length} chars)`
+);
+
+// Full monorepo install — scoped npm ci can miss hoisted deps on Render's clean checkouts.
+run("npm ci --include=dev");
 run("npm run build --workspace=@sompacare/shared");
 // Run next build directly so we don't compile @sompacare/shared twice via the
 // portal package.json build script (Render builds were OOMing on recruiter).

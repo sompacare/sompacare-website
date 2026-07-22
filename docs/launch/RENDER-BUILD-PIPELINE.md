@@ -60,6 +60,8 @@ Expect all checks **OK**.
 
 | Log message | Action |
 |-------------|--------|
-| Missing `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Link env group **`sompacare-portal-auth`** to the portal, redeploy with clear cache |
-| JavaScript heap out of memory | Recruiter already has `NODE_OPTIONS`; confirm service **Pro** plan |
+| Missing `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | On the **service** (not only the group): Environment → confirm **sompacare-portal-auth** is linked **and** the key appears at build time. Add the same key directly on the service if needed → redeploy **with clear cache** |
+| `ESLint must be installed` / lint step failed | Fixed in repo (`eslint.ignoreDuringBuilds`); redeploy after pulling latest `platform` |
+| `Cannot find module` / incomplete `npm ci` | Fixed in repo (full monorepo `npm ci` on Render); redeploy |
+| JavaScript heap out of memory | All portals use `NODE_OPTIONS=--max-old-space-size=6144`; confirm **Pro** + **Performance** build tier |
 | Docker API build fails | Open **sompacare-api** logs; fix TypeScript/migrate errors shown there |
