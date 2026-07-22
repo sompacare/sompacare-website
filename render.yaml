@@ -29,6 +29,20 @@ services:
     branch: platform
     dockerfilePath: ./apps/api/Dockerfile
     healthCheckPath: /api/v1/health
+    autoDeployTrigger: off
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/database/**
+        - packages/shared/**
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - docs/**
+        - apps/nurse-portal/**
+        - apps/facility-portal/**
+        - apps/recruiter-portal/**
+        - apps/admin-portal/**
     domains:
       - api.sompacare.com
     envVars:
@@ -111,6 +125,16 @@ services:
     buildCommand: node scripts/render-build-portal.mjs nurse-portal
     startCommand: npm run start --workspace=@sompacare/nurse-portal
     healthCheckPath: /sign-in
+    autoDeployTrigger: off
+    buildFilter:
+      paths:
+        - apps/nurse-portal/**
+        - packages/shared/**
+        - scripts/render-build-portal.mjs
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - docs/**
     domains:
       - nurse.sompacare.com
     envVars:
@@ -130,6 +154,15 @@ services:
     buildCommand: node scripts/render-build-portal.mjs facility-portal
     startCommand: npm run start --workspace=@sompacare/facility-portal
     healthCheckPath: /sign-in
+    buildFilter:
+      paths:
+        - apps/facility-portal/**
+        - packages/shared/**
+        - scripts/render-build-portal.mjs
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - docs/**
     domains:
       - facility.sompacare.com
     envVars:
@@ -149,6 +182,15 @@ services:
     buildCommand: node scripts/render-build-portal.mjs recruiter-portal
     startCommand: npm run start --workspace=@sompacare/recruiter-portal
     healthCheckPath: /sign-in
+    buildFilter:
+      paths:
+        - apps/recruiter-portal/**
+        - packages/shared/**
+        - scripts/render-build-portal.mjs
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - docs/**
     domains:
       - recruiter.sompacare.com
     envVars:
@@ -168,6 +210,15 @@ services:
     buildCommand: node scripts/render-build-portal.mjs admin-portal
     startCommand: npm run start --workspace=@sompacare/admin-portal
     healthCheckPath: /sign-in
+    buildFilter:
+      paths:
+        - apps/admin-portal/**
+        - packages/shared/**
+        - scripts/render-build-portal.mjs
+        - package.json
+        - package-lock.json
+      ignoredPaths:
+        - docs/**
     domains:
       - admin.sompacare.com
     envVars:

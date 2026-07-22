@@ -40,7 +40,12 @@ function run(cmd, opts = {}) {
   execSync(cmd, { stdio: "inherit", env: process.env, ...opts });
 }
 
-run("npm ci --include=dev");
+process.env.NEXT_TELEMETRY_DISABLED = "1";
+process.env.CI = "true";
+
+const workspacePkg = `@sompacare/${portal}`;
+// Scoped install — faster than full monorepo npm ci (saves Render build pipeline minutes).
+run(`npm ci --include=dev -w ${workspacePkg} -w @sompacare/shared`);
 run("npm run build --workspace=@sompacare/shared");
 // Run next build directly so we don't compile @sompacare/shared twice via the
 // portal package.json build script (Render builds were OOMing on recruiter).

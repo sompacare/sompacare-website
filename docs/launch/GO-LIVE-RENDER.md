@@ -96,6 +96,7 @@ You are already on:
 
 | Symptom | Fix |
 |---------|-----|
+| **Failed deploy** in ~1s, log says **out of build pipeline minutes** | [RENDER-BUILD-PIPELINE.md](./RENDER-BUILD-PIPELINE.md) — billing + redeploy one service at a time |
 | White “Application error” on `/home` | Redeploy portal with env group linked + **clear build cache** |
 | `401` / invalid token on API | Match API `CLERK_SECRET_KEY` to env group |
 | Build fails on portal | Log says missing `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — link env group |
