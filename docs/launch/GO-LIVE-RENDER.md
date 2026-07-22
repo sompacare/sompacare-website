@@ -1,5 +1,7 @@
 # Go live on Render — final steps
 
+**Prefer Vercel for the four portals?** See **[VERCEL-PORTALS.md](./VERCEL-PORTALS.md)** — keep Render for API + DB only (recommended if Render builds keep failing).
+
 Use this after code on branch **`platform`** is deployed. Automated check:
 
 ```bash

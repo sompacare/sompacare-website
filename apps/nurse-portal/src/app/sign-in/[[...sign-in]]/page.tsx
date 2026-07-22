@@ -1,5 +1,8 @@
 import { Logo } from "@/components/brand/logo";
 import { ClerkSignInPanel } from "@/components/auth/clerk-sign-in-panel";
+import { RedirectVercelAppSignIn } from "@/components/auth/redirect-vercel-app-sign-in";
+
+const NURSE_PORTAL_ORIGIN = "https://nurse.sompacare.com";
 
 export default function SignInPage() {
   return (
@@ -13,7 +16,9 @@ export default function SignInPage() {
           Sign in with your work email and password to view shifts and manage your schedule.
         </p>
         <div className="mt-8">
-          <ClerkSignInPanel />
+          <RedirectVercelAppSignIn canonicalOrigin={NURSE_PORTAL_ORIGIN}>
+            <ClerkSignInPanel />
+          </RedirectVercelAppSignIn>
         </div>
       </div>
     </div>
