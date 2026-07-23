@@ -112,7 +112,7 @@ Manual: sign in on admin + one other portal → accept terms → open `/home`.
 | `Cannot find module @sompacare/shared` | Turn on “include files outside root directory”; confirm `installCommand` runs from repo root (in `vercel.json`) |
 | Git push builds **Error** (~1 min), Framework **Other** | From repo root: `node scripts/vercel-sync-portal-framework.mjs` — sets Next.js + monorepo root |
 | Pushes to `platform` only update **Preview**, not `admin.sompacare.com` | Vercel → project → **Settings → Git → Production Branch** = `platform`, then **Redeploy** Production |
-| “Application error” on sign-in | Use **https://admin.sompacare.com/sign-in** (not `*-git-platform-*.vercel.app` preview URLs) |
+| “Application error” on sign-in | Use **https://admin.sompacare.com/sign-in** (not `*-git-platform-*.vercel.app`). Sign-in uses `/sign-in` email form, not Clerk catch-all. |
 | Site loads but API 401 | Render API `CLERK_SECRET_KEY` must match portal Clerk app |
 | Old Render site still shows | DNS still pointing at Render — update to Vercel |
 

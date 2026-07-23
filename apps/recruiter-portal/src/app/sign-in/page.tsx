@@ -1,5 +1,5 @@
 import { PortalAuthShell } from "@/components/brand/portal-auth-shell";
-import { ClerkSignInPanel } from "@/components/auth/clerk-sign-in-panel";
+import { PortalSignInFlow } from "@/components/auth/portal-sign-in-flow";
 
 export default function SignInPage() {
   return (
@@ -7,7 +7,7 @@ export default function SignInPage() {
       portalLabel="Recruiter Portal"
       subtitle="Sign in with your company email and password to manage candidates, interviews, and placements."
     >
-      <ClerkSignInPanel />
+      <PortalSignInFlow />
     </PortalAuthShell>
   );
 }
