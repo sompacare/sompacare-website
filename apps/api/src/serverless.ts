@@ -1,16 +1,17 @@
 import { NestFactory } from "@nestjs/core";
 import { ExpressAdapter } from "@nestjs/platform-express";
-import type { Express } from "express";
 import express from "express";
 import { AppModule } from "./app.module";
 import { configureNestApp } from "./configure-app";
 
-let cachedServer: Express | null = null;
+type ExpressApp = ReturnType<typeof express>;
+
+let cachedServer: ExpressApp | null = null;
 
 /**
  * Cached Express server for Vercel serverless (REST + webhooks only; no WebSockets).
  */
-export async function getServer(): Promise<Express> {
+export async function getServer(): Promise<ExpressApp> {
   if (cachedServer) return cachedServer;
 
   const expressApp = express();

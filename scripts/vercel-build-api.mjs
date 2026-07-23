@@ -9,9 +9,13 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-function run(cmd) {
+function run(cmd, env = {}) {
   console.log(`> ${cmd}`);
-  execSync(cmd, { cwd: root, stdio: "inherit", env: process.env });
+  execSync(cmd, {
+    cwd: root,
+    stdio: "inherit",
+    env: { ...process.env, NPM_CONFIG_PRODUCTION: "false", ...env },
+  });
 }
 
 if (!process.env.DATABASE_URL?.trim()) {
@@ -21,6 +25,11 @@ if (!process.env.DATABASE_URL?.trim()) {
 }
 
 run("npx prisma@6.9.0 generate --schema packages/database/prisma/schema.prisma");
+const clientIndex = path.join(root, "node_modules/.prisma/client/index.js");
+if (!fs.existsSync(clientIndex)) {
+  console.error("[vercel-build-api] Prisma client missing after generate");
+  process.exit(1);
+}
 run("npm run build --workspace=@sompacare/shared");
 run("npm run build --workspace=@sompacare/api");
 

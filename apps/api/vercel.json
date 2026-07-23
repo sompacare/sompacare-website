@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd ../.. && npm install",
+  "installCommand": "cd ../.. && NPM_CONFIG_PRODUCTION=false npm install",
   "buildCommand": "cd ../.. && node scripts/vercel-build-api.mjs",
   "functions": {
     "api/index.js": {
