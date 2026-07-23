@@ -39,7 +39,12 @@ async function main() {
   } catch {
     healthBody = {};
   }
-  const dbOk = healthBody?.services?.database === "up" || healthBody?.status === "healthy";
+  const db =
+    healthBody?.services?.database ?? healthBody?.database;
+  const dbOk =
+    db === "ok" ||
+    db === "up" ||
+    healthBody?.status === "healthy";
   results.push({
     label: "api health",
     url: `${PRODUCTION.apiV1}/health`,

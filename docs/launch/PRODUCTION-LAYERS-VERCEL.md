@@ -66,6 +66,8 @@ npx vercel --scope sompacare-staffing
 
 Hit **`/api/v1/health`** on the `*.vercel.app` URL. When good, **`npx vercel --prod`**.
 
+If the preview URL returns a **Vercel login page** (HTML, not JSON), open **sompacare-api → Settings → Deployment Protection** and disable protection for **Preview** (or “Standard Protection” only on Production) so you can smoke-test before attaching `api.sompacare.com`.
+
 **Not on Vercel:** Socket.IO `/realtime` (portals use polling/fallback). **No Redis** unless you add it later — omit `REDIS_URL`.
 
 ---

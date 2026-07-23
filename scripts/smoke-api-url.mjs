@@ -14,7 +14,12 @@ try {
 } catch {
   json = null;
 }
-const ok = res.ok && json && (json.status === "ok" || json.database !== undefined);
+const dbOk = json?.services?.database === "ok";
+const ok =
+  res.ok &&
+  json &&
+  (json.status === "ok" || json.status === "degraded") &&
+  dbOk;
 console.log(ok ? "OK" : "FAIL", res.status, url);
 if (json) console.log(JSON.stringify(json));
 process.exit(ok ? 0 : 1);
