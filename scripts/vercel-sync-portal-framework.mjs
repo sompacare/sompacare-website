@@ -13,10 +13,30 @@ const scope = process.env.VERCEL_SCOPE ?? "sompacare-staffing";
 const teamId = scope;
 
 const PORTALS = [
-  { project: "sompacare-admin", dir: "apps/admin-portal" },
-  { project: "sompacare-nurse", dir: "apps/nurse-portal" },
-  { project: "sompacare-facility", dir: "apps/facility-portal" },
-  { project: "sompacare-recruiter", dir: "apps/recruiter-portal" },
+  {
+    project: "sompacare-admin",
+    dir: "apps/admin-portal",
+    installCommand: "cd ../.. && npm install",
+    buildCommand: "cd ../.. && node scripts/vercel-build-portal.mjs admin-portal",
+  },
+  {
+    project: "sompacare-nurse",
+    dir: "apps/nurse-portal",
+    installCommand: "cd ../.. && npm install",
+    buildCommand: "cd ../.. && node scripts/vercel-build-portal.mjs nurse-portal",
+  },
+  {
+    project: "sompacare-facility",
+    dir: "apps/facility-portal",
+    installCommand: "cd ../.. && npm install",
+    buildCommand: "cd ../.. && node scripts/vercel-build-portal.mjs facility-portal",
+  },
+  {
+    project: "sompacare-recruiter",
+    dir: "apps/recruiter-portal",
+    installCommand: "cd ../.. && npm install",
+    buildCommand: "cd ../.. && node scripts/vercel-build-portal.mjs recruiter-portal",
+  },
 ];
 
 function vercelToken() {
@@ -61,10 +81,12 @@ async function patchProject(project, body) {
   }
 }
 
-for (const { project, dir } of PORTALS) {
+for (const { project, dir, installCommand, buildCommand } of PORTALS) {
   console.log(`\nUpdating ${project}…`);
+  const installEscaped = installCommand.replace(/"/g, '\\"');
+  const buildEscaped = buildCommand.replace(/"/g, '\\"');
   execSync(
-    `npx vercel project update ${project} --scope ${scope} --framework nextjs --auto-detect build-command --auto-detect install-command --auto-detect output-directory`,
+    `npx vercel project update ${project} --scope ${scope} --framework nextjs --install-command "${installEscaped}" --build-command "${buildEscaped}" --auto-detect output-directory`,
     { stdio: "inherit", cwd: root }
   );
   await patchProject(project, {
