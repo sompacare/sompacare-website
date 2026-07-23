@@ -6,7 +6,13 @@ import { useEffect, useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
 import { isAlreadySignedInClerkError } from "@sompacare/shared";
 import { PasswordField } from "@/components/auth/password-field";
-import { CLERK_INIT_TIMEOUT_HELP, CLERK_MISSING_KEY_HELP, formatClerkError, hasClerkPublishableKey } from "@/lib/clerk";
+import {
+  CLERK_INIT_TIMEOUT_HELP,
+  CLERK_INIT_TIMEOUT_HELP_LOCAL,
+  CLERK_MISSING_KEY_HELP,
+  formatClerkError,
+  hasClerkPublishableKey,
+} from "@/lib/clerk";
 import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 const CLERK_LOAD_TIMEOUT_MS = 15_000;
@@ -128,7 +134,7 @@ export function PortalSignInFlow({
     if (loadTimedOut) {
       return (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {CLERK_INIT_TIMEOUT_HELP}
+          {process.env.NODE_ENV === "development" ? CLERK_INIT_TIMEOUT_HELP_LOCAL : CLERK_INIT_TIMEOUT_HELP}
         </p>
       );
     }

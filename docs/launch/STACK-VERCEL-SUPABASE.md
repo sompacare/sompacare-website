@@ -99,12 +99,12 @@ Today the API is a **long-running** NestJS process (`apps/api/src/main.ts`) with
 | BullMQ / Redis | **Skip** — omit `REDIS_URL`; jobs use in-memory fallback (already in code) |
 | Socket.IO `/realtime` | **Not on Vercel** — nurse/facility live notifications fall back until you add **Supabase Realtime** or polling |
 
-**Implementation status:** REST API on Vercel requires a small **serverless bootstrap** (`ExpressAdapter` + single cached Nest app) and a Vercel project with root `apps/api`. Track as engineering task before deleting Render API.
+**Implementation status:** Serverless bootstrap is in the repo (`apps/api/api/index.js`, `apps/api/src/serverless.ts`, `apps/api/vercel.json`). Use [PRODUCTION-LAYERS-VERCEL.md](./PRODUCTION-LAYERS-VERCEL.md) for cutover order.
 
-**Until that ships**, you can:
+**Until DNS points at Vercel API**, you can:
 
-- **Option A:** Portals on Vercel + **API stays on Render** (one Docker deploy, rare) + DB on Supabase.  
-- **Option B:** Full cutover once API Vercel project is merged.
+- **Option A:** Portals on Vercel + **API stays on Render** + DB on Supabase.  
+- **Option B:** Deploy **sompacare-api** on Vercel, smoke test on `*.vercel.app`, then move `api.sompacare.com`.
 
 ---
 

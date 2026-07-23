@@ -5,6 +5,9 @@ export const CLERK_MISSING_KEY_HELP =
 export const CLERK_INIT_TIMEOUT_HELP =
   "Authentication could not start. Confirm clerk.sompacare.com is verified in Clerk → Domains, this portal is under Allowed subdomains, and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is set. If NEXT_PUBLIC_CLERK_DOMAIN is set while satellite mode is off, remove it and redeploy.";
 
+export const CLERK_INIT_TIMEOUT_HELP_LOCAL =
+  "Clerk did not start locally. Use http://localhost (not 127.0.0.1), run npm run portals:sync-env from a valid .env.portals.local, paste pk_test_/sk_test_ from Clerk → Sompacare Staffing, add URLs from npm run clerk:local-urls, then restart the portal dev server.";
+
 export function formatClerkError(err: unknown, fallback = "Something went wrong. Please try again.") {
   if (err && typeof err === "object" && "errors" in err) {
     const errors = (err as { errors?: Array<{ longMessage?: string; message?: string }> }).errors;

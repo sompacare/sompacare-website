@@ -23,6 +23,10 @@ export default clerkMiddleware(
     const previewRedirect = redirectVercelPreviewHost(request);
     if (previewRedirect) return previewRedirect;
 
+    if (process.env.NEXT_PUBLIC_NURSE_PORTAL_FORCE_DEV_TOKEN === "true") {
+      return;
+    }
+
     const authState = await auth();
     const origin = publicRequestUrl(request);
 

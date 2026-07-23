@@ -87,6 +87,21 @@ And ensure `AUTH_ALLOW_DEV_TOKENS=true` in `.env.platform`.
 docker compose up -d
 npm run db:migrate
 npm run db:seed
+```
+
+**All four portals (recommended):**
+
+1. Copy Clerk **test** keys once: `.env.portals.local.example` → `.env.portals.local`
+2. `npm run portals:sync-env` — writes matching `apps/*-portal/.env.local`
+3. Clerk Dashboard → paste URLs from `npm run clerk:local-urls`
+4. `npm run dev:portals` — API `:4000`, nurse `:3001`, facility `:3002`, recruiter `:3003`, admin `:3004`
+5. Open **http://localhost:3001/sign-in** (use `localhost`, not `127.0.0.1`)
+
+Set `PORTAL_FORCE_DEV_TOKEN=true` in `.env.portals.local` only if you want to skip Clerk and use seed dev tokens for API calls.
+
+Single portal:
+
+```bash
 npm run dev:api          # http://localhost:4000
 npm run dev --workspace=@sompacare/nurse-portal   # http://localhost:3001
 ```
