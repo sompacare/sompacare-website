@@ -1,8 +1,5 @@
 import { PortalAuthShell } from "@/components/brand/portal-auth-shell";
 import { ClerkSignInPanel } from "@/components/auth/clerk-sign-in-panel";
-import { RedirectVercelAppSignIn } from "@/components/auth/redirect-vercel-app-sign-in";
-
-const ADMIN_PORTAL_ORIGIN = "https://admin.sompacare.com";
 
 export default function SignInPage() {
   return (
@@ -10,9 +7,7 @@ export default function SignInPage() {
       portalLabel="Admin Portal"
       subtitle="Sign in with your company email and password to manage operations, compliance, and platform settings."
     >
-      <RedirectVercelAppSignIn canonicalOrigin={ADMIN_PORTAL_ORIGIN}>
-        <ClerkSignInPanel />
-      </RedirectVercelAppSignIn>
+      <ClerkSignInPanel />
     </PortalAuthShell>
   );
 }
