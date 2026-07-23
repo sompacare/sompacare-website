@@ -41,7 +41,8 @@ function setSecret(name, value) {
   const tmp = path.join(root, `.gh-secret-${name}.tmp`);
   fs.writeFileSync(tmp, value, "utf8");
   try {
-    execSync(`gh secret set ${name} --repo ${repo} --body-file "${tmp}"`, {
+    const body = fs.readFileSync(tmp, "utf8");
+    execSync(`gh secret set ${name} --repo ${repo} --body ${JSON.stringify(body)}`, {
       cwd: root,
       stdio: "inherit",
       shell: true,
