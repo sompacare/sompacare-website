@@ -49,6 +49,7 @@
     "vercel:setup-phase1": "node scripts/vercel-setup-phase1.mjs",
     "vercel:sync-portals": "node scripts/vercel-sync-portal-framework.mjs",
     "vercel:sync-portal-env": "node scripts/vercel-sync-portal-env.mjs",
+    "vercel:promote-portals": "node scripts/vercel-promote-portals.mjs",
     "verify:clerk-emails": "node scripts/verify-clerk-emails.mjs",
     "stripe:install": "node scripts/stripe-install.mjs",
     "stripe:listen": "node scripts/stripe-listen.mjs"

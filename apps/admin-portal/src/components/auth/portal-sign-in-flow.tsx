@@ -16,6 +16,58 @@ type Props = {
   forgotPasswordUrl?: string;
 };
 
+function SignInConnectingForm({ forgotPasswordUrl }: { forgotPasswordUrl: string }) {
+  return (
+    <form className="space-y-4" aria-busy="true" onSubmit={(e) => e.preventDefault()}>
+      <div>
+        <label htmlFor="email" className="mb-2 block text-xs font-semibold uppercase text-navy">
+          Company Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          disabled
+          placeholder="you@sompacare.com"
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm opacity-70"
+        />
+      </div>
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <label htmlFor="password" className="text-xs font-semibold uppercase text-navy">
+            Password
+          </label>
+          <Link
+            href={forgotPasswordUrl}
+            className="text-xs font-semibold text-primary hover:underline"
+            tabIndex={-1}
+            aria-hidden="true"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          disabled
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm opacity-70"
+        />
+      </div>
+      <button
+        type="button"
+        disabled
+        className="w-full rounded-full bg-primary py-3 text-sm font-semibold text-white opacity-60"
+      >
+        Sign In
+      </button>
+      <p className="text-center text-xs text-muted" role="status">
+        Connecting to sign-in…
+      </p>
+    </form>
+  );
+}
+
 export function PortalSignInFlow({
   afterSignInUrl = "/home",
   forgotPasswordUrl = "/forgot-password",
@@ -67,16 +119,7 @@ export function PortalSignInFlow({
       );
     }
 
-    return (
-      <div className="flex flex-col items-center gap-3 py-8" aria-live="polite" aria-busy="true">
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
-          role="status"
-          aria-label="Loading sign-in"
-        />
-        <p className="text-sm text-muted">Loading sign-in…</p>
-      </div>
-    );
+    return <SignInConnectingForm forgotPasswordUrl={forgotPasswordUrl} />;
   }
 
   const clerkSignIn = signIn;
