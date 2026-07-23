@@ -1,7 +1,6 @@
-# One-time copy Render Postgres -> Supabase (direct 5432).
-# Secrets (Settings -> Secrets and variables -> Actions):
-#   RENDER_DATABASE_URL ? Render external connection string
-#   SUPABASE_DIRECT_URL ? Supabase direct URI (port 5432, not pooler)
+# One-time copy Render Postgres -> Supabase.
+# Secrets: RENDER_DATABASE_URL, SUPABASE_DIRECT_URL (Session pooler URI recommended for CI ? IPv4)
+# Enable pooler: Supabase Dashboard -> Project Settings -> Database -> Connection pooling -> Session mode URI
 
 name: Supabase data migrate
 
@@ -23,6 +22,14 @@ jobs:
             -v "$PWD:/dump" \
             postgres:18 \
             pg_dump "$RENDER_DATABASE_URL" --no-owner --no-acl -F c -f /dump/sompacare.dump
+          ls -lh sompacare.dump
+
+      - name: Upload Render dump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sompacare-render-dump
+          path: sompacare.dump
+          retention-days: 7
 
       - name: Restore into Supabase
         env:
@@ -35,6 +42,7 @@ jobs:
             pg_restore -d "$SUPABASE_DIRECT_URL" --no-owner --no-acl --clean --if-exists /dump/sompacare.dump
 
       - name: Prisma migrate deploy (idempotent)
+        if: success()
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
           DIRECT_DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
@@ -45,6 +53,7 @@ jobs:
         continue-on-error: true
 
       - name: Seed roles (idempotent)
+        if: success()
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
           DIRECT_DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
