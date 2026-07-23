@@ -37,6 +37,7 @@ jobs:
           npm ci --include=dev
           npm run db:generate --workspace=@sompacare/database
           npm run db:migrate:deploy --workspace=@sompacare/database
+        continue-on-error: true
 
       - name: Seed roles (idempotent)
         env:

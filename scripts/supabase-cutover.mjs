@@ -86,7 +86,28 @@ function run(cmdStr, env = {}) {
 
 function hasPgDump() {
   const r = spawnSync("pg_dump", ["--version"], { encoding: "utf8" });
-  return r.status === 0;
+  if (r.status === 0) return "local";
+  const docker = spawnSync("docker", ["ps"], { encoding: "utf8", shell: true });
+  if (docker.status === 0) return "docker";
+  return null;
+}
+
+function pgDumpDocker(renderUrl, dumpPath) {
+  const abs = path.resolve(dumpPath);
+  const dir = path.dirname(abs);
+  const file = path.basename(abs);
+  run(
+    `docker run --rm -v "${dir.replace(/\\/g, "/")}:/dump" postgres:17 pg_dump "${renderUrl.replace(/"/g, '\\"')}" --no-owner --no-acl -F c -f /dump/${file}`
+  );
+}
+
+function pgRestoreDocker(directUrl, dumpPath) {
+  const abs = path.resolve(dumpPath);
+  const dir = path.dirname(abs);
+  const file = path.basename(abs);
+  run(
+    `docker run --rm -v "${dir.replace(/\\/g, "/")}:/dump" postgres:17 pg_restore -d "${directUrl.replace(/"/g, '\\"')}" --no-owner --no-acl --clean --if-exists /dump/${file}`
+  );
 }
 
 const env = loadEnv();
@@ -101,7 +122,7 @@ if (cmd === "check") {
   console.log("Render source:", hostHint(renderSource), renderSource ? "" : "(set RENDER_DATABASE_URL)");
   console.log("Supabase direct (5432):", hostHint(direct));
   console.log("Supabase pooler (6543):", hostHint(pooler || env.DATABASE_URL));
-  console.log("pg_dump installed:", hasPgDump());
+  console.log("pg_dump installed:", hasPgDump() ?? "no (use GitHub Action)");
 
   const issues = [];
   if (!direct || !isSupabaseDirect(direct)) {
@@ -161,7 +182,8 @@ if (cmd === "data-migrate") {
     console.error("Need RENDER_DATABASE_URL (or Render DATABASE_URL) and DIRECT_DATABASE_URL");
     process.exit(1);
   }
-  if (!hasPgDump()) {
+  const pgTool = hasPgDump();
+  if (!pgTool) {
     console.log(`
 No pg_dump on this machine. Use GitHub Actions:
 
@@ -177,8 +199,13 @@ No pg_dump on this machine. Use GitHub Actions:
     process.exit(1);
   }
   const dumpPath = path.join(root, "sompacare-render.dump");
-  run(`pg_dump "${renderSource.replace(/"/g, '\\"')}" --no-owner --no-acl -F c -f "${dumpPath}"`);
-  run(`pg_restore -d "${direct.replace(/"/g, '\\"')}" --no-owner --no-acl --clean --if-exists "${dumpPath}"`);
+  if (pgTool === "docker") {
+    pgDumpDocker(renderSource, dumpPath);
+    pgRestoreDocker(direct, dumpPath);
+  } else {
+    run(`pg_dump "${renderSource.replace(/"/g, '\\"')}" --no-owner --no-acl -F c -f "${dumpPath}"`);
+    run(`pg_restore -d "${direct.replace(/"/g, '\\"')}" --no-owner --no-acl --clean --if-exists "${dumpPath}"`);
+  }
   console.log("\nData copy done. Run verify-pooler, then npm run vercel:sync-api-env and redeploy API.");
   process.exit(0);
 }
