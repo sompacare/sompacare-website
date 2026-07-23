@@ -1,0 +1,46 @@
+# One-time copy Render Postgres → Supabase (direct 5432).
+# Secrets (Settings → Secrets and variables → Actions):
+#   RENDER_DATABASE_URL — Render external connection string
+#   SUPABASE_DIRECT_URL — Supabase direct URI (port 5432, not pooler)
+
+name: Supabase data migrate
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Dump Render database
+        env:
+          RENDER_DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+        run: |
+          pg_dump "$RENDER_DATABASE_URL" --no-owner --no-acl -F c -f sompacare.dump
+
+      - name: Restore into Supabase
+        env:
+          SUPABASE_DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+        run: |
+          pg_restore -d "$SUPABASE_DIRECT_URL" --no-owner --no-acl --clean --if-exists sompacare.dump
+
+      - name: Prisma migrate deploy (idempotent)
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+        run: |
+          npm ci --include=dev
+          npm run db:generate --workspace=@sompacare/database
+          npm run db:migrate:deploy --workspace=@sompacare/database
+
+      - name: Seed roles (idempotent)
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+        run: npm run db:seed:roles --workspace=@sompacare/database
+        continue-on-error: true

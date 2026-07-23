@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Queue, Worker, type Job } from "bullmq";
+import type { ConnectionOptions } from "bullmq";
 import { NotificationsService } from "../notifications/notifications.service";
 import { RealtimeService } from "../realtime/realtime.service";
 
@@ -35,12 +36,23 @@ export class JobsService implements OnModuleDestroy {
     return this.config.get("JOBS_DEV_BYPASS", "true") === "true";
   }
 
-  private getConnection() {
-    const redisUrl = this.config.get("REDIS_URL", "redis://localhost:6379");
+  private getConnectionOptions(): ConnectionOptions | null {
+    const redisUrl = this.config.get<string>("REDIS_URL")?.trim();
+    if (!redisUrl) return null;
+
     const parsed = new URL(redisUrl);
+    const tls = redisUrl.startsWith("rediss://") ? {} : undefined;
+    const username = parsed.username && parsed.username !== "default" ? parsed.username : undefined;
+    const password = parsed.password ? decodeURIComponent(parsed.password) : undefined;
+
     return {
       host: parsed.hostname,
       port: Number(parsed.port) || 6379,
+      username,
+      password,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+      ...(tls !== undefined ? { tls } : {}),
     };
   }
 
@@ -51,7 +63,11 @@ export class JobsService implements OnModuleDestroy {
     }
 
     try {
-      const connection = this.getConnection();
+      const connection = this.getConnectionOptions();
+      if (!connection) {
+        this.logger.log("REDIS_URL unset — jobs use in-memory fallback");
+        return;
+      }
       this.queue = new Queue<ReminderJobData>("sompacare-reminders", { connection });
       this.worker = new Worker<ReminderJobData>(
         "sompacare-reminders",

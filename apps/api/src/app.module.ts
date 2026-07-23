@@ -44,12 +44,15 @@ import { PlatformModule } from "./modules/platform/platform.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [
-        join(process.cwd(), ".env"),
-        join(process.cwd(), "../../.env"),
-        join(process.cwd(), ".env.platform"),
-        join(process.cwd(), "../../.env.platform"),
-      ],
+      // On Vercel, use project env only — never load repo .env.platform (may set REDIS_URL=localhost).
+      envFilePath: process.env.VERCEL
+        ? []
+        : [
+            join(process.cwd(), ".env"),
+            join(process.cwd(), "../../.env"),
+            join(process.cwd(), ".env.platform"),
+            join(process.cwd(), "../../.env.platform"),
+          ],
     }),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],

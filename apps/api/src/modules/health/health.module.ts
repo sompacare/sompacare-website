@@ -29,10 +29,12 @@ export class HealthController {
     if (redisUrl) {
       redis = "ok";
       try {
+        const tls = redisUrl.startsWith("rediss://") ? {} : undefined;
         const client = new Redis(redisUrl, {
           maxRetriesPerRequest: 1,
           connectTimeout: 2000,
           lazyConnect: true,
+          ...(tls !== undefined ? { tls } : {}),
         });
         await client.connect();
         await client.ping();

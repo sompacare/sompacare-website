@@ -14,6 +14,7 @@ const project = "sompacare-api";
 
 const ENV_KEYS = [
   "DATABASE_URL",
+  "REDIS_URL",
   "CLERK_SECRET_KEY",
   "CLERK_WEBHOOK_SECRET",
   "CORS_ORIGINS",
@@ -95,6 +96,11 @@ if (!env.DATABASE_URL?.includes("postgres")) {
   console.error("Missing DATABASE_URL (Supabase pooler or Postgres URI) in .env.platform.live");
   process.exit(1);
 }
+if (env.DATABASE_URL.includes("render.com")) {
+  console.warn(
+    "\n[warn] DATABASE_URL still points at Render. For Layer 1, set Supabase transaction pooler (6543) in .env.platform.live before syncing to Vercel.\n"
+  );
+}
 if (!env.CLERK_SECRET_KEY?.startsWith("sk_")) {
   console.error("Missing CLERK_SECRET_KEY");
   process.exit(1);
@@ -109,6 +115,7 @@ for (const target of TARGETS) {
       key.includes("SECRET") ||
       key.includes("KEY") ||
       key === "DATABASE_URL" ||
+      key === "REDIS_URL" ||
       key.includes("TOKEN");
     const sensFlag = sensitive ? " --sensitive" : "";
     run(

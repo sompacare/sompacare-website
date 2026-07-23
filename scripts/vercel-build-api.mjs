@@ -23,6 +23,9 @@ if (!process.env.DATABASE_URL?.trim()) {
     "[vercel-build-api] DATABASE_URL unset at build time — OK if set in Vercel Production env."
   );
 }
+if (!process.env.DIRECT_DATABASE_URL?.trim() && process.env.DATABASE_URL?.trim()) {
+  process.env.DIRECT_DATABASE_URL = process.env.DATABASE_URL;
+}
 
 run("npx prisma@6.9.0 generate --schema packages/database/prisma/schema.prisma");
 const clientIndex = path.join(root, "node_modules/.prisma/client/index.js");

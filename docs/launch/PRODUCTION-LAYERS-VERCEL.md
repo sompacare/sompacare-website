@@ -24,12 +24,12 @@ Ops: [PHASE-1-VERCEL-PORTALS.md](./PHASE-1-VERCEL-PORTALS.md), `npm run vercel:s
 
 ## Layer 1 — Database on Supabase (before moving API off Render)
 
-1. Create Supabase project → copy **Transaction pooler** URI (`6543`, `?pgbouncer=true`).
-2. One-time migrate + seed roles (direct `5432` URL): see [STACK-VERCEL-SUPABASE.md](./STACK-VERCEL-SUPABASE.md) Phase 2.
-3. Optional: `pg_dump` Render Postgres → restore Supabase.
-4. GitHub secret `DATABASE_URL` (direct) for [supabase-migrate.yml](../../.github/workflows/supabase-migrate.yml).
+Full runbook: **[LAYER-1-SUPABASE-REDIS.md](./LAYER-1-SUPABASE-REDIS.md)** (Postgres pooler, data copy, **Upstash Redis**).
 
-**Render API** can keep using Render DB until Layer 2 cutover, or point Render `DATABASE_URL` at Supabase first as a test.
+1. Supabase → **Database** → copy **Transaction pooler** (`6543`) → `DATABASE_URL` and **direct** (`5432`) → `DIRECT_DATABASE_URL` in `.env.platform.live`.
+2. `npm run supabase:cutover:check` → `npm run supabase:cutover:migrate` → GitHub **Supabase data migrate** (or `supabase:cutover:data` with `pg_dump`).
+3. `npm run vercel:sync-api-env` + redeploy **sompacare-api**; connect **Upstash Redis** to set `REDIS_URL`.
+4. GitHub secret `DATABASE_URL` (direct 5432) for [supabase-migrate.yml](../../.github/workflows/supabase-migrate.yml).
 
 ---
 
@@ -68,7 +68,7 @@ Hit **`/api/v1/health`** on the `*.vercel.app` URL. When good, **`npx vercel --p
 
 If the preview URL returns a **Vercel login page** (HTML, not JSON), open **sompacare-api → Settings → Deployment Protection** and disable protection for **Preview** (or “Standard Protection” only on Production) so you can smoke-test before attaching `api.sompacare.com`.
 
-**Not on Vercel:** Socket.IO `/realtime` (portals use polling/fallback). **No Redis** unless you add it later — omit `REDIS_URL`.
+**Not on Vercel:** Socket.IO `/realtime` (portals use polling/fallback). **Redis:** use [Upstash via Vercel integration](./LAYER-1-SUPABASE-REDIS.md#5-redis-on-vercel-upstash) (`REDIS_URL` / `rediss://`).
 
 ---
 
@@ -96,6 +96,7 @@ After smoke passes for **48h** (optional soak):
 | Variable | Notes |
 |----------|--------|
 | `DATABASE_URL` | Supabase pooler + `connection_limit=1` |
+| `REDIS_URL` | Upstash Redis (`rediss://…`) when `JOBS_DEV_BYPASS=false` |
 | `CLERK_SECRET_KEY` | Same as portals |
 | `CLERK_WEBHOOK_SECRET` | Clerk dashboard |
 | `CORS_ORIGINS` | All `*.sompacare.com` + www |
