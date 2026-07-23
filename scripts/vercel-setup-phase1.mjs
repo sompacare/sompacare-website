@@ -155,21 +155,24 @@ async function ensureProject({ project, dir }) {
 }
 
 function pushEnv(project, env, withStripe) {
-  for (const key of ENV_KEYS) {
-    if (key === "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" && !withStripe) continue;
-    const value = env[key]?.trim();
-    if (!value) {
-      if (key.startsWith("NEXT_PUBLIC_CLERK") || key === "CLERK_SECRET_KEY") {
-        console.warn(`Skip ${project} env ${key} — not set locally.`);
+  const targets = ["production", "preview", "development"];
+  for (const target of targets) {
+    for (const key of ENV_KEYS) {
+      if (key === "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" && !withStripe) continue;
+      const value = env[key]?.trim();
+      if (!value) {
+        if (key.startsWith("NEXT_PUBLIC_CLERK") || key === "CLERK_SECRET_KEY") {
+          console.warn(`Skip ${project} env ${key} — not set locally.`);
+        }
+        continue;
       }
-      continue;
+      const sensitive = key.includes("SECRET") || key.includes("STRIPE") || key.startsWith("CLERK_");
+      const sensFlag = sensitive && target !== "development" ? " --sensitive" : "";
+      run(
+        `npx vercel env add ${key} ${target}${sensFlag} --force --yes --project ${project} --scope ${scope} --value "${value.replace(/"/g, '\\"')}"`,
+        root
+      );
     }
-    const sensitive = key.includes("SECRET") || key.includes("STRIPE") || key.startsWith("CLERK_");
-    const sensFlag = sensitive ? " --sensitive" : "";
-    run(
-      `npx vercel env add ${key} production${sensFlag} --force --yes --project ${project} --scope ${scope} --value "${value.replace(/"/g, '\\"')}"`,
-      root
-    );
   }
 }
 
