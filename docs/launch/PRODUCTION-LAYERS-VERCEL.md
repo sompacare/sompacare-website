@@ -46,11 +46,18 @@ Ops: [PHASE-1-VERCEL-PORTALS.md](./PHASE-1-VERCEL-PORTALS.md), `npm run vercel:s
 
 ```bash
 npm run vercel:setup-api
-# Add secrets to .env.platform.live or docs/launch/vercel-api.env.example → .env.vercel-api
+npm run vercel:sync-api-framework   # rootDirectory apps/api + monorepo flag
 npm run vercel:sync-api-env
 ```
 
-**Deploy (preview first):**
+**One-time in Vercel Dashboard → sompacare-api → Settings → General:**
+
+- **Root Directory:** `apps/api`
+- **Include source files outside root:** ON
+- **Production Branch:** `platform`
+- **Git:** connected to `sompacare/sompacare-website` (CLI: `vercel git connect` from `apps/api`)
+
+**Deploy (preview first — test before `api.sompacare.com`):**
 
 ```bash
 cd apps/api

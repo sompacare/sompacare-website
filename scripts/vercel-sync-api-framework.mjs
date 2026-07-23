@@ -14,20 +14,31 @@ const buildCommand = "cd ../.. && node scripts/vercel-build-api.mjs";
 
 function vercelToken() {
   if (process.env.VERCEL_TOKEN?.trim()) return process.env.VERCEL_TOKEN.trim();
-  const authPath = path.join(process.env.APPDATA ?? "", "com.vercel.cli", "auth.json");
-  if (!fs.existsSync(authPath)) return null;
-  return JSON.parse(fs.readFileSync(authPath, "utf8")).token ?? null;
+  const candidates = [
+    path.join(process.env.APPDATA ?? "", "com.vercel.cli", "auth.json"),
+    path.join(process.env.APPDATA ?? "", "xdg.data", "com.vercel.cli", "auth.json"),
+    path.join(process.env.HOME ?? process.env.USERPROFILE ?? "", ".local", "share", "com.vercel.cli", "auth.json"),
+  ];
+  for (const authPath of candidates) {
+    if (!fs.existsSync(authPath)) continue;
+    const auth = JSON.parse(fs.readFileSync(authPath, "utf8"));
+    if (auth.token) return auth.token;
+  }
+  return null;
 }
 
 async function patchProject(body) {
   const token = vercelToken();
-  if (!token) return;
+  if (!token) {
+    console.warn("No Vercel token — set VERCEL_TOKEN or run vercel login.");
+    return;
+  }
   const getRes = await fetch(
     `https://api.vercel.com/v9/projects/${encodeURIComponent(project)}?teamId=${scope}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!getRes.ok) {
-    console.warn(`Project ${project} not found (${getRes.status}) — create via npm run vercel:setup-api first.`);
+    console.warn(`Project ${project} not found (${getRes.status}): ${await getRes.text()}`);
     return;
   }
   const meta = await getRes.json();
@@ -36,21 +47,18 @@ async function patchProject(body) {
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  const patchText = await patchRes.text();
   if (!patchRes.ok) {
-    console.warn(`Patch failed: ${await patchRes.text()}`);
+    console.warn(`Patch failed (${patchRes.status}): ${patchText}`);
   } else {
-    console.log("Patched sompacare-api monorepo settings.");
+    console.log("Patched sompacare-api:", body, patchText.slice(0, 120));
   }
 }
 
 console.log(`Updating ${project}…`);
-const installEscaped = installCommand.replace(/"/g, '\\"');
-const buildEscaped = buildCommand.replace(/"/g, '\\"');
-execSync(
-  `npx vercel project update ${project} --scope ${scope} --framework null --install-command "${installEscaped}" --build-command "${buildEscaped}"`,
-  { stdio: "inherit", cwd: root }
-);
 await patchProject({
   rootDirectory: dir,
   sourceFilesOutsideRootDirectory: true,
 });
+console.log("Set rootDirectory=apps/api and sourceFilesOutsideRootDirectory=true.");
+console.log("Ensure GitHub repo is connected and Production Branch = platform (Vercel Dashboard).");
